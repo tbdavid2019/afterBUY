@@ -10,6 +10,13 @@
 - 建立專案規範 `AGENTS.md`，明定每次修改必記 CHANGELOG（以日期為標題）與重大改進修訂 README 之鐵律。
 - 開源授權設定：採用 **GNU Affero General Public License v3.0 (AGPL-3.0)** 並建立 `LICENSE` 檔案。
 - GitHub 儲存庫建立與同步：已正式建立公開儲存庫 [tbdavid2019/afterBUY](https://github.com/tbdavid2019/afterBUY) 並推送 `main` 分支。
+- **LLMs.txt 規範支援 (llmstxt.org)**：
+  - 建立 `/llms.txt` 與 `/.well-known/llms.txt`，提供結構化的專案簡介與快速導覽。
+  - 建立 `/llms-full.txt`，提供包含完整系統架構、密碼學認證流程、生命週期算式與 API 端點之全規格文件。
+  - 在 HTML Header 宣告 `<link rel="help" type="text/plain" href="/llms.txt" />`。
+- **OpenGraph 社群分享與預覽卡片 (opengraph.to)**：
+  - 建立 `public/og.svg` 與 `public/og.png`（1200x630 高畫質深色質感情境橫幅）。
+  - 在 `index.html` 補齊標準 OpenGraph (`og:title`, `og:description`, `og:image`, `og:url`, `og:type`, `og:site_name`, `og:locale`) 與 Twitter Card (`summary_large_image`) 標籤。
 - 完成 OpenSpec 提案與完整規格文件 `init-afterbuy-pwa`（6 大階段共 23 項任務全部實作完成）。
 - **本地環境與金鑰自動初始化**：
   - 自動生成 `.env`，包含真實 VAPID（公私鑰對）、`SESSION_SECRET` 與 `CRON_SECRET`。

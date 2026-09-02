@@ -2,6 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-tbdavid2019%2FafterBUY-black.svg?logo=github)](https://github.com/tbdavid2019/afterBUY)
+[![llms.txt](https://img.shields.io/badge/llms.txt-Standard-green.svg)](./public/llms.txt)
 
 > **買了之後，別再忘記換！**
 > 一款手機優先的 Cloudflare 邊緣原生 PWA 生活耗材週期更換、保存期限、保固與備品庫存管理工具。
@@ -42,6 +43,22 @@
   - **Cloudflare Scheduled**：每日晨間 08:00 定時排程通知。
 * **資料庫 ORM & 地端相容**：
   - **Drizzle ORM**：在 Cloudflare 生產環境綁定 `env.DB`（D1），地端開發環境可無縫切換為本地 SQLite（`local.db`）或 PostgreSQL。
+
+---
+
+## 🤖 LLMs.txt 規範支援
+
+本專案原生支援 [llmstxt.org](https://llmstxt.org/) 規範，提供結構化的 Markdown 摘要與完整規格：
+- **快速導覽**：[`/llms.txt`](./public/llms.txt)
+- **完整規格與 API 手冊**：[`/llms-full.txt`](./public/llms-full.txt)
+
+---
+
+## 🖼️ OpenGraph 社群分享
+
+已支援 [OpenGraph](https://www.opengraph.to/) 與 Twitter Card 標準：
+- **社群分享預覽圖**：[`/og.svg`](./public/og.svg) (1200x630)
+- **網頁標籤**：`index.html` 內建完整 `og:title`、`og:description`、`og:image` 與 `twitter:card`。
 
 ---
 

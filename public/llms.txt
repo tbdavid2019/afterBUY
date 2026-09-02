@@ -1,0 +1,21 @@
+# afterBUY
+
+> **買了之後，別再忘記換！**
+> afterBUY is a mobile-first Progressive Web Application (PWA) built for tracking personal item lifecycles, recurring consumable replacements (toothbrushes, water filters, contact lenses, air filters), period-after-opening (PAO) shelf life, warranty countdowns, and backup spare inventory.
+
+## Core Capabilities
+- [Item Lifecycle Tracking](https://afterbuy.app/): Interval replacement days countdown, PAO opening months, food/medicine expiry, and appliance warranties.
+- [One-Tap Replacement & Inventory Deduction](https://afterbuy.app/): One-tap "Replaced Today" action resets countdown timer, decrements backup stock, and records historical log.
+- [Passwordless Authentication](https://afterbuy.app/): WebAuthn / FIDO2 Passkey (Touch ID / Face ID / Windows Hello) and 6-digit Email OTP with rate limiting.
+- [RFC 5545 WebCal Calendar Feed](https://afterbuy.app/): Private `.ics` calendar subscription with deterministic `UID`, incrementing `SEQUENCE`, and 30-day `STATUS:CANCELLED` soft-deletion tombstones for zero stale calendar events.
+- [Multi-Channel Notifications](https://afterbuy.app/): PWA Web Push (VAPID), Daily Email Morning Digest (Resend), and Cloudflare Scheduled Cron Triggers.
+
+## Technology Stack
+- **Edge Backend**: Hono running on Cloudflare Workers (<15KB, ~0ms cold start).
+- **Storage Tier**: Cloudflare D1 (Relational SQLite), Cloudflare KV (Rate limits, OTP, Passkey challenge), Cloudflare R2 (Photos & receipts).
+- **Frontend PWA**: React 19 + TypeScript + Tailwind CSS + vite-plugin-pwa.
+- **Database ORM**: Drizzle ORM (multi-environment compatibility for Cloudflare D1, local SQLite, and PostgreSQL).
+
+## Repository & Links
+- [GitHub Repository](https://github.com/tbdavid2019/afterBUY): Source code licensed under GNU Affero General Public License v3.0 (AGPL-3.0).
+- [Full Documentation](https://afterbuy.app/llms-full.txt): Complete technical specification, API schemas, and data structures.

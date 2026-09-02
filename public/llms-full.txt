@@ -1,0 +1,114 @@
+# afterBUY — Full System & API Documentation
+
+> **買了之後，別再忘記換！**
+> afterBUY is an open-source, mobile-first, edge-native Progressive Web Application (PWA) designed to track household consumable replacement intervals, expiration dates, period-after-opening (PAO), appliance warranties, and backup spare inventory.
+
+---
+
+## 1. System Architecture Overview
+
+afterBUY runs natively on the Cloudflare Edge platform with full local development parity:
+
+1. **Edge API (Hono on Cloudflare Workers)**:
+   - Ultra-low latency edge router.
+   - Handles authentication, item lifecycle computations, calendar generation, and cron triggers.
+2. **Relational Database (Cloudflare D1 & Drizzle ORM)**:
+   - Serverless SQLite storing users, passkey credentials, items, replacement history, notification settings, and push subscriptions.
+3. **Transient State & Security (Cloudflare KV)**:
+   - 6-digit Email OTP storage with 10-minute auto-expiry TTL.
+   - 60-second cooldown and 5-request/day rate-limiting sliding windows.
+   - WebAuthn registration/assertion challenges with 5-minute TTL.
+4. **Object Storage (Cloudflare R2)**:
+   - S3-compatible zero-egress fee storage for item photos, warranty receipts, and sticker icons.
+5. **Frontend Client (Vite + React 19 + Tailwind CSS + PWA)**:
+   - Mobile-first responsive UI with iOS safe-area inset support (`pb-safe`).
+   - Service worker offline caching and Web Push reception.
+
+---
+
+## 2. Passwordless Authentication Model
+
+afterBUY eliminates traditional passwords via a dual-track passwordless architecture:
+
+### A. Passkey (FIDO2 / WebAuthn)
+- **Technology**: `@simplewebauthn/browser` & `@simplewebauthn/server`.
+- **Flow**:
+  1. Client requests challenge (`POST /api/auth/passkey/auth-options`).
+  2. Browser prompts Touch ID / Face ID / Windows Hello via `navigator.credentials.get()`.
+  3. Server verifies cryptographic signature against stored public key (`POST /api/auth/passkey/auth-verify`).
+  4. Server issues a 30-day HTTP-only HMAC-signed session cookie (`afterbuy_session`).
+
+### B. Email 6-Digit OTP (Passwordless Fallback & Onboarding)
+- **Flow**:
+  1. Client submits email (`POST /api/auth/otp/send`).
+  2. KV checks rate limits (1 req / 60s, 5 req / 24h).
+  3. Server generates cryptographically random 6-digit code, hashes with HMAC-SHA256, and sends via Resend API (or outputs to console in local dev).
+  4. Client submits OTP (`POST /api/auth/otp/verify`).
+  5. If user is new, transparently provisions user in D1; otherwise loads existing profile.
+  6. Server sets session cookie and invites user to register a Passkey on the current device.
+
+---
+
+## 3. Item Lifecycle & Health Engine
+
+### A. Tracking Modes
+1. **`cycle` (Interval Days)**: e.g., Toothbrush replaced every 90 days, water filter every 30/180 days.
+   - Formula: `nextDueDate = startDate + cycleDays`.
+2. **`pao` (Period After Opening)**: e.g., Sunscreen used within 12 months of opening.
+   - Formula: `nextDueDate = startDate + paoMonths`.
+3. **`expiry` (Fixed Expiration)**: Food, medicine, contact lens expiry date.
+   - Formula: `nextDueDate = expiryDate`.
+4. **`warranty` (Appliance/Gadget Warranty)**: Manufacturer warranty countdown.
+   - Formula: `nextDueDate = warrantyDate`.
+
+### B. Dynamic Health Status Computation
+Given `remainingDays = nextDueDate - currentDate`:
+- **`overdue` (🔴 Overdue)**: `remainingDays <= 0` (Lifespan % = 0).
+- **`due_soon` (🟡 Due Soon)**: `remainingDays <= 7` or `percentageRemaining <= 15%`.
+- **`healthy` (🟢 Healthy)**: `remainingDays > 7` and `percentageRemaining > 15%`.
+- **`needsRestock` (🛒 Restock Needed)**: `backupStock < minStockAlert`.
+
+---
+
+## 4. RFC 5545 WebCal Synchronization Protocol
+
+To solve the historic issue of stale or orphaned events in Apple Calendar, Google Calendar, and Outlook, afterBUY implements strict RFC 5545 compliance:
+
+- **Endpoint**: `/api/calendar/:token.ics` (served as `text/calendar; charset=utf-8`).
+- **Stable `UID`**: `UID:item-{itemId}@afterbuy.app`.
+- **Incrementing `SEQUENCE`**: Whenever an item's due date or title changes, `calendar_sequence` increments by 1.
+- **Soft-Deletion Tombstones (`STATUS:CANCELLED`)**: When an item is marked as replaced, completed, or deleted, it is retained for 30 days emitting:
+  ```text
+  BEGIN:VEVENT
+  UID:item-{itemId}@afterbuy.app
+  SEQUENCE:{calendar_sequence + 1}
+  STATUS:CANCELLED
+  SUMMARY:已取消：{name}
+  END:VEVENT
+  ```
+- **Local `VALARM`**: Every active event embeds `TRIGGER:-P1D` (1 day before) to alert locally on the user's phone regardless of calendar feed sync frequency.
+- **Token Rotation**: Users can revoke their subscription token instantly at `/api/calendar/rotate-token`.
+
+---
+
+## 5. API Reference Summary
+
+- `POST /api/auth/otp/send`: Send 6-digit OTP to email.
+- `POST /api/auth/otp/verify`: Verify OTP and establish session.
+- `POST /api/auth/passkey/auth-options`: Get WebAuthn assertion challenge.
+- `POST /api/auth/passkey/auth-verify`: Verify Passkey biometric response.
+- `GET /api/auth/me`: Get current session and registered devices.
+- `POST /api/auth/logout`: Invalidate session cookie.
+- `GET /api/items`: List all user items with computed health status.
+- `POST /api/items`: Create item.
+- `PUT /api/items/:id`: Update item.
+- `DELETE /api/items/:id`: Soft delete item.
+- `POST /api/items/:id/replace`: One-tap mark replaced (resets date, decrements stock).
+- `POST /api/items/:id/stock`: Adjust backup inventory count.
+- `GET /api/items/:id/history`: Get replacement logs.
+- `GET /api/calendar/:token.ics`: Dynamic RFC 5545 iCalendar stream.
+- `POST /api/calendar/rotate-token`: Regenerate calendar token.
+- `GET /api/notifications/settings`: Get user notification preferences.
+- `PUT /api/notifications/settings`: Update notification preferences.
+- `POST /api/notifications/push-subscribe`: Register Web Push subscription.
+- `POST /api/upload`: Upload photo to Cloudflare R2 bucket.
