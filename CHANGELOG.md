@@ -6,6 +6,16 @@
 
 ## 2026-09-02
 
+### Security
+- **Cloudflare Security Audit 完整資安審計與強化**：
+  - 安裝 `cloudflare/security-audit-skill` 並完成全代碼庫 6 階段資安審計（產出 `architecture.md`、`REPORT.md`、`FINDINGS-DETAIL.md` 與驗證合規之 `findings.json`）。
+  - **SEC-01 修復**：在 `src/api/routes/upload.ts` 建立嚴格圖片 MIME 類型白名單（JPG/PNG/WEBP/GIF），阻斷 SVG/HTML 檔案偽裝上傳，並在 `/api/media/*` 端點強制注入 `Content-Security-Policy: default-src 'none'; sandbox` 與 `X-Content-Type-Options: nosniff` 標頭，徹底杜絕 Stored XSS 漏洞。
+  - **SEC-02 修復**：在 `src/api/routes/auth.ts` 中移除 API 回應中的 `devOtp` 明文外洩，確保未配置 Resend 金鑰時仍絕無帳號被未授權接管之可能。
+  - **SEC-03 修復**：在 `DELETE /api/auth/passkey/:id` 刪除查詢中加入 `userId` 雙重比對條件，修補 IDOR 權限越權漏洞。
+  - **SEC-04 修復**：在 `src/api/routes/calendar.ts` 實作 RFC 5545 `sanitizeIcsText`，過濾並跳脫 `\r\n`、`,`、`;`、`\`，防止 iCalendar CRLF 協定注入攻擊。
+  - **SEC-05 修復**：在 `src/api/routes/notifications.ts` 實作 `escapeHtml`，防止物品名稱在晨間 Email 摘要中引發 HTML 注入。
+  - **SEC-06 修復**：在排程 Cron Bearer Token 驗證中採用常數時間字串比較（`timingSafeEqual`），防範時間差攻擊。
+
 ### Added
 - 建立專案規範 `AGENTS.md`，明定每次修改必記 CHANGELOG（以日期為標題）與重大改進修訂 README 之鐵律。
 - 開源授權設定：採用 **GNU Affero General Public License v3.0 (AGPL-3.0)** 並建立 `LICENSE` 檔案。
@@ -42,13 +52,3 @@
   - `tests/lifecycle_and_auth.test.ts`：9 項單元測試全部 100% 通過。
   - `pnpm verify`：端對端真實整合驗證全部通過。
   - 產出 `dist/` PWA Service Worker 與 Web Manifest。
-
-### Changed
-- 全面整理前端視覺語言：淺色主題採無印良品風格的米白、灰褐與低飽和紅棕；深色主題採青花瓷藍的墨藍、瓷藍與瓷白。
-- 新增淺色／深色主題切換，保存使用者偏好並同步瀏覽器 `theme-color`。
-- 優化 dashboard、時程、補貨、設定、登入、物品編輯與履歷介面的資訊層級、按鈕對比、鍵盤 focus、ARIA 標記與手機安全間距。
-- Dashboard 改以「該處理／狀態良好／要補貨」三段摘要引導操作，並降低漸層、陰影與裝飾性卡片的使用。
-- 使用 GPT Image 產生 4 張統一風格的無品牌生活物品預設圖：牙刷刷頭、淨水器濾芯、防曬乳與除濕機，存放於 `public/images/items/`。
-- 物品卡片支援顯示圖片；新增物品時套用常用範本會自動帶入對應圖片。
-- 將牙刷預設圖調整為獨立替換刷頭構圖，使圖片與物品名稱精準對應。
-- 擴充預設圖組至 11 張，新增活性碳濾芯、冷氣濾網、洗碗海綿、隱形眼鏡保養液、眼藥水、刮鬍刀刀片與 HEPA 濾網，並讓 10 種常用範本全部自動帶入圖片。

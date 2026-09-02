@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -87,14 +87,14 @@ authRouter.post('/otp/send', async (c) => {
       console.error('Failed to send Resend email:', err);
     }
   } else {
-    // In local dev without Resend key, log to console for easy testing
+    // In local dev without Resend key, log to console only
     console.log(`[DEV OTP] Verification code for ${normalizedEmail} is: ${otp}`);
   }
 
+  // SEC-02 Fixed: Never expose OTP code in HTTP response JSON
   return c.json({
     success: true,
     message: '驗證碼已寄出',
-    devOtp: !c.env.RESEND_API_KEY ? otp : undefined
   });
 });
 
@@ -377,7 +377,7 @@ authRouter.get('/me', async (c) => {
   return c.json({ user, devices });
 });
 
-// 8. Delete a Passkey Credential
+// 8. Delete a Passkey Credential (SEC-03 Fixed: Scoped by userId to prevent IDOR)
 authRouter.delete('/passkey/:id', async (c) => {
   const sessionToken = getCookie(c, 'afterbuy_session');
   if (!sessionToken) return c.json({ error: '請先登入' }, 401);
@@ -390,7 +390,7 @@ authRouter.delete('/passkey/:id', async (c) => {
 
   await db
     .delete(passkeyCredentials)
-    .where(eq(passkeyCredentials.id, credId))
+    .where(and(eq(passkeyCredentials.id, credId), eq(passkeyCredentials.userId, user.id)))
     .run();
 
   return c.json({ success: true, message: 'Passkey 憑證已刪除' });

@@ -9,6 +9,17 @@ import { TrackingMode } from '../../shared/types.ts';
 
 export const notificationsRouter = new Hono<HonoEnv>();
 
+// HTML escaping helper (SEC-05 Fixed)
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // 1. Get Notification Settings
 notificationsRouter.get('/settings', requireAuth, async (c) => {
   const user = c.get('user')!;
@@ -225,14 +236,14 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
       }
     }
 
-    // B. Send Email Digest
+    // B. Send Email Digest (SEC-05 Fixed: HTML escaping on user inputs)
     if (emailEnabled && env.RESEND_API_KEY) {
       try {
         const itemRows = urgentItems
           .map(
             (i) => `
             <tr style="border-bottom: 1px solid #334155;">
-              <td style="padding: 12px 8px; font-weight: 600; color: #f8fafc;">${i.item.name}</td>
+              <td style="padding: 12px 8px; font-weight: 600; color: #f8fafc;">${escapeHtml(i.item.name)}</td>
               <td style="padding: 12px 8px; color: ${i.daysRemaining <= 0 ? '#f43f5e' : '#f59e0b'};">
                 ${i.daysRemaining <= 0 ? '🔥 今日已到期' : `⏳ 剩餘 ${i.daysRemaining} 天`}
               </td>
@@ -280,12 +291,26 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
   }
 }
 
-// 6. Cron trigger HTTP endpoint (with CRON_SECRET auth)
+// 6. Cron trigger HTTP endpoint (SEC-06 Fixed: constant-time comparison)
 notificationsRouter.post('/cron-trigger', async (c) => {
   const authHeader = c.req.header('Authorization');
   const expectedSecret = c.env.CRON_SECRET || 'afterbuy-cron-secret-local';
+  const expectedBearer = `Bearer ${expectedSecret}`;
 
-  if (authHeader !== `Bearer ${expectedSecret}`) {
+  if (!authHeader || authHeader.length !== expectedBearer.length) {
+    return c.json({ error: '401 Unauthorized' }, 401);
+  }
+
+  // Constant-time comparison
+  const encoder = new TextEncoder();
+  const a = encoder.encode(authHeader);
+  const b = encoder.encode(expectedBearer);
+  let match = 0;
+  for (let i = 0; i < a.length; i++) {
+    match |= a[i] ^ b[i];
+  }
+
+  if (match !== 0) {
     return c.json({ error: '401 Unauthorized' }, 401);
   }
 

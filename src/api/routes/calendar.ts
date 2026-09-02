@@ -9,6 +9,17 @@ import { generateRandomToken } from '../utils/auth.ts';
 
 export const calendarRouter = new Hono<HonoEnv>();
 
+// Sanitize user strings for RFC 5545 text properties (SEC-04 Fixed)
+function sanitizeIcsText(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\r\n|\r|\n/g, '\\n')
+    .trim();
+}
+
 // 1. Dynamic RFC 5545 WebCal stream endpoint
 calendarRouter.get('/:token.ics', async (c) => {
   const token = c.req.param('token');
@@ -53,6 +64,8 @@ calendarRouter.get('/:token.ics', async (c) => {
     const sequence = isCancelled ? item.calendarSequence + 1 : item.calendarSequence;
 
     const actionText = item.trackingMode === 'warranty' ? '保固到期' : item.trackingMode === 'expiry' ? '有效期限' : '更換提醒';
+    const safeName = sanitizeIcsText(item.name);
+    const safeCategory = sanitizeIcsText(item.category);
 
     if (isCancelled) {
       return [
@@ -61,7 +74,7 @@ calendarRouter.get('/:token.ics', async (c) => {
         `DTSTAMP:${nowIsoCompact}`,
         `DTSTART;VALUE=DATE:${dueDateFormatted}`,
         `DTEND;VALUE=DATE:${dueDateFormatted}`,
-        `SUMMARY:已取消：${item.name}`,
+        `SUMMARY:已取消：${safeName}`,
         `SEQUENCE:${sequence}`,
         'STATUS:CANCELLED',
         'END:VEVENT',
@@ -74,13 +87,13 @@ calendarRouter.get('/:token.ics', async (c) => {
       `DTSTAMP:${nowIsoCompact}`,
       `DTSTART;VALUE=DATE:${dueDateFormatted}`,
       `DTEND;VALUE=DATE:${dueDateFormatted}`,
-      `SUMMARY:🔄 該換了：${item.name} (${actionText})`,
-      `DESCRIPTION:類別: ${item.category}\\n目前備品庫存: ${item.backupStock}\\n點擊前往 afterBUY 查看並更換: ${appOrigin}`,
+      `SUMMARY:🔄 該換了：${safeName} (${actionText})`,
+      `DESCRIPTION:類別: ${safeCategory}\\n目前備品庫存: ${item.backupStock}\\n點擊前往 afterBUY 查看並更換: ${appOrigin}`,
       `SEQUENCE:${sequence}`,
       'STATUS:CONFIRMED',
       'BEGIN:VALARM',
       'ACTION:DISPLAY',
-      `DESCRIPTION:提醒：${item.name} 今日該更換/到期！`,
+      `DESCRIPTION:提醒：${safeName} 今日該更換/到期！`,
       'TRIGGER:-P1D',
       'END:VALARM',
       'END:VEVENT',
