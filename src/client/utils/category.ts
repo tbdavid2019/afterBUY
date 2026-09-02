@@ -26,17 +26,18 @@ export interface ItemPreset {
   paoMonths?: number;
   minStockAlert: number;
   notes?: string;
+  imageUrl?: string;
 }
 
 export const ITEM_PRESETS: ItemPreset[] = [
-  { name: '牙刷更換', category: 'bathroom', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 2, notes: '牙醫師建議每 3 個月更換一次' },
-  { name: '淨水器濾芯 (PP棉)', category: 'kitchen', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 1, notes: '第一道前置濾芯' },
-  { name: '淨水器活性碳濾芯', category: 'kitchen', trackingMode: 'cycle', cycleDays: 180, minStockAlert: 1, notes: '第二道/第三道濾芯' },
-  { name: '冷氣機濾網清洗', category: 'appliances', trackingMode: 'cycle', cycleDays: 30, minStockAlert: 0, notes: '定期水洗維持冷房效率' },
-  { name: '洗碗海綿菜瓜布', category: 'kitchen', trackingMode: 'cycle', cycleDays: 30, minStockAlert: 2, notes: '易滋生細菌，建議每月換新' },
-  { name: '隱形眼鏡保養液', category: 'medicine', trackingMode: 'pao', paoMonths: 3, minStockAlert: 1, notes: '開封後 90 天內須用完' },
-  { name: '防曬乳開封保存', category: 'skincare', trackingMode: 'pao', paoMonths: 12, minStockAlert: 1, notes: '開封後 12 個月防曬成分易變質' },
-  { name: '眼藥水開封保存', category: 'medicine', trackingMode: 'pao', paoMonths: 1, minStockAlert: 1, notes: '開封後 1 個月內用畢' },
-  { name: '刮鬍刀刀片', category: 'bathroom', trackingMode: 'cycle', cycleDays: 45, minStockAlert: 2, notes: '定期更換保持鋒利衛生' },
-  { name: '空氣清淨機 HEPA 濾網', category: 'appliances', trackingMode: 'cycle', cycleDays: 365, minStockAlert: 1, notes: '原廠建議一年更換一次' },
+  { name: '牙刷更換', category: 'bathroom', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 2, notes: '牙醫師建議每 3 個月更換一次', imageUrl: '/images/items/toothbrush-head.png' },
+  { name: '淨水器濾芯 (PP棉)', category: 'kitchen', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 1, notes: '第一道前置濾芯', imageUrl: '/images/items/water-filter.png' },
+  { name: '淨水器活性碳濾芯', category: 'kitchen', trackingMode: 'cycle', cycleDays: 180, minStockAlert: 1, notes: '第二道/第三道濾芯', imageUrl: '/images/items/carbon-filter.png' },
+  { name: '冷氣機濾網清洗', category: 'appliances', trackingMode: 'cycle', cycleDays: 30, minStockAlert: 0, notes: '定期水洗維持冷房效率', imageUrl: '/images/items/aircon-filter.png' },
+  { name: '洗碗海綿菜瓜布', category: 'kitchen', trackingMode: 'cycle', cycleDays: 30, minStockAlert: 2, notes: '易滋生細菌，建議每月換新', imageUrl: '/images/items/dish-sponge.png' },
+  { name: '隱形眼鏡保養液', category: 'medicine', trackingMode: 'pao', paoMonths: 3, minStockAlert: 1, notes: '開封後 90 天內須用完', imageUrl: '/images/items/contact-lens-solution.png' },
+  { name: '防曬乳開封保存', category: 'skincare', trackingMode: 'pao', paoMonths: 12, minStockAlert: 1, notes: '開封後 12 個月防曬成分易變質', imageUrl: '/images/items/sunscreen.png' },
+  { name: '眼藥水開封保存', category: 'medicine', trackingMode: 'pao', paoMonths: 1, minStockAlert: 1, notes: '開封後 1 個月內用畢', imageUrl: '/images/items/eye-drops.png' },
+  { name: '刮鬍刀刀片', category: 'bathroom', trackingMode: 'cycle', cycleDays: 45, minStockAlert: 2, notes: '定期更換保持鋒利衛生', imageUrl: '/images/items/razor-cartridge.png' },
+  { name: '空氣清淨機 HEPA 濾網', category: 'appliances', trackingMode: 'cycle', cycleDays: 365, minStockAlert: 1, notes: '原廠建議一年更換一次', imageUrl: '/images/items/hepa-filter.png' },
 ];

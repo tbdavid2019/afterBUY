@@ -129,7 +129,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         </div>
       </div>
 
-      <h3 className="text-[17px] font-bold tracking-[-0.015em] text-white truncate mb-4">{item.name}</h3>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="app-surface-subtle w-14 h-14 shrink-0 rounded-2xl border flex items-center justify-center overflow-hidden">
+          {item.imageUrl ? (
+            <img src={item.imageUrl} alt="" className="w-full h-full object-contain p-1.5" loading="lazy" />
+          ) : (
+            <Package className="w-5 h-5 text-slate-500" aria-hidden="true" />
+          )}
+        </div>
+        <h3 className="text-[17px] font-bold tracking-[-0.015em] text-white truncate">{item.name}</h3>
+      </div>
 
       {/* Progress & Countdown Section */}
       <div className="mb-4">

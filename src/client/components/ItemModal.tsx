@@ -75,6 +75,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     if (preset.paoMonths) setPaoMonths(preset.paoMonths);
     if (preset.minStockAlert !== undefined) setMinStockAlert(preset.minStockAlert);
     if (preset.notes) setNotes(preset.notes);
+    setImageUrl(preset.imageUrl || '');
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
