@@ -1,5 +1,8 @@
 # afterBUY 🛒
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-tbdavid2019%2FafterBUY-black.svg?logo=github)](https://github.com/tbdavid2019/afterBUY)
+
 > **買了之後，別再忘記換！**
 > 一款手機優先的 Cloudflare 邊緣原生 PWA 生活耗材週期更換、保存期限、保固與備品庫存管理工具。
 
@@ -24,8 +27,7 @@
    - **Phase 2 (VIP 加值)**：
      - **VIP SMS**：高優先級緊急耗材缺貨與到期簡訊（排除 LINE / Telegram）。
 5. **行動優先設計（Mobile-First RWD）**：
-   - 專為單手操作設計的底部導覽列（含 iOS 安全邊界 `pb-safe`）與清楚的生命週期進度條。
-   - 淺色主題採無印良品風格；深色主題採青花瓷藍風格，可在右上角切換並自動保存偏好。
+   - 專為單手操作設計的底部導覽列（含 iOS 安全邊界 `pb-safe`）、壽命健康度圓環/進度條、深淺色模式。
 
 ---
 
@@ -117,6 +119,12 @@ pnpm dev
 # 4. 建置 PWA 生產環境 Bundle
 pnpm build
 ```
+
+---
+
+## 📜 開源授權
+
+本專案採用 **[GNU Affero General Public License v3.0 (AGPL-3.0)](./LICENSE)** 授權開源。
 
 ---
 

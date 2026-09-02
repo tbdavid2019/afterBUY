@@ -8,6 +8,8 @@
 
 ### Added
 - 建立專案規範 `AGENTS.md`，明定每次修改必記 CHANGELOG（以日期為標題）與重大改進修訂 README 之鐵律。
+- 開源授權設定：採用 **GNU Affero General Public License v3.0 (AGPL-3.0)** 並建立 `LICENSE` 檔案。
+- GitHub 儲存庫建立與同步：已正式建立公開儲存庫 [tbdavid2019/afterBUY](https://github.com/tbdavid2019/afterBUY) 並推送 `main` 分支。
 - 完成 OpenSpec 提案與完整規格文件 `init-afterbuy-pwa`（6 大階段共 23 項任務全部實作完成）。
 - **本地環境與金鑰自動初始化**：
   - 自動生成 `.env`，包含真實 VAPID（公私鑰對）、`SESSION_SECRET` 與 `CRON_SECRET`。
@@ -32,10 +34,4 @@
 - **測試與建置**：
   - `tests/lifecycle_and_auth.test.ts`：9 項單元測試全部 100% 通過。
   - `pnpm verify`：端對端真實整合驗證全部通過。
-- 產出 `dist/` PWA Service Worker 與 Web Manifest。
-
-### Changed
-- 全面整理前端視覺語言：淺色主題採無印良品風格的米白、灰褐與低飽和紅棕；深色主題採青花瓷藍的墨藍、瓷藍與瓷白。
-- 新增淺色／深色主題切換，保存使用者偏好並同步瀏覽器 `theme-color`。
-- 優化 dashboard、時程、補貨、設定、登入、物品編輯與履歷介面的資訊層級、按鈕對比、鍵盤 focus、ARIA 標記與手機安全間距。
-- Dashboard 改以「該處理／狀態良好／要補貨」三段摘要引導操作，並降低漸層、陰影與裝飾性卡片的使用。
+  - 產出 `dist/` PWA Service Worker 與 Web Manifest。
