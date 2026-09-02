@@ -1,0 +1,259 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --app-bg: #f2f0ea;
+    --app-text: #272522;
+    --app-muted: #716d65;
+    --app-muted-low: #969188;
+    --app-surface: #fbfaf7;
+    --app-surface-subtle: #e8e5dd;
+    --app-border: #d8d3c9;
+    --app-accent: #a44f40;
+    --app-accent-strong: #833b31;
+    --app-accent-soft: #f1dfd8;
+    color-scheme: light;
+  }
+
+  :root[data-theme='dark'] {
+    --app-bg: #081f33;
+    --app-text: #f1f7f8;
+    --app-muted: #a9c0c9;
+    --app-muted-low: #7895a4;
+    --app-surface: #0d2d48;
+    --app-surface-subtle: #123c5c;
+    --app-border: #245a7c;
+    --app-accent: #9ed6eb;
+    --app-accent-strong: #d8f0f5;
+    --app-accent-soft: #16496b;
+    color-scheme: dark;
+  }
+
+  html {
+    background: var(--app-bg);
+  }
+
+  body {
+    min-width: 320px;
+    background: var(--app-bg);
+    color: var(--app-text);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-shell {
+    background: var(--app-bg) !important;
+    color: var(--app-text) !important;
+  }
+
+  .app-header {
+    background: color-mix(in srgb, var(--app-bg) 94%, transparent) !important;
+    border-color: var(--app-border) !important;
+  }
+
+  .app-navbar {
+    background: color-mix(in srgb, var(--app-bg) 96%, transparent) !important;
+    border-color: var(--app-border) !important;
+  }
+
+  .app-surface {
+    background: var(--app-surface) !important;
+    border-color: var(--app-border) !important;
+  }
+
+  .app-surface-subtle {
+    background: var(--app-surface-subtle) !important;
+    border-color: var(--app-border) !important;
+  }
+
+  .app-copy-muted {
+    color: var(--app-muted) !important;
+  }
+
+  .app-copy-low {
+    color: var(--app-muted-low) !important;
+  }
+
+  .app-control {
+    background: var(--app-surface-subtle) !important;
+    border-color: var(--app-border) !important;
+    color: var(--app-text) !important;
+  }
+
+  .app-primary {
+    background: var(--app-accent) !important;
+    color: var(--app-bg) !important;
+  }
+
+  .app-primary-soft {
+    background: var(--app-accent-soft) !important;
+    border-color: color-mix(in srgb, var(--app-accent) 45%, transparent) !important;
+    color: var(--app-accent-strong) !important;
+  }
+
+  .app-nav-item-active {
+    background: var(--app-accent-soft) !important;
+    color: var(--app-accent-strong) !important;
+  }
+
+  /* Re-tint the older utility-driven surfaces while the rest of the UI moves to tokens. */
+  [data-theme='light'] [class~='bg-slate-950'],
+  [data-theme='light'] [class~='bg-slate-950/50'],
+  [data-theme='light'] [class~='bg-slate-950/60'] {
+    background-color: #e7e3db !important;
+  }
+
+  [data-theme='light'] [class~='bg-slate-900'],
+  [data-theme='light'] [class~='bg-slate-900/40'],
+  [data-theme='light'] [class~='bg-slate-900/50'],
+  [data-theme='light'] [class~='bg-slate-900/60'],
+  [data-theme='light'] [class~='bg-slate-900/70'],
+  [data-theme='light'] [class~='bg-slate-900/80'],
+  [data-theme='light'] [class~='bg-slate-900/90'] {
+    background-color: var(--app-surface) !important;
+  }
+
+  [data-theme='light'] [class~='bg-slate-800'],
+  [data-theme='light'] [class~='bg-slate-800/80'] {
+    background-color: var(--app-surface-subtle) !important;
+  }
+
+  [data-theme='light'] [class~='border-slate-800'],
+  [data-theme='light'] [class~='border-slate-800/60'],
+  [data-theme='light'] [class~='border-slate-800/80'],
+  [data-theme='light'] [class~='border-slate-700'] {
+    border-color: var(--app-border) !important;
+  }
+
+  [data-theme='light'] [class~='text-white'],
+  [data-theme='light'] [class~='text-slate-100'],
+  [data-theme='light'] [class~='text-slate-200'],
+  [data-theme='light'] [class~='text-slate-300'] {
+    color: var(--app-text) !important;
+  }
+
+  [data-theme='light'] [class~='text-slate-400'] {
+    color: var(--app-muted) !important;
+  }
+
+  [data-theme='light'] [class~='text-slate-500'] {
+    color: var(--app-muted-low) !important;
+  }
+
+  [data-theme='light'] [class~='text-sky-300'],
+  [data-theme='light'] [class~='text-sky-400'] {
+    color: var(--app-accent-strong) !important;
+  }
+
+  [data-theme='light'] [class~='bg-sky-500/10'],
+  [data-theme='light'] [class~='bg-sky-500/20'] {
+    background-color: var(--app-accent-soft) !important;
+  }
+
+  [data-theme='light'] [class~='border-sky-500/20'],
+  [data-theme='light'] [class~='border-sky-500/30'],
+  [data-theme='light'] [class~='border-sky-500/40'] {
+    border-color: color-mix(in srgb, var(--app-accent) 35%, transparent) !important;
+  }
+
+  [data-theme='light'] [class~='text-emerald-400'],
+  [data-theme='light'] [class~='text-emerald-300'] {
+    color: #3f7657 !important;
+  }
+
+  [data-theme='light'] [class~='text-amber-400'],
+  [data-theme='light'] [class~='text-amber-300'] {
+    color: #86601d !important;
+  }
+
+  [data-theme='light'] [class~='text-rose-400'],
+  [data-theme='light'] [class~='text-rose-300'] {
+    color: #a33f4c !important;
+  }
+
+  [data-theme='light'] [class~='text-cyan-400'] {
+    color: #2c7477 !important;
+  }
+
+  [data-theme='light'] [class~='text-pink-400'] {
+    color: #995566 !important;
+  }
+
+  [data-theme='light'] [class~='text-indigo-400'],
+  [data-theme='light'] [class~='text-indigo-300'],
+  [data-theme='light'] [class~='text-violet-400'] {
+    color: #5c6584 !important;
+  }
+
+  [data-theme='dark'] [class~='bg-slate-950'] {
+    background-color: var(--app-bg) !important;
+  }
+
+  [data-theme='dark'] [class~='bg-slate-900'],
+  [data-theme='dark'] [class~='bg-slate-900/40'],
+  [data-theme='dark'] [class~='bg-slate-900/50'],
+  [data-theme='dark'] [class~='bg-slate-900/60'],
+  [data-theme='dark'] [class~='bg-slate-900/70'],
+  [data-theme='dark'] [class~='bg-slate-900/80'],
+  [data-theme='dark'] [class~='bg-slate-900/90'] {
+    background-color: var(--app-surface) !important;
+  }
+
+  [data-theme='dark'] [class~='bg-slate-800'],
+  [data-theme='dark'] [class~='bg-slate-800/80'] {
+    background-color: var(--app-surface-subtle) !important;
+  }
+
+  [data-theme='dark'] [class~='border-slate-800'],
+  [data-theme='dark'] [class~='border-slate-800/60'],
+  [data-theme='dark'] [class~='border-slate-800/80'],
+  [data-theme='dark'] [class~='border-slate-700'] {
+    border-color: var(--app-border) !important;
+  }
+
+  ::selection {
+    background: #7dd3fc;
+    color: #082f49;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  button:focus-visible,
+  input:focus-visible {
+    outline: 2px solid #7dd3fc;
+    outline-offset: 2px;
+  }
+}
+
+/* Custom utilities for iOS Home Bar & Mobile Safe Inset */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Keep the browser chrome in the same visual system as the app surface. */
+  * {
+  scrollbar-color: var(--app-border) var(--app-bg);
+  scrollbar-width: thin;
+}

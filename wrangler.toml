@@ -1,0 +1,35 @@
+name = "afterbuy"
+main = "src/api/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "afterbuy-db"
+database_id = "afterbuy-d1-local"
+migrations_dir = "drizzle/migrations"
+
+# Cloudflare KV Namespace Binding (OTP / Rate limit / Passkey challenge)
+[[kv_namespaces]]
+binding = "KV"
+id = "afterbuy-kv-local"
+
+# Cloudflare R2 Bucket Binding (Photos / Receipts / Stickers)
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "afterbuy-r2-local"
+
+# Cloudflare Scheduled Triggers (Daily Cron at 08:00 AM UTC+8 = 00:00 UTC)
+[triggers]
+crons = ["0 0 * * *"]
+
+[vars]
+APP_NAME = "afterBUY"
+APP_ORIGIN = "http://localhost:5173"
+RESEND_API_KEY = ""
+VAPID_PUBLIC_KEY = ""
+VAPID_PRIVATE_KEY = ""
+VAPID_SUBJECT = "mailto:support@afterbuy.app"
+CRON_SECRET = "afterbuy-cron-secret-local"
+SESSION_SECRET = "afterbuy-super-secure-session-secret-local-32chars"
