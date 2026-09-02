@@ -109,7 +109,7 @@ itemsRouter.post('/', async (c) => {
   return c.json({ success: true, item: newItem }, 201);
 });
 
-// 3. Update existing item
+// 3. Update existing item (Defense-in-depth: scoped strictly by userId)
 itemsRouter.put('/:id', async (c) => {
   const user = c.get('user')!;
   const itemId = c.req.param('id');
@@ -144,7 +144,10 @@ itemsRouter.put('/:id', async (c) => {
     updatedAt: nowIso,
   };
 
-  await db.update(items).set(updatedData).where(eq(items.id, itemId));
+  await db
+    .update(items)
+    .set(updatedData)
+    .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
 
   return c.json({ success: true, item: { ...existing, ...updatedData } });
 });
@@ -173,7 +176,7 @@ itemsRouter.delete('/:id', async (c) => {
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
     })
-    .where(eq(items.id, itemId));
+    .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
 
   return c.json({ success: true, message: '物品已刪除' });
 });
@@ -207,7 +210,7 @@ itemsRouter.post('/:id/replace', async (c) => {
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
     })
-    .where(eq(items.id, itemId));
+    .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
 
   // Record history
   const historyRecord = {
@@ -260,7 +263,7 @@ itemsRouter.post('/:id/stock', async (c) => {
       backupStock: newStock,
       updatedAt: nowIso,
     })
-    .where(eq(items.id, itemId));
+    .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
 
   return c.json({ success: true, backupStock: newStock });
 });
