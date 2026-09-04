@@ -51,6 +51,55 @@ uploadRouter.post('/upload', requireAuth, async (c) => {
   return c.json({ success: true, url: dataUrl });
 });
 
+// Batch Upload multiple images to Cloudflare R2
+uploadRouter.post('/upload/batch', requireAuth, async (c) => {
+  const formData = await c.req.formData();
+  let fileEntries = formData.getAll('files').filter((f): f is File => f instanceof File);
+
+  if (fileEntries.length === 0) {
+    const single = formData.get('file');
+    if (single instanceof File) {
+      fileEntries.push(single);
+    }
+  }
+
+  if (fileEntries.length === 0) {
+    return c.json({ error: '請提供至少一張圖片檔案' }, 400);
+  }
+
+  if (fileEntries.length > 10) {
+    return c.json({ error: '單次批次上傳最多 10 張圖片' }, 400);
+  }
+
+  const uploadedUrls: string[] = [];
+
+  for (const file of fileEntries) {
+    if (file.size > 5 * 1024 * 1024) continue;
+    const mimeType = file.type?.toLowerCase() || '';
+    const safeExt = ALLOWED_MIME_TYPES[mimeType];
+    if (!safeExt) continue;
+
+    const fileKey = `photos/${crypto.randomUUID()}.${safeExt}`;
+    const arrayBuffer = await file.arrayBuffer();
+
+    if (c.env.R2) {
+      await c.env.R2.put(fileKey, arrayBuffer, {
+        httpMetadata: { contentType: mimeType },
+      });
+      uploadedUrls.push(`/api/media/${fileKey}`);
+    } else {
+      const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      uploadedUrls.push(`data:${mimeType};base64,${base64}`);
+    }
+  }
+
+  return c.json({
+    success: true,
+    count: uploadedUrls.length,
+    urls: uploadedUrls,
+  });
+});
+
 // Serve media from Cloudflare R2 with hardened security headers
 uploadRouter.get('/media/*', async (c) => {
   const key = c.req.path.replace('/api/media/', '');

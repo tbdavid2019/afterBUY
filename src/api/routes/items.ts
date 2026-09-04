@@ -70,6 +70,8 @@ itemsRouter.post('/', async (c) => {
     warrantyDate?: string;
     backupStock?: number;
     minStockAlert?: number;
+    price?: number;
+    specModel?: string;
     notes?: string;
     imageUrl?: string;
   }>();
@@ -96,6 +98,8 @@ itemsRouter.post('/', async (c) => {
     warrantyDate: body.warrantyDate || null,
     backupStock: Math.max(0, body.backupStock ?? 0),
     minStockAlert: Math.max(0, body.minStockAlert ?? 1),
+    price: body.price !== undefined && body.price !== null ? Math.max(0, Math.round(body.price)) : null,
+    specModel: body.specModel?.trim() || null,
     notes: body.notes?.trim() || null,
     imageUrl: body.imageUrl || null,
     calendarSequence: 0,
@@ -109,7 +113,112 @@ itemsRouter.post('/', async (c) => {
   return c.json({ success: true, item: newItem }, 201);
 });
 
-// 3. Update existing item (Defense-in-depth: scoped strictly by userId)
+// 3. Batch Replace (One-tap mark replaced for multiple selected items)
+itemsRouter.post('/batch-replace', async (c) => {
+  const user = c.get('user')!;
+  const { itemIds } = await c.req.json<{ itemIds?: string[] }>();
+  if (!Array.isArray(itemIds) || itemIds.length === 0) {
+    return c.json({ error: '請提供要更換的物品 ID 清單' }, 400);
+  }
+
+  const db = getDb(c.env.DB);
+  const nowIso = new Date().toISOString();
+  const todayStr = nowIso.split('T')[0];
+  const updatedItems: any[] = [];
+
+  for (const id of itemIds) {
+    const existing = await db
+      .select()
+      .from(items)
+      .where(and(eq(items.id, id), eq(items.userId, user.id), isNull(items.deletedAt)))
+      .get();
+
+    if (existing) {
+      const newStock = Math.max(0, existing.backupStock - 1);
+      const updatedData = {
+        startDate: todayStr,
+        backupStock: newStock,
+        calendarSequence: existing.calendarSequence + 1,
+        updatedAt: nowIso,
+      };
+
+      await db
+        .update(items)
+        .set(updatedData)
+        .where(and(eq(items.id, id), eq(items.userId, user.id)));
+
+      await db.insert(itemHistory).values({
+        id: crypto.randomUUID(),
+        itemId: id,
+        userId: user.id,
+        replacedAt: nowIso,
+        previousStartDate: existing.startDate,
+        stockAfterReplace: newStock,
+        notes: '批次更換 (Batch Replaced)',
+      });
+
+      updatedItems.push({ ...existing, ...updatedData });
+    }
+  }
+
+  return c.json({ success: true, count: updatedItems.length, items: updatedItems });
+});
+
+// 4. Batch Stock Adjustment (+/- delta)
+itemsRouter.post('/batch-stock', async (c) => {
+  const user = c.get('user')!;
+  const { itemIds, delta } = await c.req.json<{ itemIds?: string[]; delta?: number }>();
+  if (!Array.isArray(itemIds) || itemIds.length === 0 || typeof delta !== 'number') {
+    return c.json({ error: '請提供物品 ID 清單與庫存調整數值' }, 400);
+  }
+
+  const db = getDb(c.env.DB);
+  const nowIso = new Date().toISOString();
+  const updatedItems: any[] = [];
+
+  for (const id of itemIds) {
+    const existing = await db
+      .select()
+      .from(items)
+      .where(and(eq(items.id, id), eq(items.userId, user.id), isNull(items.deletedAt)))
+      .get();
+
+    if (existing) {
+      const newStock = Math.max(0, existing.backupStock + delta);
+      await db
+        .update(items)
+        .set({ backupStock: newStock, updatedAt: nowIso })
+        .where(and(eq(items.id, id), eq(items.userId, user.id)));
+
+      updatedItems.push({ ...existing, backupStock: newStock });
+    }
+  }
+
+  return c.json({ success: true, count: updatedItems.length, items: updatedItems });
+});
+
+// 5. Batch Delete
+itemsRouter.post('/batch-delete', async (c) => {
+  const user = c.get('user')!;
+  const { itemIds } = await c.req.json<{ itemIds?: string[] }>();
+  if (!Array.isArray(itemIds) || itemIds.length === 0) {
+    return c.json({ error: '請提供要刪除的物品 ID 清單' }, 400);
+  }
+
+  const db = getDb(c.env.DB);
+  const nowIso = new Date().toISOString();
+
+  for (const id of itemIds) {
+    await db
+      .update(items)
+      .set({ deletedAt: nowIso, updatedAt: nowIso })
+      .where(and(eq(items.id, id), eq(items.userId, user.id)));
+  }
+
+  return c.json({ success: true, count: itemIds.length });
+});
+
+// 6. Update existing item (Defense-in-depth: scoped strictly by userId)
 itemsRouter.put('/:id', async (c) => {
   const user = c.get('user')!;
   const itemId = c.req.param('id');
@@ -138,6 +247,8 @@ itemsRouter.put('/:id', async (c) => {
     warrantyDate: body.warrantyDate !== undefined ? body.warrantyDate : existing.warrantyDate,
     backupStock: body.backupStock !== undefined ? Math.max(0, body.backupStock) : existing.backupStock,
     minStockAlert: body.minStockAlert !== undefined ? Math.max(0, body.minStockAlert) : existing.minStockAlert,
+    price: body.price !== undefined ? (body.price === null ? null : Math.max(0, Math.round(body.price))) : existing.price,
+    specModel: body.specModel !== undefined ? body.specModel?.trim() || null : existing.specModel,
     notes: body.notes !== undefined ? body.notes?.trim() || null : existing.notes,
     imageUrl: body.imageUrl !== undefined ? body.imageUrl : existing.imageUrl,
     calendarSequence: existing.calendarSequence + 1,

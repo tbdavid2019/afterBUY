@@ -1,7 +1,8 @@
 import React from 'react';
-import { Plus, Fingerprint, Moon, Sun } from 'lucide-react';
+import { Plus, Fingerprint, Moon, Sun, Languages } from 'lucide-react';
 import { UserSession } from '../../shared/types.ts';
 import type { ThemeMode } from '../utils/theme.ts';
+import { useTranslation } from '../i18n/index.tsx';
 
 interface HeaderProps {
   user: UserSession | null;
@@ -12,6 +13,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onOpenNewItem, theme, onToggleTheme }) => {
+  const { locale, toggleLocale, t } = useTranslation();
+
   return (
     <header className="app-header sticky top-0 z-30 backdrop-blur-md border-b pt-safe">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -27,16 +30,28 @@ export const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onOpenNewItem,
                 PWA
               </span>
             </h1>
-            <p className="text-[11px] text-slate-500 mt-0.5">日常保養清單</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">{t('appSubtitle')}</p>
           </div>
         </div>
 
         {/* Action buttons */}
         <div className="flex items-center gap-2">
+          {/* Language Toggle */}
+          <button
+            type="button"
+            onClick={toggleLocale}
+            aria-label={locale === 'zh-TW' ? 'Switch to English' : '切換至繁體中文'}
+            className="app-control px-2.5 h-9 flex items-center justify-center gap-1.5 rounded-xl border text-xs font-bold text-slate-300 hover:text-white transition-colors active:scale-[0.96]"
+          >
+            <Languages className="w-3.5 h-3.5 text-sky-400" />
+            <span>{locale === 'zh-TW' ? 'EN' : '繁中'}</span>
+          </button>
+
+          {/* Theme Toggle */}
           <button
             type="button"
             onClick={onToggleTheme}
-            aria-label={theme === 'light' ? '切換至青花瓷藍深色模式' : '切換至無印良品淺色模式'}
+            aria-label={theme === 'light' ? '深色模式' : '淺色模式'}
             className="app-control w-9 h-9 flex items-center justify-center rounded-xl border text-slate-400 hover:text-white transition-colors active:scale-[0.96]"
           >
             {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
@@ -44,20 +59,20 @@ export const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onOpenNewItem,
           {user ? (
             <button
               onClick={onOpenNewItem}
-              aria-label="新增追蹤物品"
+              aria-label={t('addItem')}
               className="app-primary flex items-center gap-1.5 hover:brightness-105 active:scale-[0.98] text-xs font-bold px-3.5 py-2 rounded-full shadow-md shadow-sky-500/20 transition-all"
             >
               <Plus className="w-4 h-4" />
-              <span>新增物品</span>
+              <span>{t('addItem')}</span>
             </button>
           ) : (
             <button
               onClick={onOpenAuth}
-              aria-label="登入或註冊帳戶"
+              aria-label="Sign In"
               className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-sky-300 border border-sky-400/35 text-xs font-bold px-3.5 py-2 rounded-full transition-all"
             >
               <Fingerprint className="w-4 h-4" />
-              <span>登入 / 註冊</span>
+              <span>{locale === 'zh-TW' ? '登入 / 註冊' : 'Sign In'}</span>
             </button>
           )}
         </div>

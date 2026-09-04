@@ -8,3 +8,4 @@ local.db-journal
 .env.local
 .DS_Store
 *.log
+local.md

@@ -19,7 +19,8 @@ export const authRouter = new Hono<HonoEnv>();
 function getRPInfo(c: any) {
   const host = c.req.header('host') || 'localhost:5173';
   const hostname = host.split(':')[0];
-  const origin = c.env.APP_ORIGIN || (host.includes('localhost') ? `http://${host}` : `https://${host}`);
+  const reqOrigin = c.req.header('origin');
+  const origin = reqOrigin || c.env.APP_ORIGIN || (host.includes('localhost') ? `http://${host}` : `https://${host}`);
   return { rpID: hostname, origin, rpName: c.env.APP_NAME || 'afterBUY' };
 }
 
@@ -61,14 +62,14 @@ authRouter.post('/otp/send', async (c) => {
   // Send email via Resend if key exists
   if (c.env.RESEND_API_KEY) {
     try {
-      await fetch('https://api.resend.com/emails', {
+      const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${c.env.RESEND_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: c.env.EMAIL_FROM || 'afterBUY <notifications@afterbuy.app>',
+          from: c.env.EMAIL_FROM || 'afterBUY <notifications@create360.ai>',
           to: [normalizedEmail],
           subject: `【afterBUY】您的登入驗證碼為 ${otp}`,
           html: `
@@ -83,6 +84,10 @@ authRouter.post('/otp/send', async (c) => {
           `,
         }),
       });
+      if (!res.ok) {
+        const errText = await res.text();
+        console.error('Failed to send Resend email:', res.status, errText);
+      }
     } catch (err) {
       console.error('Failed to send Resend email:', err);
     }
@@ -398,6 +403,6 @@ authRouter.delete('/passkey/:id', async (c) => {
 
 // 9. Logout
 authRouter.post('/logout', async (c) => {
-  deleteCookie(c, 'afterbuy_session');
+  deleteCookie(c, 'afterbuy_session', { path: '/' });
   return c.json({ success: true, message: '已安全登出' });
 });

@@ -36,10 +36,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
     try {
       const res = await api.loginWithPasskey();
       onLoginSuccess(res.user);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('afterbuy_user', JSON.stringify(res.user));
+      }
       onClose();
     } catch (err: any) {
       console.error('Passkey login failed:', err);
-      setErrorMessage(err.message || 'Passkey 生物辨識登入失敗或已取消');
+      if (
+        err.name === 'NotAllowedError' ||
+        err.message?.includes('找不到此裝置的 Passkey 憑證') ||
+        err.message?.includes('The operation either timed out or was not allowed')
+      ) {
+        setErrorMessage('在此網域或裝置尚未綁定 Passkey。請先使用下方 Email 登入，登入後即可一鍵綁定 Touch ID / Face ID！');
+      } else {
+        setErrorMessage(err.message || 'Passkey 生物辨識登入失敗或已取消');
+      }
     } finally {
       setLoading(false);
     }
@@ -82,6 +93,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
     try {
       const res = await api.verifyOtp(email, otpCode);
       setLoggedInUser(res.user);
+      // Immediately commit user state to prevent logout on modal dismiss/refresh
+      onLoginSuccess(res.user);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('afterbuy_user', JSON.stringify(res.user));
+      }
       // Ask user to enroll Passkey
       setStep('prompt_passkey');
     } catch (err: any) {

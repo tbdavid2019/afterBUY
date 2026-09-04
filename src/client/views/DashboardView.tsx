@@ -1,8 +1,22 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Plus, AlertTriangle, CheckCircle2, ShoppingBag, Sparkles, SlidersHorizontal } from 'lucide-react';
-import { ItemResponse, HealthStatus, ItemCategory } from '../../shared/types.ts';
+import {
+  Search,
+  Plus,
+  AlertTriangle,
+  CheckCircle2,
+  ShoppingBag,
+  Sparkles,
+  SlidersHorizontal,
+  Camera,
+  CheckSquare,
+  RotateCcw,
+  Trash2,
+} from 'lucide-react';
+import { ItemResponse, HealthStatus, ItemCategory, UserSession } from '../../shared/types.ts';
 import { ItemCard } from '../components/ItemCard.tsx';
+import { BatchPhotoModal } from '../components/BatchPhotoModal.tsx';
 import { CATEGORIES } from '../utils/category.ts';
+import { useTranslation } from '../i18n/index.tsx';
 
 interface DashboardViewProps {
   items: ItemResponse[];
@@ -12,6 +26,12 @@ interface DashboardViewProps {
   onDelete: (id: string) => void;
   onViewHistory: (item: ItemResponse) => void;
   onOpenNewItem: () => void;
+  onBatchReplace?: (ids: string[]) => Promise<void>;
+  onBatchStock?: (ids: string[], delta: number) => Promise<void>;
+  onBatchDelete?: (ids: string[]) => Promise<void>;
+  onRefreshItems?: () => void;
+  user?: UserSession | null;
+  onAddGuestItems?: (items: ItemResponse[]) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -22,10 +42,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onDelete,
   onViewHistory,
   onOpenNewItem,
+  onBatchReplace,
+  onBatchStock,
+  onBatchDelete,
+  onRefreshItems,
+  user,
+  onAddGuestItems,
 }) => {
+  const { t, locale } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'due' | 'healthy' | 'restock'>('all');
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all');
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [batchActionLoading, setBatchActionLoading] = useState(false);
 
   // Summary counts
   const overdueCount = items.filter((i) => i.healthStatus === 'overdue' || i.healthStatus === 'due_soon').length;
@@ -68,16 +99,78 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     setSelectedCategory('all');
   };
 
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === filteredItems.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredItems.map((i) => i.id)));
+    }
+  };
+
+  const handleRunBatchReplace = async () => {
+    if (selectedIds.size === 0 || !onBatchReplace) return;
+    setBatchActionLoading(true);
+    try {
+      await onBatchReplace(Array.from(selectedIds));
+      setSelectedIds(new Set());
+      setIsSelecting(false);
+    } catch (err: any) {
+      alert(err.message || (locale === 'zh-TW' ? '批次換新失敗' : 'Batch replace failed'));
+    } finally {
+      setBatchActionLoading(false);
+    }
+  };
+
+  const handleRunBatchStock = async (delta: number) => {
+    if (selectedIds.size === 0 || !onBatchStock) return;
+    setBatchActionLoading(true);
+    try {
+      await onBatchStock(Array.from(selectedIds), delta);
+    } catch (err: any) {
+      alert(err.message || (locale === 'zh-TW' ? '批次調整庫存失敗' : 'Batch stock update failed'));
+    } finally {
+      setBatchActionLoading(false);
+    }
+  };
+
+  const handleRunBatchDelete = async () => {
+    if (selectedIds.size === 0 || !onBatchDelete) return;
+    if (!confirm(t('batchDeleteConfirm', { n: selectedIds.size }))) return;
+    setBatchActionLoading(true);
+    try {
+      await onBatchDelete(Array.from(selectedIds));
+      setSelectedIds(new Set());
+      setIsSelecting(false);
+    } catch (err: any) {
+      alert(err.message || (locale === 'zh-TW' ? '批次刪除失敗' : 'Batch delete failed'));
+    } finally {
+      setBatchActionLoading(false);
+    }
+  };
+
   return (
-    <div className="space-y-6 pb-28">
+    <div className="space-y-6 pb-32">
       <section className="pt-1">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] text-white">先處理今天的日常</h2>
-            <p className="text-sm text-slate-400 mt-2">快速看見要換什麼、還缺哪些備品。</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] text-white">
+              {locale === 'zh-TW' ? '先處理今天的日常' : "Today's Consumables"}
+            </h2>
+            <p className="text-sm text-slate-400 mt-2">
+              {locale === 'zh-TW' ? '快速看見要換什麼、還缺哪些備品。' : 'See what needs replacing and restock in time.'}
+            </p>
           </div>
           <span className="hidden sm:inline-flex shrink-0 items-center rounded-full border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-400">
-            {items.length} 項追蹤中
+            {locale === 'zh-TW' ? `${items.length} 項追蹤中` : `${items.length} tracked`}
           </span>
         </div>
       </section>
@@ -94,11 +187,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           }`}
         >
           <div className="flex items-center justify-between gap-1 mb-3">
-            <span className="text-[11px] font-semibold">該處理</span>
+            <span className="text-[11px] font-semibold">{locale === 'zh-TW' ? '該處理' : 'Due / Alert'}</span>
             <AlertTriangle className="w-4 h-4 text-rose-300" />
           </div>
           <span className="text-3xl leading-none font-bold tabular-nums text-white">{overdueCount}</span>
-          <span className="block text-[11px] text-slate-500 mt-2">到期或快到期</span>
+          <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '到期或快到期' : 'Overdue or soon'}</span>
         </button>
 
         <button
@@ -111,11 +204,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           }`}
         >
           <div className="flex items-center justify-between gap-1 mb-3">
-            <span className="text-[11px] font-semibold">狀態良好</span>
+            <span className="text-[11px] font-semibold">{t('statusHealthy')}</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-300" />
           </div>
           <span className="text-3xl leading-none font-bold tabular-nums text-white">{healthyCount}</span>
-          <span className="block text-[11px] text-slate-500 mt-2">目前不需處理</span>
+          <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '目前不需處理' : 'Good condition'}</span>
         </button>
 
         <button
@@ -128,11 +221,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           }`}
         >
           <div className="flex items-center justify-between gap-1 mb-3">
-            <span className="text-[11px] font-semibold">要補貨</span>
+            <span className="text-[11px] font-semibold">{locale === 'zh-TW' ? '要補貨' : 'Restock'}</span>
             <ShoppingBag className="w-4 h-4 text-amber-300" />
           </div>
           <span className="text-3xl leading-none font-bold tabular-nums text-white">{restockCount}</span>
-          <span className="block text-[11px] text-slate-500 mt-2">備品低於門檻</span>
+          <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '備品低於門檻' : 'Low on backup'}</span>
         </button>
       </div>
 
@@ -140,12 +233,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className="space-y-3">
         {/* Search input */}
         <div className="relative">
-          <label htmlFor="dashboard-search" className="sr-only">搜尋物品</label>
+          <label htmlFor="dashboard-search" className="sr-only">{locale === 'zh-TW' ? '搜尋物品' : 'Search'}</label>
           <Search className="w-4 h-4 text-slate-500 absolute left-4 top-3.5" />
           <input
             id="dashboard-search"
             type="text"
-            placeholder="搜尋物品名稱或備註..."
+            placeholder={locale === 'zh-TW' ? '搜尋物品名稱、備註或型號...' : 'Search items, notes, models...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-slate-900/80 border border-slate-800 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/15 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition-colors"
@@ -164,18 +257,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
             }`}
           >
-            全部類別
+            {locale === 'zh-TW' ? '全部類別' : 'All Categories'}
           </button>
           {Object.values(CATEGORIES).map((cat) => (
             <button
               key={cat.id}
-            onClick={() => setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id)}
-            aria-pressed={selectedCategory === cat.id}
-            className={`flex-shrink-0 text-xs px-3.5 py-2 rounded-full border transition-all font-semibold active:scale-[0.98] ${
-              selectedCategory === cat.id
-                ? 'bg-sky-300 text-sky-950 border-sky-200'
-                : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
-            }`}
+              onClick={() => setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id)}
+              aria-pressed={selectedCategory === cat.id}
+              className={`flex-shrink-0 text-xs px-3.5 py-2 rounded-full border transition-all font-semibold active:scale-[0.98] ${
+                selectedCategory === cat.id
+                  ? 'bg-sky-300 text-sky-950 border-sky-200'
+                  : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+              }`}
             >
               {cat.label}
             </button>
@@ -183,55 +276,159 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
-      {/* 3. Items List */}
+      {/* 3. Items List Header with Batch Actions Toolbar */}
       <section>
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <h3 className="text-sm font-semibold text-white">追蹤中的物品 <span className="text-slate-500 font-normal">{filteredItems.length}</span></h3>
-          {hasFilters && (
-            <button onClick={clearFilters} className="text-xs font-semibold text-sky-300 hover:text-sky-200 underline underline-offset-4">
-              清除篩選
-            </button>
-          )}
-        </div>
-      {filteredItems.length === 0 ? (
-        <div className="text-center py-14 bg-slate-900/40 rounded-3xl border border-slate-800/60 p-6">
-          <div className="w-12 h-12 rounded-2xl bg-sky-400/10 border border-sky-400/20 text-sky-300 mx-auto flex items-center justify-center mb-3">
-            <Sparkles className="w-6 h-6" />
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="text-sm font-bold text-white truncate">
+              {locale === 'zh-TW' ? '追蹤中的物品' : 'Tracked Items'}{' '}
+              <span className="text-slate-500 font-normal">{filteredItems.length}</span>
+            </h3>
+            {hasFilters && (
+              <button
+                onClick={clearFilters}
+                className="text-xs font-semibold text-sky-300 hover:text-sky-200 underline underline-offset-4 shrink-0"
+              >
+                {locale === 'zh-TW' ? '清除篩選' : 'Clear'}
+              </button>
+            )}
           </div>
-          <h3 className="text-sm font-bold text-white mb-1">
-            {items.length === 0 ? '尚未加入任何追蹤物品' : '沒有符合條件的物品'}
-          </h3>
-          <p className="text-xs text-slate-400 max-w-xs mx-auto mb-4">
-            {items.length === 0
-              ? '立即新增牙刷、淨水濾芯、隱形眼鏡或保養品，不再忘記更換！'
-              : '試著清除搜尋條件或切換分類標籤。'}
-          </p>
-          {items.length === 0 && (
+
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Batch Photo Intake */}
             <button
-              onClick={onOpenNewItem}
-              className="inline-flex items-center gap-1.5 bg-sky-300 hover:bg-sky-200 text-sky-950 text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all"
+              type="button"
+              onClick={() => setIsPhotoModalOpen(true)}
+              className="app-control flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold text-sky-300 hover:text-white transition-all active:scale-95"
             >
-              <Plus className="w-4 h-4" />
-              <span>新增第一個物品</span>
+              <Camera className="w-3.5 h-3.5 text-sky-400" />
+              <span>{t('batchIntake')}</span>
             </button>
-          )}
+
+            {/* Multi-Select Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                setIsSelecting(!isSelecting);
+                if (isSelecting) setSelectedIds(new Set());
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all active:scale-95 ${
+                isSelecting ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold' : 'app-control text-slate-300'
+              }`}
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              <span>{isSelecting ? t('cancelSelect') : t('batchMode')}</span>
+            </button>
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filteredItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              onReplace={onReplace}
-              onAdjustStock={onAdjustStock}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onViewHistory={onViewHistory}
-            />
-          ))}
+
+        {filteredItems.length === 0 ? (
+          <div className="text-center py-14 bg-slate-900/40 rounded-3xl border border-slate-800/60 p-6">
+            <div className="w-12 h-12 rounded-2xl bg-sky-400/10 border border-sky-400/20 text-sky-300 mx-auto flex items-center justify-center mb-3">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <h3 className="text-sm font-bold text-white mb-1">
+              {items.length === 0 ? t('emptyItemsTitle') : (locale === 'zh-TW' ? '沒有符合條件的物品' : 'No items match filters')}
+            </h3>
+            <p className="text-xs text-slate-400 max-w-xs mx-auto mb-4">
+              {items.length === 0
+                ? t('emptyItemsDesc')
+                : (locale === 'zh-TW' ? '試著清除搜尋條件或切換分類標籤。' : 'Try clearing filters or changing category.')}
+            </p>
+            {items.length === 0 && (
+              <button
+                onClick={onOpenNewItem}
+                className="inline-flex items-center gap-1.5 bg-sky-300 hover:bg-sky-200 text-sky-950 text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{locale === 'zh-TW' ? '新增第一個物品' : 'Add First Item'}</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredItems.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onReplace={onReplace}
+                onAdjustStock={onAdjustStock}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onViewHistory={onViewHistory}
+                selectable={isSelecting}
+                isSelected={selectedIds.has(item.id)}
+                onToggleSelect={handleToggleSelect}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Floating Batch Action Bar */}
+      {isSelecting && selectedIds.size > 0 && (
+        <div className="fixed bottom-20 left-4 right-4 z-40 max-w-lg mx-auto animate-in slide-in-from-bottom-5 duration-200">
+          <div className="bg-slate-900/95 border border-sky-500/40 rounded-2xl p-3 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 pl-1 min-w-0">
+              <span className="text-xs font-bold text-white truncate">
+                {t('selectedItems', { n: selectedIds.size })}
+              </span>
+              <button
+                type="button"
+                onClick={handleSelectAll}
+                className="text-[11px] text-sky-400 hover:underline shrink-0"
+              >
+                {selectedIds.size === filteredItems.length
+                  ? (locale === 'zh-TW' ? '取消全選' : 'Deselect')
+                  : (locale === 'zh-TW' ? '全選' : 'Select All')}
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* Batch Replace */}
+              <button
+                type="button"
+                disabled={batchActionLoading}
+                onClick={handleRunBatchReplace}
+                className="app-primary px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 shadow-md shadow-sky-500/20 active:scale-95 disabled:opacity-50"
+              >
+                <RotateCcw className={`w-3.5 h-3.5 ${batchActionLoading ? 'animate-spin' : ''}`} />
+                <span>{t('batchReplaceBtn')}</span>
+              </button>
+
+              {/* Batch Stock +1 */}
+              <button
+                type="button"
+                disabled={batchActionLoading}
+                onClick={() => handleRunBatchStock(1)}
+                className="app-control px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 active:scale-95 disabled:opacity-50"
+              >
+                <span>{t('batchStockAdd')}</span>
+              </button>
+
+              {/* Batch Delete */}
+              <button
+                type="button"
+                disabled={batchActionLoading}
+                onClick={handleRunBatchDelete}
+                className="app-control px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-400 border-rose-500/30 hover:bg-rose-500/10 active:scale-95 disabled:opacity-50"
+                aria-label="Delete selected"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
-      </section>
+
+      {/* Batch Photo Intake Modal */}
+      <BatchPhotoModal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        onSuccess={() => onRefreshItems?.()}
+        user={user}
+        onAddGuestItems={onAddGuestItems}
+      />
     </div>
   );
 };

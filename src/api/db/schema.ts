@@ -33,6 +33,8 @@ export const items = sqliteTable('items', {
   warrantyDate: text('warranty_date'), // YYYY-MM-DD
   backupStock: integer('backup_stock').notNull().default(0),
   minStockAlert: integer('min_stock_alert').notNull().default(1),
+  price: integer('price'), // Purchase price / cost (e.g. NT$ integer or cents)
+  specModel: text('spec_model'), // Model, cartridge spec, battery size, etc.
   notes: text('notes'),
   imageUrl: text('image_url'),
   calendarSequence: integer('calendar_sequence').notNull().default(0),

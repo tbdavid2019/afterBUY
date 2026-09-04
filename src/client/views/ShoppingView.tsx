@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Copy, Check, Plus, Minus, Package, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, Copy, Check, Plus, Minus, Package, CheckCircle2, RotateCw } from 'lucide-react';
 import { ItemResponse } from '../../shared/types.ts';
 import { CATEGORIES } from '../utils/category.ts';
+import { useTranslation } from '../i18n/index.tsx';
 
 interface ShoppingViewProps {
   items: ItemResponse[];
   onAdjustStock: (id: string, delta: number) => void;
+  onBatchStock?: (ids: string[], delta: number) => Promise<void>;
 }
 
-export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock }) => {
+export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock, onBatchStock }) => {
+  const { t, locale } = useTranslation();
   const [copied, setCopied] = useState(false);
+  const [batchLoading, setBatchLoading] = useState(false);
 
   // Filter items needing replenishment
   const restockItems = items.filter((i) => i.needsRestock);
@@ -17,13 +21,25 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
   const handleCopyList = () => {
     if (restockItems.length === 0) return;
     const textList = restockItems
-      .map((i) => `• ${i.name} (目前庫存: ${i.backupStock}, 建議補貨至 ${i.minStockAlert})`)
+      .map((i) => `• ${i.name} (${locale === 'zh-TW' ? '目前庫存' : 'Stock'}: ${i.backupStock}, ${locale === 'zh-TW' ? '門檻' : 'Threshold'}: ${i.minStockAlert})`)
       .join('\n');
-    const fullText = `afterBUY 待採購耗材備品清單：\n${textList}`;
+    const fullText = `${t('appName')} - ${locale === 'zh-TW' ? '待採購耗材備品清單' : 'Shopping List'}:\n${textList}`;
 
     navigator.clipboard.writeText(fullText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleBatchReplenishAll = async () => {
+    if (restockItems.length === 0 || !onBatchStock) return;
+    setBatchLoading(true);
+    try {
+      await onBatchStock(restockItems.map((i) => i.id), 1);
+    } catch (err: any) {
+      alert(err.message || (locale === 'zh-TW' ? '批次補庫存失敗' : 'Batch replenish failed'));
+    } finally {
+      setBatchLoading(false);
+    }
   };
 
   return (
@@ -33,23 +49,37 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
         <div>
           <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] text-white flex items-center gap-2 mb-2">
             <ShoppingBag className="w-4 h-4 text-amber-400" />
-            <span>備品庫存與採購清單</span>
+            <span>{locale === 'zh-TW' ? '備品庫存與採購清單' : 'Stock & Shopping List'}</span>
           </h2>
           <p className="text-sm text-slate-400 max-w-xl">
-            自動彙整備品低於門檻或庫存歸零的耗材，方便採購補貨。
+            {locale === 'zh-TW' ? '自動彙整備品低於門檻或庫存歸零的耗材，方便採購補貨。' : 'Auto aggregates consumables low on backup stock.'}
           </p>
         </div>
 
-        {restockItems.length > 0 && (
-          <button
-            onClick={handleCopyList}
-            aria-label="複製待採購清單"
-            className="flex-shrink-0 flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-700 text-xs font-semibold px-3 py-2 rounded-xl transition-all active:scale-[0.98]"
-          >
-            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-            <span>{copied ? '已複製！' : '複製清單'}</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {restockItems.length > 0 && onBatchStock && (
+            <button
+              type="button"
+              disabled={batchLoading}
+              onClick={handleBatchReplenishAll}
+              className="app-primary flex-shrink-0 flex items-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all active:scale-[0.98] shadow-md shadow-sky-500/20 disabled:opacity-50"
+            >
+              <RotateCw className={`w-3.5 h-3.5 ${batchLoading ? 'animate-spin' : ''}`} />
+              <span>{locale === 'zh-TW' ? '全部 +1 備品' : 'Replenish All +1'}</span>
+            </button>
+          )}
+
+          {restockItems.length > 0 && (
+            <button
+              onClick={handleCopyList}
+              aria-label="複製待採購清單"
+              className="flex-shrink-0 flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-700 text-xs font-semibold px-3 py-2 rounded-xl transition-all active:scale-[0.98]"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              <span>{copied ? (locale === 'zh-TW' ? '已複製！' : 'Copied!') : (locale === 'zh-TW' ? '複製清單' : 'Copy List')}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Restock Needed Section */}

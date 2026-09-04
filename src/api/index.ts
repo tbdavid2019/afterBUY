@@ -39,7 +39,18 @@ app.use(
   cors({
     origin: (origin, c) => {
       const allowed = c.env.APP_ORIGIN || 'http://localhost:5173';
-      return origin === allowed ? origin : allowed;
+      if (!origin) return allowed;
+      if (origin === allowed) return origin;
+      if (
+        origin.endsWith('.workers.dev') ||
+        origin.includes('localhost') ||
+        origin.endsWith('david888.com') ||
+        origin.endsWith('aicreate360.ai') ||
+        origin.endsWith('create360.ai')
+      ) {
+        return origin;
+      }
+      return allowed;
     },
     credentials: true,
   })
@@ -66,6 +77,20 @@ app.route('/api/items', itemsRouter);
 app.route('/api/calendar', calendarRouter);
 app.route('/api/notifications', notificationsRouter);
 app.route('/api', uploadRouter);
+
+// Global Error Handler (Guarantees CORS headers and clean JSON error response)
+app.onError((err, c) => {
+  console.error('Unhandled API Error:', err);
+  return c.json(
+    { error: err.message || '伺服器內部錯誤' },
+    err.name === 'HTTPException' ? (err as any).status : 500
+  );
+});
+
+// Respond to WebMCP inspector calls gracefully (prevents 404 in client console)
+app.all('/mcp', (c) => {
+  return c.json({ jsonrpc: '2.0', result: { tools: [] } });
+});
 
 // Root health check
 app.get('/api/health', (c) => {

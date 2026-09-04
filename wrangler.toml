@@ -3,33 +3,99 @@ main = "src/api/index.ts"
 compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Cloudflare D1 Database Binding
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+
+# Cloudflare Scheduled Triggers (Daily Cron at 08:00 AM UTC+8 = 00:00 UTC)
+[triggers]
+crons = ["0 0 * * *"]
+
+# ------------------------------------------------
+# Local Development Fallbacks
+# ------------------------------------------------
 [[d1_databases]]
 binding = "DB"
 database_name = "afterbuy-db"
 database_id = "afterbuy-d1-local"
 migrations_dir = "drizzle/migrations"
 
-# Cloudflare KV Namespace Binding (OTP / Rate limit / Passkey challenge)
 [[kv_namespaces]]
 binding = "KV"
 id = "afterbuy-kv-local"
 
-# Cloudflare R2 Bucket Binding (Photos / Receipts / Stickers)
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "afterbuy-r2-local"
 
-# Cloudflare Scheduled Triggers (Daily Cron at 08:00 AM UTC+8 = 00:00 UTC)
-[triggers]
-crons = ["0 0 * * *"]
-
 [vars]
 APP_NAME = "afterBUY"
 APP_ORIGIN = "http://localhost:5173"
-RESEND_API_KEY = ""
+EMAIL_FROM = "afterBUY <notifications@create360.ai>"
 VAPID_PUBLIC_KEY = ""
 VAPID_PRIVATE_KEY = ""
 VAPID_SUBJECT = "mailto:support@afterbuy.app"
 CRON_SECRET = "afterbuy-cron-secret-local"
 SESSION_SECRET = "afterbuy-super-secure-session-secret-local-32chars"
+
+# ------------------------------------------------
+# Environment: ai360 (Account ID: aa3bf2b79b8bbdbf05b4e289bd7c4d91)
+# ------------------------------------------------
+[env.ai360]
+name = "afterbuy"
+account_id = "aa3bf2b79b8bbdbf05b4e289bd7c4d91"
+
+[[env.ai360.d1_databases]]
+binding = "DB"
+database_name = "afterbuy-db"
+database_id = "c682ad96-a780-4428-b7db-b3807dc7e24e"
+migrations_dir = "drizzle/migrations"
+
+[[env.ai360.kv_namespaces]]
+binding = "KV"
+id = "074004070e69419f9f88b2f8dcc597ad"
+
+[[env.ai360.r2_buckets]]
+binding = "R2"
+bucket_name = "afterbuy-r2"
+
+[env.ai360.vars]
+APP_NAME = "afterBUY"
+APP_ORIGIN = "https://afterbuy.aicreate360.ai"
+EMAIL_FROM = "afterBUY <notifications@create360.ai>"
+VAPID_PUBLIC_KEY = "BFAkih4zSmmMr8lh7tyUvm8-C-GZ5-vtggY2Tig9KS-Z6JN2vtGoFhAuJmwuyn2QsMZnFX19Gf4nExKChPkLOFY"
+VAPID_PRIVATE_KEY = "41Avt2-IWCIpsR0dVq6JE17KH4XdGlhRy7ni-lNpOLk"
+VAPID_SUBJECT = "mailto:support@afterbuy.app"
+CRON_SECRET = "afterbuy-cron-secret-local"
+SESSION_SECRET = "1c2f93fdc2e64effc349fc68f36f2d9558808897ec60203b866caa6908924481"
+
+# ------------------------------------------------
+# Environment: david (Account ID: 379570860738dd1757ba7f67ef2bdffe)
+# ------------------------------------------------
+[env.david]
+name = "afterbuy"
+account_id = "379570860738dd1757ba7f67ef2bdffe"
+
+[[env.david.d1_databases]]
+binding = "DB"
+database_name = "afterbuy-db"
+database_id = "d86afa44-8870-44c7-b28d-fc88e1868d01"
+migrations_dir = "drizzle/migrations"
+
+[[env.david.kv_namespaces]]
+binding = "KV"
+id = "ae50aa2ae37243bb94fa87b30b74ed92"
+
+[[env.david.r2_buckets]]
+binding = "R2"
+bucket_name = "afterbuy-r2"
+
+[env.david.vars]
+APP_NAME = "afterBUY"
+APP_ORIGIN = "https://afterbuy.david888.com"
+EMAIL_FROM = "afterBUY <notifications@vip.david888.com>"
+VAPID_PUBLIC_KEY = "BFAkih4zSmmMr8lh7tyUvm8-C-GZ5-vtggY2Tig9KS-Z6JN2vtGoFhAuJmwuyn2QsMZnFX19Gf4nExKChPkLOFY"
+VAPID_PRIVATE_KEY = "41Avt2-IWCIpsR0dVq6JE17KH4XdGlhRy7ni-lNpOLk"
+VAPID_SUBJECT = "mailto:support@afterbuy.app"
+CRON_SECRET = "afterbuy-cron-secret-local"
+SESSION_SECRET = "1c2f93fdc2e64effc349fc68f36f2d9558808897ec60203b866caa6908924481"

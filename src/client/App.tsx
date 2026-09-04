@@ -28,6 +28,8 @@ const DEMO_ITEMS: ItemResponse[] = [
     warrantyDate: null,
     backupStock: 2,
     minStockAlert: 1,
+    price: 320,
+    specModel: 'EB50',
     notes: 'EB50 多動向交叉刷頭',
     imageUrl: '/images/items/toothbrush-head.png',
     calendarSequence: 0,
@@ -53,6 +55,8 @@ const DEMO_ITEMS: ItemResponse[] = [
     warrantyDate: null,
     backupStock: 0,
     minStockAlert: 1,
+    price: 250,
+    specModel: 'MAXTRA+ 全效型',
     notes: '建議水質硬度高時每月更換',
     imageUrl: '/images/items/water-filter.png',
     calendarSequence: 0,
@@ -78,6 +82,8 @@ const DEMO_ITEMS: ItemResponse[] = [
     warrantyDate: null,
     backupStock: 1,
     minStockAlert: 1,
+    price: 850,
+    specModel: '60ml 金鑽高效',
     notes: '金鑽高效防曬露 60ml',
     imageUrl: '/images/items/sunscreen.png',
     calendarSequence: 0,
@@ -103,6 +109,8 @@ const DEMO_ITEMS: ItemResponse[] = [
     warrantyDate: '2027-01-15',
     backupStock: 0,
     minStockAlert: 0,
+    price: 12900,
+    specModel: 'RD-200HG',
     notes: '登錄享全機 3 年保固',
     imageUrl: '/images/items/dehumidifier.png',
     calendarSequence: 0,
@@ -119,7 +127,19 @@ const DEMO_ITEMS: ItemResponse[] = [
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
-  const [user, setUser] = useState<UserSession | null>(null);
+  const [user, setUser] = useState<UserSession | null>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('afterbuy_user');
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch {
+          return null;
+        }
+      }
+    }
+    return null;
+  });
   const [devices, setDevices] = useState<any[]>([]);
   const [items, setItems] = useState<ItemResponse[]>(DEMO_ITEMS);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -142,9 +162,20 @@ export const App: React.FC = () => {
       const meRes = await api.getMe();
       if (meRes.user) {
         setUser(meRes.user);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('afterbuy_user', JSON.stringify(meRes.user));
+        }
         setDevices(meRes.devices || []);
         const itemsRes = await api.getItems();
         setItems(itemsRes.items);
+      } else {
+        // Session truly invalidated on server
+        const cached = localStorage.getItem('afterbuy_user');
+        if (cached) {
+          localStorage.removeItem('afterbuy_user');
+          setUser(null);
+          setItems(DEMO_ITEMS);
+        }
       }
     } catch (err) {
       console.error('Failed to load user or items:', err);
@@ -156,10 +187,6 @@ export const App: React.FC = () => {
   }, []);
 
   const handleOpenNewItem = () => {
-    if (!user) {
-      setIsAuthOpen(true);
-      return;
-    }
     setItemToEdit(null);
     setIsItemModalOpen(true);
   };
@@ -239,8 +266,66 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleBatchReplace = async (ids: string[]) => {
+    if (!user) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      setItems((prev) =>
+        prev.map((i) => {
+          if (!ids.includes(i.id)) return i;
+          const newStock = Math.max(0, i.backupStock - 1);
+          return {
+            ...i,
+            startDate: todayStr,
+            backupStock: newStock,
+            ...computeItemStatus({
+              ...i,
+              startDate: todayStr,
+              backupStock: newStock,
+            }),
+          };
+        })
+      );
+      return;
+    }
+    await api.batchReplace(ids);
+    await loadUserAndItems();
+  };
+
+  const handleBatchStock = async (ids: string[], delta: number) => {
+    if (!user) {
+      setItems((prev) =>
+        prev.map((i) => {
+          if (!ids.includes(i.id)) return i;
+          const newStock = Math.max(0, i.backupStock + delta);
+          return {
+            ...i,
+            backupStock: newStock,
+            needsRestock: newStock < i.minStockAlert,
+          };
+        })
+      );
+      return;
+    }
+    await api.batchStock(ids, delta);
+    await loadUserAndItems();
+  };
+
+  const handleBatchDelete = async (ids: string[]) => {
+    if (!user) {
+      setItems((prev) => prev.filter((i) => !ids.includes(i.id)));
+      return;
+    }
+    await api.batchDelete(ids);
+    await loadUserAndItems();
+  };
+
   const handleLogout = async () => {
-    await api.logout();
+    try {
+      await api.logout();
+    } catch {}
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('afterbuy_user');
+    }
     setUser(null);
     setDevices([]);
     setItems(DEMO_ITEMS);
@@ -273,6 +358,12 @@ export const App: React.FC = () => {
             onDelete={handleDeleteItem}
             onViewHistory={(item) => setHistoryItem(item)}
             onOpenNewItem={handleOpenNewItem}
+            onBatchReplace={handleBatchReplace}
+            onBatchStock={handleBatchStock}
+            onBatchDelete={handleBatchDelete}
+            onRefreshItems={loadUserAndItems}
+            user={user}
+            onAddGuestItems={(newItems) => setItems((prev) => [...newItems, ...prev])}
           />
         )}
 
@@ -288,6 +379,7 @@ export const App: React.FC = () => {
           <ShoppingView
             items={items}
             onAdjustStock={handleAdjustStock}
+            onBatchStock={handleBatchStock}
           />
         )}
 
@@ -323,11 +415,16 @@ export const App: React.FC = () => {
       <ItemModal
         isOpen={isItemModalOpen}
         itemToEdit={itemToEdit}
+        user={user}
         onClose={() => {
           setIsItemModalOpen(false);
           setItemToEdit(null);
         }}
         onSave={() => loadUserAndItems()}
+        onAddGuestItem={(newItem) => setItems((prev) => [newItem, ...prev])}
+        onUpdateGuestItem={(updatedItem) =>
+          setItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)))
+        }
       />
 
       <HistoryModal

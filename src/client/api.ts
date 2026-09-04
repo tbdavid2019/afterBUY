@@ -4,20 +4,33 @@ import { UserSession, ItemResponse, ItemHistoryRecord, UserNotificationSettings,
 const API_BASE = '/api';
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    credentials: 'include',
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || '請求失敗');
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      credentials: 'include',
+    });
+  } catch (err: any) {
+    console.error(`Network fetch error on ${path}:`, err);
+    throw new Error(err.message === 'Failed to fetch' ? '網路連線異常，請檢查網路狀態或重新整理' : (err.message || '連線失敗'));
   }
-  return data;
+
+  let data: any;
+  const text = await res.text();
+  try {
+    data = JSON.parse(text);
+  } catch {
+    data = { error: text || `HTTP ${res.status}` };
+  }
+
+  if (!res.ok) {
+    throw new Error(data.error || `請求失敗 (HTTP ${res.status})`);
+  }
+  return data as T;
 }
 
 export const api = {
@@ -85,6 +98,8 @@ export const api = {
     warrantyDate?: string;
     backupStock?: number;
     minStockAlert?: number;
+    price?: number | null;
+    specModel?: string | null;
     notes?: string;
     imageUrl?: string;
   }): Promise<{ success: boolean; item: any }> {
@@ -105,6 +120,8 @@ export const api = {
     warrantyDate: string;
     backupStock: number;
     minStockAlert: number;
+    price: number | null;
+    specModel: string | null;
     notes: string;
     imageUrl: string;
   }>): Promise<{ success: boolean; item: any }> {
@@ -120,6 +137,27 @@ export const api = {
 
   async markReplaced(id: string): Promise<{ success: boolean; newStock: number; startDate: string }> {
     return request(`/items/${id}/replace`, { method: 'POST' });
+  },
+
+  async batchReplace(itemIds: string[]): Promise<{ success: boolean; count: number; items: any[] }> {
+    return request('/items/batch-replace', {
+      method: 'POST',
+      body: JSON.stringify({ itemIds }),
+    });
+  },
+
+  async batchStock(itemIds: string[], delta: number): Promise<{ success: boolean; count: number; items: any[] }> {
+    return request('/items/batch-stock', {
+      method: 'POST',
+      body: JSON.stringify({ itemIds, delta }),
+    });
+  },
+
+  async batchDelete(itemIds: string[]): Promise<{ success: boolean; count: number }> {
+    return request('/items/batch-delete', {
+      method: 'POST',
+      body: JSON.stringify({ itemIds }),
+    });
   },
 
   async adjustStock(id: string, delta?: number, count?: number): Promise<{ success: boolean; backupStock: number }> {
@@ -185,15 +223,58 @@ export const api = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch(`${API_BASE}/upload`, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+    } catch (err: any) {
+      console.error('Upload network error:', err);
+      throw new Error(err.message === 'Failed to fetch' ? '圖片上傳連線失敗，請檢查網路狀態' : (err.message || '上傳失敗'));
+    }
 
-    const data = await res.json();
+    let data: any;
+    const text = await res.text();
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { error: text || `HTTP ${res.status}` };
+    }
+
     if (!res.ok) {
       throw new Error(data.error || '圖片上傳失敗');
+    }
+    return data;
+  },
+
+  async uploadBatchImages(files: File[]): Promise<{ success: boolean; count: number; urls: string[] }> {
+    const formData = new FormData();
+    files.forEach((file) => formData.append('files', file));
+
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/upload/batch`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+    } catch (err: any) {
+      console.error('Batch upload network error:', err);
+      throw new Error(err.message === 'Failed to fetch' ? '批次圖片上傳連線失敗，請檢查網路狀態' : (err.message || '上傳失敗'));
+    }
+
+    let data: any;
+    const text = await res.text();
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { error: text || `HTTP ${res.status}` };
+    }
+
+    if (!res.ok) {
+      throw new Error(data.error || '批次圖片上傳失敗');
     }
     return data;
   },

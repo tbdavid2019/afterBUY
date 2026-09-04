@@ -15,9 +15,11 @@ import {
   LogOut,
   Loader2,
   AlertTriangle,
+  Languages,
 } from 'lucide-react';
 import { UserSession, UserNotificationSettings } from '../../shared/types.ts';
 import { api } from '../api.ts';
+import { useTranslation } from '../i18n/index.tsx';
 
 interface SettingsViewProps {
   user: UserSession | null;
@@ -184,12 +186,49 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     await api.updateSettings({ warningDaysBefore: days });
   };
 
+  const { locale, setLocale, t } = useTranslation();
+
   return (
     <div className="space-y-6 pb-28 pt-1 text-xs">
+      {/* 0. Language Selector Card */}
+      <div className="app-surface border p-4 rounded-2xl flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+            <Languages className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-white">{t('languageToggle')}</h3>
+            <span className="text-[11px] text-slate-400">
+              {locale === 'zh-TW' ? '繁體中文 (Traditional Chinese)' : 'English (英文)'}
+            </span>
+          </div>
+        </div>
+        <div className="flex bg-slate-900 border border-slate-700/80 rounded-xl p-1 gap-1">
+          <button
+            type="button"
+            onClick={() => setLocale('zh-TW')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              locale === 'zh-TW' ? 'app-primary text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            繁中
+          </button>
+          <button
+            type="button"
+            onClick={() => setLocale('en')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+              locale === 'en' ? 'app-primary text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            EN
+          </button>
+        </div>
+      </div>
+
       {/* 1. Account Info Card */}
       <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
         <div>
-          <span className="text-[11px] text-slate-400">目前登入帳號</span>
+          <span className="text-[11px] text-slate-400">{locale === 'zh-TW' ? '目前登入帳號' : 'Signed In As'}</span>
           <h3 className="text-sm font-bold text-white mt-0.5">{user.email}</h3>
         </div>
         <button
@@ -197,7 +236,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-xl font-medium transition-all active:scale-95"
         >
           <LogOut className="w-3.5 h-3.5" />
-          <span>登出</span>
+          <span>{t('logoutBtn')}</span>
         </button>
       </div>
 

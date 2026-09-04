@@ -260,7 +260,7 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: env.EMAIL_FROM || 'afterBUY <notifications@afterbuy.app>',
+            from: env.EMAIL_FROM || 'afterBUY <notifications@create360.ai>',
             to: [u.email],
             subject: `【afterBUY 晨間提醒】您有 ${urgentItems.length} 項耗材即將到期`,
             html: `

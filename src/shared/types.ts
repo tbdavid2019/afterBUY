@@ -1,6 +1,6 @@
 export type TrackingMode = 'cycle' | 'pao' | 'expiry' | 'warranty';
 export type HealthStatus = 'healthy' | 'due_soon' | 'overdue' | 'out_of_stock';
-export type ItemCategory = 'bathroom' | 'kitchen' | 'skincare' | 'medicine' | 'appliances' | 'electronics' | 'general';
+export type ItemCategory = 'bathroom' | 'kitchen' | 'skincare' | 'medicine' | 'appliances' | 'electronics' | 'clothing' | 'general';
 
 export interface UserSession {
   id: string;
@@ -22,6 +22,8 @@ export interface ItemResponse {
   warrantyDate: string | null;
   backupStock: number;
   minStockAlert: number;
+  price: number | null;
+  specModel: string | null;
   notes: string | null;
   imageUrl: string | null;
   calendarSequence: number;

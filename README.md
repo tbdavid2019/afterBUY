@@ -15,22 +15,30 @@
    - 週期更換：牙刷（90 天）、淨水器濾芯（180 天）、隱形眼鏡、冷氣濾網等。
    - 開封保存期（PAO）：化妝品、保養品、眼藥水等開封後倒數。
    - 保存期限與保固：家電保固到期日、食品藥品有效期限。
-2. **一鍵「今天已換」與備品庫存扣減**：
-   - 更換後一鍵重置計時器，自動扣減備品庫存；庫存歸零時自動提示採購補貨。
-3. **無密碼雙軌登入（Passwordless）**：
+   - 擴充常備品項：貼身內褲（90~180 天淘汰換新）、貼身內衣（180~365 天）、棉襪、機車安全帽（3 年交安換新）、印表機墨水、維他命C/保健品、乾電池等。
+   - 屬性擴充：支援記錄「購買金額（Price）」與「規格型號（Spec/Model）」。
+2. **手機拍照建檔（單品直拍 + 批次智慧標籤 + 訪客即開即用）與多選批次操作**：
+   - **單品拍照屬性**：新增與編輯物品時支援「相機直拍（`capture="environment"`）」與「相簿選圖」，可即時預覽縮圖與移除。
+   - **批次連續拍照建檔**：支援手機後鏡頭連續拍或相簿多選，提供常用範本標籤（內褲、安全帽、墨水等）一鍵秒填，多圖並行上傳至 R2。
+   - **訪客零阻礙體驗**：訪客無須登入即可暢玩拍照建檔與本地新增，即開即用零網路報錯。
+   - **多選批次打卡**：首頁多選模式結合浮動操作列，支援「🔥 一鍵全部換新（批次更換扣庫存）」、「📦 批次 +1 備品」與「🗑️ 批次刪除」。
+   - **採購清單一鍵補貨**：在備品採購頁支援一鍵為所有急需補貨物品批次補庫存。
+3. **極速中英雙語系切換（Bilingual i18n）**：
+   - 原生支援繁體中文（`zh-TW`）與英文（`en`），頂部導覽列與設定頁一鍵切換，零依賴極致輕量，持久化記憶至 `localStorage`。
+4. **無密碼雙軌登入（Passwordless）**：
    - **Passkey**：支援 Face ID / Touch ID / Windows Hello 生物辨識一秒極速登入。
    - **Email OTP**：6 位數一次性驗證碼，具備 Cloudflare KV 頻率限制（1 次/分、5 次/天）與新舊帳號自動 Provisioning。
-4. **全覆蓋分階段通知管道（Multi-Channel Alerts）**：
+5. **全覆蓋分階段通知管道（Multi-Channel Alerts）**：
    - **Phase 1 (MVP)**：
      - **PWA Web Push**：Service Worker 背景系統通知（桌面 / Android / iOS 16.4+ 加入主畫面）。
      - **WebCal 日曆同步（推薦）**：RFC 5545 標準 `.ics` 訂閱流，透過穩定 `UID`、遞增 `SEQUENCE`、`STATUS:CANCELLED` 墓碑機制與 **Calendar Token 安全輪替**，確保 Apple/Google 日曆精準更新，絕無舊事件殘留。
      - **Email 提醒**：每日晨間摘要與即將到期提醒。
    - **Phase 2 (VIP 加值)**：
      - **VIP SMS**：高優先級緊急耗材缺貨與到期簡訊（排除 LINE / Telegram）。
-5. **行動優先設計（Mobile-First RWD）**：
+6. **行動優先設計（Mobile-First RWD）**：
    - 專為單手操作設計的底部導覽列（含 iOS 安全邊界 `pb-safe`）與清楚的生命週期進度條。
    - 淺色主題採無印良品風格；深色主題採青花瓷藍風格，可在右上角切換並自動保存偏好。
-   - 10 種常用物品範本提供 11 張統一的無品牌生活物品圖片，並支援在物品卡片中顯示自訂圖片。
+   - 常用物品範本提供統一的無品牌生活物品圖片，並支援在物品卡片中顯示自訂圖片。
 
 ---
 
@@ -89,9 +97,9 @@ DATABASE_URL=local.db
 
 ---
 
-## ☁️ Cloudflare 設定檔（wrangler.toml）
+## ☁️ Cloudflare 雙帳號部署架構（wrangler.toml）
 
-專案根目錄的 `wrangler.toml` 定義了 Cloudflare Workers 與 D1 / KV / R2 綁定：
+專案支援多帳號與多環境部署。根目錄的 `wrangler.toml` 已配置原生 Workers Static Assets，並針對兩大獨立 Cloudflare 帳戶（`ai360` 與 `david`）分別綁定專屬之 D1 資料庫、KV 快取與 R2 儲存桶：
 
 ```toml
 name = "afterbuy"
@@ -99,31 +107,36 @@ main = "src/api/index.ts"
 compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
 
-# 1. Cloudflare D1 關聯資料庫
-[[d1_databases]]
-binding = "DB"
-database_name = "afterbuy-db"
-database_id = "afterbuy-d1-local"
-migrations_dir = "drizzle/migrations"
+# 前端靜態資源託管 (React PWA SPA)
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
 
-# 2. Cloudflare KV 快速快取 (OTP / 頻率限制 / Passkey 挑戰)
-[[kv_namespaces]]
-binding = "KV"
-id = "afterbuy-kv-local"
-
-# 3. Cloudflare R2 物件儲存 (照片 / 單據)
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "afterbuy-r2-local"
-
-# 4. 每日晨間定時提醒 (UTC 00:00 = 台灣時間 08:00 AM)
 [triggers]
 crons = ["0 0 * * *"]
+
+# 帳號 1: ai360
+[env.ai360]
+name = "afterbuy"
+account_id = "aa3bf2b79b8bbdbf05b4e289bd7c4d91"
+[[env.ai360.d1_databases]]
+binding = "DB"
+database_name = "afterbuy-db"
+database_id = "c682ad96-a780-4428-b7db-b3807dc7e24e"
+
+# 帳號 2: david (DAVID江江江)
+[env.david]
+name = "afterbuy"
+account_id = "379570860738dd1757ba7f67ef2bdffe"
+[[env.david.d1_databases]]
+binding = "DB"
+database_name = "afterbuy-db"
+database_id = "d86afa44-8870-44c7-b28d-fc88e1868d01"
 ```
 
 ---
 
-## 🚀 常用指令與端對端驗證
+## 🚀 常用指令與雙帳號部署
 
 ```bash
 # 1. 執行全系統真實端對端整合驗證 (E2E Verification)
@@ -135,8 +148,17 @@ pnpm test
 # 3. 啟動前端 Vite 開發伺服器 (包含 PWA 與 API 代理)
 pnpm dev
 
-# 4. 建置 PWA 生產環境 Bundle
+# 4. 建置前端 PWA 生產環境 Bundle
 pnpm build
+
+# 5. 部署至指定帳號 (自動先建置前端再發布)
+pnpm deploy:ai360   # 部署至 ai360 帳號
+pnpm deploy:david   # 部署至 david 帳號
+pnpm deploy:all     # 同時部署至兩個帳號
+
+# 6. 遠端 D1 資料庫遷移
+pnpm db:migrate:ai360
+pnpm db:migrate:david
 ```
 
 ---

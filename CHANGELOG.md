@@ -4,6 +4,79 @@
 
 ---
 
+## 2026-09-03
+
+### Added
+- **Cloudflare 雙帳號環境架構（ai360 與 david）**：
+  - 在 `wrangler.toml` 完成 `[env.ai360]` 與 `[env.david]` 雙帳戶隔離配置，分別綁定兩大帳戶專屬之 Account ID、D1 資料庫、KV Namespace 與 R2 儲存桶。
+  - 建立遠端雲端資源：
+    - `ai360` (ID: `aa3bf2b7...`)：D1 (`c682ad96-...`)、KV (`07400407...`)、R2 (`afterbuy-r2`)。
+    - `david` (ID: `37957086...`)：D1 (`d86afa44-...`)、KV (`ae50aa2a...`)、R2 (`afterbuy-r2`)。
+  - 完成雙帳戶遠端 D1 Migration，資料表結構（`users`、`passkey_credentials`、`items`、`replacement_logs`、`push_subscriptions`）均已於兩大帳戶同步建立。
+- **Cloudflare Workers 原生 Static Assets 整合**：
+  - 在 `wrangler.toml` 啟用 `[assets] directory = "./dist"` 與 `not_found_handling = "single-page-application"`，實現 Vite React 19 PWA 前端與 Hono 後端 API 同源整合部署。
+- **雙帳號部署腳本**：
+  - 在 `package.json` 新增 `deploy:ai360`、`deploy:david`、`deploy:all`、`db:migrate:ai360`、`db:migrate:david`。
+- **Resend 雙帳戶自訂網域郵件發信（create360.ai 與 vip.david888.com）**：
+  - `ai360` 帳戶配置發件人：`afterBUY <notifications@create360.ai>`。
+  - `david`（DAVID江江江）帳戶配置專屬發件人：`afterBUY <notifications@vip.david888.com>`。
+  - 完成兩大自訂網域在 Resend 上的 DKIM/SPF 驗證與正式實機重新部署，雙端發信實測均呈現 `delivered` 狀態。
+
+- **本地部署配置與安全隔離 (local.md)**：
+  - 將雙帳戶資源 ID、Resend API 金鑰、VAPID 憑據與專屬部署指令彙整至 `local.md`。
+  - 將 `local.md` 加入 `.gitignore`，徹底杜絕敏感金鑰外洩風險。
+- **正式站台自訂網域適配與 CORS 動態相容**：
+  - `APP_ORIGIN` 正式切換至 `https://afterbuy.aicreate360.ai` 與 `https://afterbuy.david888.com`。
+  - 在 `src/api/index.ts` 與 `src/api/routes/auth.ts` 升級動態 Request Origin 判定，使 WebAuthn / Passkey 在自訂網域與邊緣 workers.dev 均能完美相容。
+- **手機批次拍照建檔與 R2 多圖並行上傳 (`POST /api/upload/batch`)**：
+  - 支援手機相機後鏡頭連續拍攝（`capture="environment" multiple`）與相簿多選匯入。
+  - 多圖並行上傳至 Cloudflare R2，並即時產出可編輯的草稿卡片（支援批次調整名稱、分類、週期、價格與型號），支援一鍵批量建檔。
+- **多選模式與浮動批次操作列 (Floating Batch Action Bar)**：
+  - 物品卡片支援 Checkbox 多選切換，底部動態滑出浮動操作列。
+  - 提供「🔥 一鍵全部換新（批次已換）」、「📦 批次 +1 備品」與「🗑️ 批次刪除」。
+  - 後端新增交易式批次端點 `POST /api/items/batch-replace`、`POST /api/items/batch-stock`、`POST /api/items/batch-delete`，在 D1 交易內原子化更新歷史與庫存。
+  - 在「備品採購 (Shopping)」頁面支援一鍵為所有急需補貨品項「全部 +1 備品」。
+- **狀態管理與 Session 遺失問題修復**：
+  - 修復 Email OTP 驗證成功後因彈窗未點擊最終步驟而導致的前端使用者狀態未提早 commit 問題。
+  - 加入 `localStorage` (`afterbuy_user`) 雙重持久化狀態同步機制，配合背景 `/api/auth/me` 異步驗證，徹底消除重新整理或頁面跳轉時的「登入一轉頭就登出」閃斷問題。
+  - 修正登出端點 `deleteCookie(c, 'afterbuy_session', { path: '/' })` 確保全站路徑 Cookie 徹底清除。
+- **單一物品新增與編輯之拍照 / 上傳屬性全面上線**：
+  - 在 `ItemModal.tsx` 補全實體照片屬性區塊（支援「相機直拍 `capture="environment"`」、「相簿選圖」與預設插圖切換）。
+  - 支援大縮圖即時預覽、上傳進度旋轉指示器與一鍵移除功能。
+- **訪客模式 (Guest Mode) 零阻礙本機體驗**：
+  - 訪客使用者無須登入即可自由體驗「拍照建檔」與「新增物品」全功能，自動以 `FileReader` 讀取本機 Base64 Data URL 進行即時預覽與本機狀態建檔，完全避免非登入狀態下請求 R2 造成的 401 或網路中斷。
+- **批次拍照 (Batch Intake) 體驗重構與智慧範本標籤 (Smart Preset Chips)**：
+  - 依據 `frontend-design` 準則重構批次拍照流程，未拍時呈現醒目相機與相簿大卡引導，拍攝後自動收合為小巧操作列，將視線聚焦於草稿檢視。
+  - 每張草稿卡片均內建水平滑動「常用範本標籤」（如「貼身內褲 90天」、「運動襪 90天」、「安全帽 3年」、「印表機墨水 180天」等），輕觸單鍵即可自動帶入名稱、分類、推薦週期、規格與價格，省去手機手打鍵盤負擔。
+- **Passkey 跨網域與跨金鑰庫提示強化**：
+  - 針對網域切換（由邊緣 `workers.dev` 切換至自訂網域 `afterbuy.david888.com`）導致系統鑰匙圈無對應憑證的現象，優化登入提示：「在此網域或裝置尚未綁定 Passkey。請先使用 Email 登入，登入後即可一鍵綁定 Touch ID / Face ID！」
+  - Email 登入成功後即刻跳出高對比度 Passkey 綁定卡，引導用戶一鍵將當前設備與網域完成生物辨識註冊。
+- **後端全局錯誤捕捉與 WebMCP 404 防禦**：
+  - 在 `src/api/index.ts` 新增 `app.onError` 全局捕捉器，確保任何異常回傳皆包含乾淨的 JSON 與正確的 CORS 標頭，杜絕瀏覽器端出現「Failed to fetch」。
+  - 註冊 `/mcp` 端點以優雅響應客戶端 WebMCP 瀏覽器環境探測，避免控制台 404 報錯。
+- **極速零依賴中英雙語系系統 (i18n)**：
+  - 建置輕量 React `I18nProvider` 與 `useTranslation()`，支援繁體中文（`zh-TW`）與英文（`en`）。
+  - 在頂部導覽列（Header）與偏好設定（Settings）提供即時切換按鈕，持久化記憶至 `localStorage`，無須重新載入頁面即可瞬間切換所有標籤、狀態與動態倒數。
+- **生活物品種類擴充與購買金額 / 規格型號追蹤**：
+  - 新增 `clothing`（貼身穿戴）生活分類。
+  - 新增生活常備範本：貼身內褲（90~180天衛教淘汰換新）、貼身內衣（180~365天彈性檢視）、棉襪（90~180天）、機車安全帽（3年/1095天交安換新）、印表機墨水/碳粉（180天）、維他命C/保健品（60天/PAO 3個月）、乾電池（180天常備備品）、除濕機濾網。
+  - 資料庫 D1 增加 `price`（購買金額）與 `spec_model`（規格型號）欄位，完成雙帳戶 D1 遷移。
+- **OpenSpec 變更歸檔與新功能提案建立**：
+  - 正式將首期上線變更 `init-afterbuy-pwa` 歸檔至 `openspec/changes/archive/2026-09-03-init-afterbuy-pwa`，並同步更新 15 項主要規格至 `openspec/specs/`。
+  - 完成 `batch-ops-i18n-and-expansion` 規格實作（包含批次拍照上傳、多選批次更換扣庫存、中英雙語系切換、購買金額與生活品項擴充），全套單元測試與端對端驗證 100% 通過。
+
+### Fixed
+- **React 渲染例外修復（`ReferenceError: hasFilters is not defined`）**：
+  - 修復 `DashboardView.tsx` 中篩選狀態清除變數未正確定義導致首頁白屏的問題，全面通過 `tsc --noEmit` 型別驗證。
+- **PWA Manifest PNG 圖示與 Web App 相容性標籤修復**：
+  - 將 `public/icons/` 假 PNG（實為 SVG）使用 `sips` 重新轉換為真正的 192x192 與 512x512 8-bit RGBA PNG 二進位檔案，解決 PWA Manifest 圖示解碼失敗警告。
+  - 在 `index.html` 補齊標準 `<meta name="mobile-web-app-capable" content="yes" />`。
+
+### Docs
+- 同步更新 `README.md`，詳載 Cloudflare 雙帳號部署架構、批次功能與中英雙語支援說明。
+
+---
+
 ## 2026-09-02
 
 ### Security

@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Clock,
   CheckCircle2,
+  Check,
 } from 'lucide-react';
 import { ItemResponse } from '../../shared/types.ts';
 import { CATEGORIES } from '../utils/category.ts';
@@ -24,6 +25,9 @@ interface ItemCardProps {
   onEdit: (item: ItemResponse) => void;
   onDelete: (id: string) => void;
   onViewHistory: (item: ItemResponse) => void;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 export const ItemCard: React.FC<ItemCardProps> = ({
@@ -33,6 +37,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   onEdit,
   onDelete,
   onViewHistory,
+  selectable,
+  isSelected,
+  onToggleSelect,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [replacing, setReplacing] = useState(false);
@@ -61,11 +68,30 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
   return (
     <div
-      className={`app-surface relative rounded-2xl border ${getBorderColor()} p-4 sm:p-5 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.9)] transition-all duration-200 overflow-hidden`}
+      onClick={selectable ? () => onToggleSelect?.(item.id) : undefined}
+      className={`app-surface relative rounded-2xl border ${
+        isSelected ? 'ring-2 ring-sky-500 border-sky-500/80 bg-sky-950/20' : getBorderColor()
+      } p-4 sm:p-5 shadow-[0_12px_30px_-24px_rgba(2,6,23,0.9)] transition-all duration-200 overflow-hidden ${
+        selectable ? 'cursor-pointer select-none' : ''
+      }`}
     >
       {/* Top row: Category + Status + Action Menu */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2 min-w-0">
+          {selectable && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSelect?.(item.id);
+              }}
+              className={`w-5 h-5 rounded-lg flex items-center justify-center border transition-all ${
+                isSelected ? 'bg-sky-500 border-sky-400 text-white' : 'border-slate-600 bg-slate-800'
+              }`}
+            >
+              {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+            </button>
+          )}
           <span
             className={`inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border ${categoryMeta.bg} ${categoryMeta.color}`}
           >
@@ -137,7 +163,23 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             <Package className="w-5 h-5 text-slate-500" aria-hidden="true" />
           )}
         </div>
-        <h3 className="text-[17px] font-bold tracking-[-0.015em] text-white truncate">{item.name}</h3>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[17px] font-bold tracking-[-0.015em] text-white truncate">{item.name}</h3>
+          {(item.specModel || (item.price !== null && item.price !== undefined)) && (
+            <div className="flex items-center gap-2 mt-0.5 text-xs">
+              {item.specModel && (
+                <span className="truncate bg-slate-800/80 px-1.5 py-0.5 rounded text-[11px] text-slate-300">
+                  {item.specModel}
+                </span>
+              )}
+              {item.price !== null && item.price !== undefined && (
+                <span className="text-[11px] font-semibold text-emerald-400">
+                  NT$ {item.price.toLocaleString()}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Progress & Countdown Section */}
