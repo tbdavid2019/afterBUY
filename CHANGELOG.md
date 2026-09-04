@@ -86,6 +86,8 @@
   - 全面導入 React `createPortal(..., document.body)` 頂層渲染架構，保證彈出抽屜與設定視窗精準錨定全螢幕視窗（Viewport）。
 
 ### Changed
+- **校正 ai360 環境正式自訂網域名稱**：
+  - 將 `wrangler.toml` 與環境變數 `APP_ORIGIN` 由 `https://afterbuy.aicreate360.ai` 校正為正確網域 `https://afterbuy.create360.ai`，並完成邊緣 Workers 最新部署。
 - **品牌字體系統全面升級（JetBrains Mono + justfont 粉圓體）**：
   - 英文與數字全面採用 **JetBrains Mono**：幾何等寬、數字清晰精緻，在倒數天數、金額標記、規格與日期呈現極具質感的現代感。
   - 中文字體全面採用 **justfont 粉圓體（Huninn / jf-openhuninn）**：筆觸圓潤飽滿、富有日系手帳與生活感的情緒價值。
