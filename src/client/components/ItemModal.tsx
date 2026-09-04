@@ -340,11 +340,11 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {/* Stock Space Selector */}
           {user && stocks.length > 0 && !itemToEdit && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">所屬備品庫 (Stock)</label>
+              <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">所屬備品庫 (Stock)</label>
               <select
                 value={selectedStockId}
                 onChange={(e) => setSelectedStockId(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-xl px-3.5 py-2.5 text-white outline-none text-xs"
+                className="w-full bg-[var(--app-surface-subtle)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 py-2.5 text-[var(--app-text)] outline-none text-xs"
               >
                 {stocks.map((s) => (
                   <option key={s.id} value={s.id}>

@@ -54,6 +54,15 @@
   - D1 資料庫 `items` 表新增 `location TEXT`、`is_stored INTEGER DEFAULT 0`、`snooze_until TEXT`。
   - 完成 Cloudflare 雙環境（`ai360` 與 `david`）遠端 D1 遷移。
 
+### Fixed
+- **StockSwitcher 與 StockSettingsModal 視窗層級與 Containing Block 截斷修復**：
+  - 徹底解決 `Header` 元素之 `backdrop-blur-md` 導致其內部子元素 `position: fixed` 形成局部 Containing Block，使彈出視窗被強制垂直置中於 64px 導覽列頂部、上半部標題與關閉按鈕被螢幕邊緣截斷的嚴重問題。
+  - 全面導入 React `createPortal(..., document.body)` 頂層渲染架構，保證彈出抽屜與設定視窗精準錨定全螢幕視窗（Viewport）。
+- **淺色/深色主題色彩錯亂與對比度全面重構**：
+  - 徹底移除 `StockSwitcher`、`StockSettingsModal`、`ItemCard`、`ItemModal` 與 `Header` 中的硬編碼純深色類別（如 `bg-slate-900`、`bg-slate-800/40`、`bg-sky-950/40`、`text-white`）。
+  - 全面採用語意化設計代幣（`app-surface`、`app-surface-subtle`、`app-control`、`app-primary`、`var(--app-text)`、`var(--app-muted)` 等）。
+  - 在日系無印暖石色淺色模式（Light Mode）下，備品庫卡片、抽屜按鈕、身份標籤與物品徽章呈現細緻清晰的溫潤對比；在青花瓷藍深色模式（Dark Mode）下呈現幽藍冷萃與高對比發光感，不再有灰黑污斑或字體隱形。
+
 ### Changed
 - **品牌字體系統全面升級（JetBrains Mono + justfont 粉圓體）**：
   - 英文與數字全面採用 **JetBrains Mono**：幾何等寬、數字清晰精緻，在倒數天數、金額標記、規格與日期呈現極具質感的現代感。

@@ -37,14 +37,14 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo & Slogan */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-300 flex items-center justify-center shadow-[0_8px_24px_-10px_rgba(56,189,248,0.8)]">
+          <div className="w-9 h-9 rounded-xl bg-sky-400 dark:bg-sky-300 flex items-center justify-center shadow-[0_8px_24px_-10px_rgba(56,189,248,0.8)] shrink-0">
             <span className="text-slate-950 font-black text-sm tracking-tight">aB</span>
           </div>
           <div>
-            <h1 className="text-[15px] font-bold tracking-tight text-white flex items-center gap-1.5">
+            <h1 className="text-[15px] font-bold tracking-tight text-[var(--app-text)] flex items-center gap-1.5">
               <span>afterBuy</span>
-              <span className="text-sky-400 font-extrabold text-sm">該換囉</span>
-              <span className="text-[9px] font-bold tracking-[0.12em] uppercase text-sky-300 border border-sky-400/25 px-1.5 py-0.5 rounded-full">
+              <span className="text-sky-600 dark:text-sky-400 font-extrabold text-sm">該換囉</span>
+              <span className="text-[9px] font-bold tracking-[0.12em] uppercase text-[var(--app-accent-strong)] border border-[var(--app-border)] bg-[var(--app-surface-subtle)] px-1.5 py-0.5 rounded-full">
                 PWA
               </span>
             </h1>
@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
                 />
               </div>
             ) : (
-              <p className="text-[11px] text-slate-500 mt-0.5">{t('appSubtitle')}</p>
+              <p className="text-[11px] text-[var(--app-muted)] mt-0.5">{t('appSubtitle')}</p>
             )}
           </div>
         </div>
@@ -71,9 +71,9 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={toggleLocale}
             aria-label={locale === 'zh-TW' ? 'Switch to English' : '切換至繁體中文'}
-            className="app-control px-2.5 h-9 flex items-center justify-center gap-1.5 rounded-xl border text-xs font-bold text-slate-300 hover:text-white transition-colors active:scale-[0.96]"
+            className="app-control px-2.5 h-9 flex items-center justify-center gap-1.5 rounded-xl border text-xs font-bold transition-colors active:scale-[0.96]"
           >
-            <Languages className="w-3.5 h-3.5 text-sky-400" />
+            <Languages className="w-3.5 h-3.5 text-sky-500 dark:text-sky-400" />
             <span>{locale === 'zh-TW' ? 'EN' : '繁中'}</span>
           </button>
 
@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={onToggleTheme}
             aria-label={theme === 'light' ? '深色模式' : '淺色模式'}
-            className="app-control w-9 h-9 flex items-center justify-center rounded-xl border text-slate-400 hover:text-white transition-colors active:scale-[0.96]"
+            className="app-control w-9 h-9 flex items-center justify-center rounded-xl border text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors active:scale-[0.96]"
           >
             {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
           </button>
@@ -99,9 +99,9 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenAuth}
               aria-label="Sign In"
-              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-sky-300 border border-sky-400/35 text-xs font-bold px-3.5 py-2 rounded-full transition-all"
+              className="app-control hover:border-[var(--app-accent)] active:scale-[0.98] text-xs font-bold px-3.5 py-2 rounded-full transition-all flex items-center gap-1.5"
             >
-              <Fingerprint className="w-4 h-4" />
+              <Fingerprint className="w-4 h-4 text-sky-500 dark:text-sky-400" />
               <span>{locale === 'zh-TW' ? '登入 / 註冊' : 'Sign In'}</span>
             </button>
           )}
