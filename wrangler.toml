@@ -44,6 +44,9 @@ SESSION_SECRET = "afterbuy-super-secure-session-secret-local-32chars"
 [env.ai360]
 name = "afterbuy"
 account_id = "aa3bf2b79b8bbdbf05b4e289bd7c4d91"
+routes = [
+  { pattern = "afterbuy.create360.ai", custom_domain = true }
+]
 
 [[env.ai360.d1_databases]]
 binding = "DB"
@@ -75,6 +78,9 @@ SESSION_SECRET = "1c2f93fdc2e64effc349fc68f36f2d9558808897ec60203b866caa69089244
 [env.david]
 name = "afterbuy"
 account_id = "379570860738dd1757ba7f67ef2bdffe"
+routes = [
+  { pattern = "afterbuy.david888.com", custom_domain = true }
+]
 
 [[env.david.d1_databases]]
 binding = "DB"
