@@ -8,8 +8,9 @@ import { SettingsView } from './views/SettingsView.tsx';
 import { ItemModal } from './components/ItemModal.tsx';
 import { HistoryModal } from './components/HistoryModal.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
+import { StockSettingsModal } from './components/StockSettingsModal.tsx';
 import { api } from './api.ts';
-import { UserSession, ItemResponse } from '../shared/types.ts';
+import { UserSession, ItemResponse, StockResponse } from '../shared/types.ts';
 import { computeItemStatus } from '../shared/lifecycle.ts';
 import { getInitialTheme, type ThemeMode } from './utils/theme.ts';
 
@@ -154,6 +155,10 @@ export const App: React.FC = () => {
   });
   const [devices, setDevices] = useState<any[]>([]);
   const [items, setItems] = useState<ItemResponse[]>(DEMO_ITEMS);
+  const [stocks, setStocks] = useState<StockResponse[]>([]);
+  const [currentStockId, setCurrentStockId] = useState<string>('all');
+  const [settingsStockId, setSettingsStockId] = useState<string | null>(null);
+  const [isStockSettingsOpen, setIsStockSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<ItemResponse | null>(null);
@@ -168,8 +173,8 @@ export const App: React.FC = () => {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f2f0ea' : '#081f33');
   }, [theme]);
 
-  // Load User & Items
-  const loadUserAndItems = async () => {
+  // Load User, Stocks & Items
+  const loadUserAndItems = async (stockIdToLoad?: string) => {
     try {
       const meRes = await api.getMe();
       if (meRes.user) {
@@ -178,14 +183,45 @@ export const App: React.FC = () => {
           localStorage.setItem('afterbuy_user', JSON.stringify(meRes.user));
         }
         setDevices(meRes.devices || []);
-        const itemsRes = await api.getItems();
+
+        // Load stocks
+        const stocksRes = await api.getStocks();
+        setStocks(stocksRes.stocks);
+
+        // Load items for specified stock or currentStockId
+        const effectiveStockId = stockIdToLoad !== undefined ? stockIdToLoad : currentStockId;
+        const itemsRes = await api.getItems(effectiveStockId);
         setItems(itemsRes.items);
+
+        // Check for joinStock URL query param (e.g. ?joinStock=CODE)
+        if (typeof window !== 'undefined') {
+          const urlParams = new URLSearchParams(window.location.search);
+          const joinCode = urlParams.get('joinStock');
+          if (joinCode) {
+            urlParams.delete('joinStock');
+            const newSearch = urlParams.toString();
+            window.history.replaceState({}, '', `${window.location.pathname}${newSearch ? '?' + newSearch : ''}`);
+            try {
+              const joinRes = await api.joinStock(joinCode);
+              alert(`已成功加入備品庫「${joinRes.stock.name}」！`);
+              const refreshedStocks = await api.getStocks();
+              setStocks(refreshedStocks.stocks);
+              setCurrentStockId(joinRes.stock.id);
+              const refreshedItems = await api.getItems(joinRes.stock.id);
+              setItems(refreshedItems.items);
+            } catch (joinErr: any) {
+              alert(joinErr.message || '加入備品庫失敗');
+            }
+          }
+        }
       } else {
         // Session truly invalidated on server
         const cached = localStorage.getItem('afterbuy_user');
         if (cached) {
           localStorage.removeItem('afterbuy_user');
           setUser(null);
+          setStocks([]);
+          setCurrentStockId('all');
           setItems(DEMO_ITEMS);
         }
       }
@@ -197,6 +233,23 @@ export const App: React.FC = () => {
   useEffect(() => {
     loadUserAndItems();
   }, []);
+
+  const handleSelectStock = async (stockId: string) => {
+    setCurrentStockId(stockId);
+    if (user) {
+      try {
+        const itemsRes = await api.getItems(stockId);
+        setItems(itemsRes.items);
+      } catch (err) {
+        console.error('Failed to switch stock:', err);
+      }
+    }
+  };
+
+  const handleOpenStockSettings = (stockId: string) => {
+    setSettingsStockId(stockId);
+    setIsStockSettingsOpen(true);
+  };
 
   const handleOpenNewItem = () => {
     setItemToEdit(null);
@@ -411,6 +464,11 @@ export const App: React.FC = () => {
       {/* Top Header */}
       <Header
         user={user}
+        stocks={stocks}
+        currentStockId={currentStockId}
+        onSelectStock={handleSelectStock}
+        onOpenStockSettings={handleOpenStockSettings}
+        onRefreshStocks={loadUserAndItems}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenNewItem={handleOpenNewItem}
         theme={theme}
@@ -488,6 +546,8 @@ export const App: React.FC = () => {
         isOpen={isItemModalOpen}
         itemToEdit={itemToEdit}
         user={user}
+        stocks={stocks}
+        currentStockId={currentStockId}
         onClose={() => {
           setIsItemModalOpen(false);
           setItemToEdit(null);
@@ -497,6 +557,18 @@ export const App: React.FC = () => {
         onUpdateGuestItem={(updatedItem) =>
           setItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)))
         }
+      />
+
+      <StockSettingsModal
+        isOpen={isStockSettingsOpen}
+        stockId={settingsStockId}
+        user={user}
+        onClose={() => setIsStockSettingsOpen(false)}
+        onStockUpdated={() => loadUserAndItems()}
+        onStockDeleted={() => {
+          setCurrentStockId('all');
+          loadUserAndItems('all');
+        }}
       />
 
       <HistoryModal

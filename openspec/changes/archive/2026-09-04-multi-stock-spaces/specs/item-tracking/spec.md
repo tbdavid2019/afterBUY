@@ -1,9 +1,4 @@
-# item-tracking Specification
-
-## Purpose
-Manages the lifecycle, usage duration, replacement intervals, warranty expiration, period-after-opening (PAO), and backup inventory quantities for personal items and consumables.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Item Creation with Tracking Modes
 The system SHALL support creating items within a designated Stock space (`stock_id`). Items SHALL support specific tracking modes: interval replacement (e.g. replace every N days/months), fixed expiration date (e.g. food/medication expiry), period-after-opening (PAO months), and warranty period countdown. The system SHALL also support optional purchase price (`price`), specification model (`specModel`), spatial location (`location`), unbox-on-demand stored status (`isStored`), and reminder postponement (`snoozeUntil`).
@@ -35,16 +30,7 @@ The system SHALL provide a one-tap action to mark an item as replaced, resetting
 - **WHEN** client sends a batch replacement request containing an array of item IDs
 - **THEN** backend processes all items within a D1 batch transaction, resets start dates to today, decrements stock, records replacement history with the acting user's ID for each item, and returns the updated items
 
-### Requirement: Item Health Status Computation
-The system SHALL compute dynamic item health states based on elapsed time: "Normal / Healthy" (> 15% remaining), "Due Soon" (<= 15% or <= 7 days remaining), "Due Today / Overdue" (<= 0 days), and "Out of Stock" (stock count == 0).
-
-#### Scenario: Status changes to Due Soon
-- **WHEN** current date reaches within 7 days of the scheduled replacement or expiration date
-- **THEN** system updates item visual badge to "Due Soon" and triggers upcoming reminder events
-
-#### Scenario: Status changes to Overdue
-- **WHEN** current date is past the replacement deadline
-- **THEN** system highlights the item in warning red and counts days overdue
+## ADDED Requirements
 
 ### Requirement: Multi-Stock View and Aggregation Filter
 The system SHALL support both an aggregate "All Stocks" view and isolated single-Stock views. In "All Stocks" view, the dashboard SHALL display items across all Stock spaces the user belongs to, with clear visual badges indicating the originating Stock space. In single-Stock view, the dashboard SHALL only display items belonging to the selected Stock space.

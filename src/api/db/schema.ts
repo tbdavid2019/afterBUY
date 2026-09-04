@@ -20,11 +20,46 @@ export const passkeyCredentials = sqliteTable('passkey_credentials', {
   lastUsedAt: text('last_used_at'),
 });
 
+export const stocks = sqliteTable('stocks', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  icon: text('icon').notNull().default('📦'),
+  description: text('description'),
+  ownerId: text('owner_id').notNull().references(() => users.id),
+  calendarToken: text('calendar_token').notNull().unique(),
+  deletedAt: text('deleted_at'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
+export const stockMembers = sqliteTable('stock_members', {
+  id: text('id').primaryKey(),
+  stockId: text('stock_id').notNull().references(() => stocks.id),
+  userId: text('user_id').notNull().references(() => users.id),
+  role: text('role').notNull().default('member'), // owner | admin | member | viewer
+  nickname: text('nickname'),
+  createdAt: text('created_at').notNull(),
+});
+
+export const stockInvites = sqliteTable('stock_invites', {
+  id: text('id').primaryKey(),
+  stockId: text('stock_id').notNull().references(() => stocks.id),
+  code: text('code').notNull().unique(),
+  role: text('role').notNull().default('member'),
+  createdByUserId: text('created_by_user_id').notNull().references(() => users.id),
+  expiresAt: text('expires_at').notNull(),
+  usedCount: integer('used_count').notNull().default(0),
+  maxUses: integer('max_uses').notNull().default(10),
+  createdAt: text('created_at').notNull(),
+});
+
 export const items = sqliteTable('items', {
   id: text('id').primaryKey(),
+  stockId: text('stock_id').references(() => stocks.id),
   userId: text('user_id').notNull().references(() => users.id),
+  createdByUserId: text('created_by_user_id').references(() => users.id),
   name: text('name').notNull(),
-  category: text('category').notNull().default('general'), // bathroom, kitchen, skincare, medicine, appliances, electronics, general
+  category: text('category').notNull().default('general'), // bathroom, kitchen, skincare, medicine, appliances, electronics, clothing, general
   trackingMode: text('tracking_mode').notNull().default('cycle'), // cycle, pao, expiry, warranty
   cycleDays: integer('cycle_days'), // e.g. 90
   startDate: text('start_date').notNull(), // YYYY-MM-DD
@@ -50,6 +85,7 @@ export const itemHistory = sqliteTable('item_history', {
   id: text('id').primaryKey(),
   itemId: text('item_id').notNull().references(() => items.id),
   userId: text('user_id').notNull().references(() => users.id),
+  replacedByUserId: text('replaced_by_user_id').references(() => users.id),
   replacedAt: text('replaced_at').notNull(),
   previousStartDate: text('previous_start_date').notNull(),
   stockAfterReplace: integer('stock_after_replace').notNull(),
@@ -77,7 +113,11 @@ export const notificationSettings = sqliteTable('notification_settings', {
 
 export type User = typeof users.$inferSelect;
 export type PasskeyCredential = typeof passkeyCredentials.$inferSelect;
+export type Stock = typeof stocks.$inferSelect;
+export type StockMember = typeof stockMembers.$inferSelect;
+export type StockInvite = typeof stockInvites.$inferSelect;
 export type Item = typeof items.$inferSelect;
 export type ItemHistory = typeof itemHistory.$inferSelect;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
+

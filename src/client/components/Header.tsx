@@ -1,18 +1,35 @@
 import React from 'react';
 import { Plus, Fingerprint, Moon, Sun, Languages } from 'lucide-react';
-import { UserSession } from '../../shared/types.ts';
+import { UserSession, StockResponse } from '../../shared/types.ts';
 import type { ThemeMode } from '../utils/theme.ts';
 import { useTranslation } from '../i18n/index.tsx';
+import { StockSwitcher } from './StockSwitcher.tsx';
 
 interface HeaderProps {
   user: UserSession | null;
+  stocks?: StockResponse[];
+  currentStockId?: string;
+  onSelectStock?: (stockId: string) => void;
+  onOpenStockSettings?: (stockId: string) => void;
+  onRefreshStocks?: () => Promise<void> | void;
   onOpenAuth: () => void;
   onOpenNewItem: () => void;
   theme: ThemeMode;
   onToggleTheme: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onOpenNewItem, theme, onToggleTheme }) => {
+export const Header: React.FC<HeaderProps> = ({
+  user,
+  stocks = [],
+  currentStockId = 'all',
+  onSelectStock,
+  onOpenStockSettings,
+  onRefreshStocks,
+  onOpenAuth,
+  onOpenNewItem,
+  theme,
+  onToggleTheme,
+}) => {
   const { locale, toggleLocale, t } = useTranslation();
 
   return (
@@ -31,7 +48,19 @@ export const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onOpenNewItem,
                 PWA
               </span>
             </h1>
-            <p className="text-[11px] text-slate-500 mt-0.5">{t('appSubtitle')}</p>
+            {user && onSelectStock && onOpenStockSettings && onRefreshStocks ? (
+              <div className="mt-0.5">
+                <StockSwitcher
+                  currentStockId={currentStockId}
+                  stocks={stocks}
+                  onSelectStock={onSelectStock}
+                  onOpenStockSettings={onOpenStockSettings}
+                  onRefreshStocks={onRefreshStocks}
+                />
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-500 mt-0.5">{t('appSubtitle')}</p>
+            )}
           </div>
         </div>
 

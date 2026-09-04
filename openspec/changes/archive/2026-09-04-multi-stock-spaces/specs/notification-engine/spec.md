@@ -1,9 +1,4 @@
-# notification-engine Specification
-
-## Purpose
-Dispatches multi-channel replacement and expiration alerts across Web Push, dynamic RFC 5545 WebCal calendar feeds (with sequence tracking, cancellation, and token rotation), Email digests, and VIP SMS.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Web Push Notification Dispatch
 The system SHALL support subscribing PWA client devices to Web Push via VAPID and sending background push notifications when items across any of the user's accessible Stock spaces reach their alert threshold. The push notification message SHALL include the originating Stock space name in its title or body.
@@ -41,10 +36,3 @@ The system SHALL send scheduled email notifications to users detailing items tha
 #### Scenario: Morning digest email delivery
 - **WHEN** daily cron job executes at user's configured morning notification time (e.g. 08:00 AM)
 - **THEN** system aggregates all items reaching alert thresholds across all user's Stock spaces, groups them by Stock name (e.g. "甜蜜的家", "電子與木工坊"), and dispatches a responsive email digest with action buttons
-
-### Requirement: VIP SMS Notification Channel (Phase 2)
-The system SHALL support sending high-priority SMS alerts for VIP/paid subscription members when critical items reach zero backup stock or overdue status.
-
-#### Scenario: VIP member receives SMS for urgent consumable
-- **WHEN** an item marked for SMS alerts reaches overdue status and user has active VIP tier
-- **THEN** system dispatches an SMS message to user's verified phone number and logs message delivery

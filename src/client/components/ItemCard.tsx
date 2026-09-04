@@ -105,6 +105,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           >
             {categoryMeta.label}
           </span>
+          {item.stockName && (
+            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border border-sky-500/30 bg-sky-950/40 text-sky-300">
+              <span>{item.stockIcon || '🏠'}</span>
+              <span className="truncate max-w-[90px]">{item.stockName}</span>
+            </span>
+          )}
           {item.location && (
             <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border border-slate-700 bg-slate-900/80 text-slate-300">
               <MapPin className="w-2.5 h-2.5 text-sky-400" />

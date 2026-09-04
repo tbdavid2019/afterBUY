@@ -7,6 +7,7 @@ import { itemsRouter } from './routes/items.ts';
 import { calendarRouter } from './routes/calendar.ts';
 import { notificationsRouter, dispatchScheduledNotifications } from './routes/notifications.ts';
 import { uploadRouter } from './routes/upload.ts';
+import { stocksRouter } from './routes/stocks.ts';
 
 const LLMS_TXT = `# afterBUY
 
@@ -73,6 +74,7 @@ app.get('/.well-known/llms.txt', (c) => {
 
 // Mount API routes
 app.route('/api/auth', authRouter);
+app.route('/api/stocks', stocksRouter);
 app.route('/api/items', itemsRouter);
 app.route('/api/calendar', calendarRouter);
 app.route('/api/notifications', notificationsRouter);

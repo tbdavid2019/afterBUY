@@ -3,7 +3,7 @@ import { eq, and, isNull } from 'drizzle-orm';
 import webpush from 'web-push';
 import { HonoEnv } from '../types.ts';
 import { requireAuth } from '../middleware/auth.ts';
-import { getDb, users, items, notificationSettings, pushSubscriptions } from '../db/index.ts';
+import { getDb, users, items, notificationSettings, pushSubscriptions, stocks, stockMembers } from '../db/index.ts';
 import { computeNextDueDate } from '../../shared/lifecycle.ts';
 import { TrackingMode } from '../../shared/types.ts';
 
@@ -169,14 +169,30 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
     const emailEnabled = settings ? Boolean(settings.emailEnabled) : true;
     const pushEnabled = settings ? Boolean(settings.pushEnabled) : true;
 
-    // Get user's active items
-    const userItems = await db
-      .select()
-      .from(items)
-      .where(and(eq(items.userId, u.id), isNull(items.deletedAt)))
+    // Get user's accessible stocks
+    const userMemberships = await (db as any)
+      .select({
+        stockId: stockMembers.stockId,
+        stockName: stocks.name,
+      })
+      .from(stockMembers)
+      .innerJoin(stocks, eq(stockMembers.stockId, stocks.id))
+      .where(and(eq(stockMembers.userId, u.id), isNull(stocks.deletedAt)))
       .all();
 
-    const urgentItems: Array<{ item: typeof items.$inferSelect; daysRemaining: number; nextDue: string }> = [];
+    const accessibleStockIds: string[] = userMemberships.map((m: any) => m.stockId);
+    const stockNameMap = new Map<string, string>();
+    userMemberships.forEach((m: any) => stockNameMap.set(m.stockId, m.stockName));
+
+    // Get user's active items across all accessible stocks
+    const allItems = await db.select().from(items).where(isNull(items.deletedAt)).all();
+    const userItems = allItems.filter((it) => {
+      if (it.stockId && accessibleStockIds.includes(it.stockId)) return true;
+      if (it.userId === u.id) return true;
+      return false;
+    });
+
+    const urgentItems: Array<{ item: typeof items.$inferSelect; daysRemaining: number; nextDue: string; stockName: string }> = [];
 
     for (const item of userItems) {
       const nextDue = computeNextDueDate({
@@ -192,7 +208,8 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
       const daysRemaining = Math.round((due.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
 
       if (daysRemaining <= warningDays) {
-        urgentItems.push({ item, daysRemaining, nextDue });
+        const stockName = (item.stockId && stockNameMap.get(item.stockId)) || '甜蜜的家';
+        urgentItems.push({ item, daysRemaining, nextDue, stockName });
       }
     }
 
@@ -210,11 +227,11 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
         try {
           const first = urgentItems[0];
           const title = urgentItems.length === 1
-            ? `【afterBUY】${first.item.name} 該換了！`
-            : `【afterBUY】您有 ${urgentItems.length} 項耗材即將到期`;
+            ? `【afterBuy 該換囉】[${first.stockName}] ${first.item.name} 該換了！`
+            : `【afterBuy 該換囉】您有 ${urgentItems.length} 項耗材即將到期`;
           const body = urgentItems.length === 1
             ? `${first.item.name} (${first.daysRemaining <= 0 ? '今日已到期' : `剩餘 ${first.daysRemaining} 天`})`
-            : urgentItems.map(i => `${i.item.name} (${i.daysRemaining}天)`).join('、');
+            : urgentItems.map(i => `[${i.stockName}] ${i.item.name} (${i.daysRemaining}天)`).join('、');
 
           await webpush.sendNotification(
             {
@@ -243,7 +260,10 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
           .map(
             (i) => `
             <tr style="border-bottom: 1px solid #334155;">
-              <td style="padding: 12px 8px; font-weight: 600; color: #f8fafc;">${escapeHtml(i.item.name)}</td>
+              <td style="padding: 12px 8px; font-weight: 600; color: #f8fafc;">
+                <span style="font-size: 11px; background: #334155; color: #38bdf8; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">${escapeHtml(i.stockName)}</span>
+                ${escapeHtml(i.item.name)}
+              </td>
               <td style="padding: 12px 8px; color: ${i.daysRemaining <= 0 ? '#f43f5e' : '#f59e0b'};">
                 ${i.daysRemaining <= 0 ? '🔥 今日已到期' : `⏳ 剩餘 ${i.daysRemaining} 天`}
               </td>
@@ -262,15 +282,15 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
           body: JSON.stringify({
             from: env.EMAIL_FROM || 'afterBUY <notifications@create360.ai>',
             to: [u.email],
-            subject: `【afterBUY 晨間提醒】您有 ${urgentItems.length} 項耗材即將到期`,
+            subject: `【afterBuy 該換囉 晨間提醒】您有 ${urgentItems.length} 項耗材即將到期`,
             html: `
               <div style="font-family: sans-serif; max-width: 540px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 12px;">
-                <h2 style="color: #38bdf8; margin-bottom: 8px;">afterBUY 晨間更換提醒</h2>
-                <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">早安！以下是您家中今日或近期需要更換的生活耗材：</p>
+                <h2 style="color: #38bdf8; margin-bottom: 8px;">afterBuy 該換囉 晨間更換提醒</h2>
+                <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">早安！以下是您所屬備品庫中今日或近期需要更換的生活耗材：</p>
                 <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px;">
                   <thead>
                     <tr style="border-bottom: 2px solid #475569; color: #94a3b8; font-size: 13px;">
-                      <th style="padding: 8px;">物品名稱</th>
+                      <th style="padding: 8px;">空間與物品名稱</th>
                       <th style="padding: 8px;">狀態</th>
                       <th style="padding: 8px;">備品庫存</th>
                     </tr>
@@ -278,7 +298,7 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
                   <tbody>${itemRows}</tbody>
                 </table>
                 <div style="text-align: center;">
-                  <a href="${env.APP_ORIGIN || 'https://afterbuy.app'}" style="display: inline-block; background: #38bdf8; color: #0f172a; font-weight: bold; padding: 12px 24px; border-radius: 8px; text-decoration: none;">開啟 afterBUY 標記已換</a>
+                  <a href="${env.APP_ORIGIN || 'https://afterbuy.app'}" style="display: inline-block; background: #38bdf8; color: #0f172a; font-weight: bold; padding: 12px 24px; border-radius: 8px; text-decoration: none;">開啟 afterBuy 該換囉 標記已換</a>
                 </div>
               </div>
             `,

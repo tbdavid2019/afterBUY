@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Sparkles, Calendar, Package, AlertCircle, Camera, ImagePlus, Loader2, Check } from 'lucide-react';
-import { ItemResponse, ItemCategory, TrackingMode, UserSession } from '../../shared/types.ts';
+import { ItemResponse, ItemCategory, TrackingMode, UserSession, StockResponse } from '../../shared/types.ts';
 import { computeItemStatus } from '../../shared/lifecycle.ts';
 import { CATEGORIES, ITEM_PRESETS, ItemPreset } from '../utils/category.ts';
 import { api } from '../api.ts';
@@ -9,6 +9,8 @@ interface ItemModalProps {
   isOpen: boolean;
   itemToEdit?: ItemResponse | null;
   user?: UserSession | null;
+  stocks?: StockResponse[];
+  currentStockId?: string;
   onClose: () => void;
   onSave: () => void;
   onAddGuestItem?: (item: ItemResponse) => void;
@@ -19,6 +21,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   isOpen,
   itemToEdit,
   user,
+  stocks = [],
+  currentStockId = 'all',
   onClose,
   onSave,
   onAddGuestItem,
@@ -40,6 +44,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [isStored, setIsStored] = useState(false);
   const [notes, setNotes] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [selectedStockId, setSelectedStockId] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -65,6 +70,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setIsStored(Boolean(itemToEdit.isStored));
       setNotes(itemToEdit.notes || '');
       setImageUrl(itemToEdit.imageUrl || '');
+      setSelectedStockId(itemToEdit.stockId || (stocks[0]?.id ?? ''));
     } else {
       // Reset form
       setName('');
@@ -83,9 +89,16 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setIsStored(false);
       setNotes('');
       setImageUrl('');
+      if (currentStockId && currentStockId !== 'all') {
+        setSelectedStockId(currentStockId);
+      } else if (stocks.length > 0) {
+        setSelectedStockId(stocks[0].id);
+      } else {
+        setSelectedStockId('');
+      }
     }
     setErrorMessage('');
-  }, [itemToEdit, isOpen]);
+  }, [itemToEdit, isOpen, currentStockId, stocks]);
 
   if (!isOpen) return null;
 
@@ -244,6 +257,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
         });
       } else {
         await api.createItem({
+          stockId: selectedStockId || undefined,
           name: name.trim(),
           category,
           trackingMode,
@@ -322,6 +336,24 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               className="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-xl px-3.5 py-2.5 text-white outline-none"
             />
           </div>
+
+          {/* Stock Space Selector */}
+          {user && stocks.length > 0 && !itemToEdit && (
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">所屬備品庫 (Stock)</label>
+              <select
+                value={selectedStockId}
+                onChange={(e) => setSelectedStockId(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-xl px-3.5 py-2.5 text-white outline-none text-xs"
+              >
+                {stocks.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.icon} {s.name} ({s.myRole === 'owner' ? '擁有者' : s.myRole === 'admin' ? '管理員' : '成員'})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Photo & Image Upload/Camera Section */}
           <div className="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-2xl space-y-2.5">

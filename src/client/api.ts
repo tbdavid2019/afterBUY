@@ -1,5 +1,16 @@
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
-import { UserSession, ItemResponse, ItemHistoryRecord, UserNotificationSettings, ItemCategory, TrackingMode } from '../shared/types.ts';
+import {
+  UserSession,
+  ItemResponse,
+  ItemHistoryRecord,
+  UserNotificationSettings,
+  ItemCategory,
+  TrackingMode,
+  StockResponse,
+  StockMemberResponse,
+  StockInviteResponse,
+  StockRole,
+} from '../shared/types.ts';
 
 const API_BASE = '/api';
 
@@ -83,11 +94,13 @@ export const api = {
   },
 
   // --- Items API ---
-  async getItems(): Promise<{ items: ItemResponse[] }> {
-    return request('/items');
+  async getItems(stockId?: string): Promise<{ items: ItemResponse[] }> {
+    const query = stockId && stockId !== 'all' ? `?stockId=${encodeURIComponent(stockId)}` : '';
+    return request(`/items${query}`);
   },
 
   async createItem(item: {
+    stockId?: string;
     name: string;
     category?: ItemCategory;
     trackingMode?: TrackingMode;
@@ -295,4 +308,70 @@ export const api = {
     }
     return data;
   },
+
+  // --- Stocks API ---
+  async getStocks(): Promise<{ stocks: StockResponse[] }> {
+    return request('/stocks');
+  },
+
+  async getStock(id: string): Promise<{ stock: StockResponse; members: StockMemberResponse[]; invites: StockInviteResponse[] }> {
+    return request(`/stocks/${id}`);
+  },
+
+  async createStock(data: { name: string; description?: string; icon?: string }): Promise<{ success: boolean; stock: StockResponse }> {
+    return request('/stocks', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateStock(id: string, data: { name?: string; description?: string; icon?: string }): Promise<{ success: boolean; stock: StockResponse }> {
+    return request(`/stocks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteStock(id: string): Promise<{ success: boolean }> {
+    return request(`/stocks/${id}`, { method: 'DELETE' });
+  },
+
+  async leaveStock(id: string): Promise<{ success: boolean }> {
+    return request(`/stocks/${id}/leave`, { method: 'POST' });
+  },
+
+  async transferOwnership(stockId: string, targetUserId: string): Promise<{ success: boolean; message: string }> {
+    return request(`/stocks/${stockId}/transfer-ownership`, {
+      method: 'POST',
+      body: JSON.stringify({ targetUserId }),
+    });
+  },
+
+  async createInvite(stockId: string, options?: { role?: StockRole; maxUses?: number; expiresInDays?: number }): Promise<{ success: boolean; invite: StockInviteResponse }> {
+    return request(`/stocks/${stockId}/invites`, {
+      method: 'POST',
+      body: JSON.stringify(options || {}),
+    });
+  },
+
+  async joinStock(code: string): Promise<{ success: boolean; stock: StockResponse }> {
+    return request('/stocks/join', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+  },
+
+  async updateMemberRole(stockId: string, memberUserId: string, role: StockRole): Promise<{ success: boolean }> {
+    return request(`/stocks/${stockId}/members/${memberUserId}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ role }),
+    });
+  },
+
+  async removeMember(stockId: string, memberUserId: string): Promise<{ success: boolean }> {
+    return request(`/stocks/${stockId}/members/${memberUserId}`, {
+      method: 'DELETE',
+    });
+  },
 };
+
