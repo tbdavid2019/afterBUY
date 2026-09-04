@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-09-04
+
+### Changed
+- **品牌字體系統全面升級（JetBrains Mono + justfont 粉圓體）**：
+  - 英文與數字全面採用 **JetBrains Mono**：幾何等寬、數字清晰精緻，在倒數天數、金額標記、規格與日期呈現極具質感的現代感。
+  - 中文字體全面採用 **justfont 粉圓體（Huninn / jf-openhuninn）**：筆觸圓潤飽滿、富有日系手帳與生活感的情緒價值。
+  - 配置 Google Fonts 切片 WOFF2 CDN 與 jsdelivr 雙軌並行載入，並在 `index.html` 啟用 `<link rel="preconnect">` 預載機制，兼顧極致字感與秒開效能。
+
+---
+
 ## 2026-09-03
 
 ### Added
