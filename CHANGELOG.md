@@ -20,6 +20,8 @@
     - 前端介面提供輸入備品庫名稱之雙重確認機制，杜絕誤操作。
   - **8 碼邀請代碼與即時加入連結 (Stock Invites)**：
     - 管理者可一鍵產生專屬 8 碼大寫英數字邀請代碼與分享網址，支援自訂預設角色、有效期限與使用次數。
+    - **抽屜直連邀請**：在備品庫切換抽屜直接為擁有者/管理員配置 `[ ➕ 邀請 ]` 按鈕，一鍵開啟邀請視窗。
+    - **設定頁置頂分享卡片**：在備品庫設定中置頂「邀請家人或夥伴」Hero Card，2xl 大字標示邀請碼並支援一鍵複製完整專屬網址。
     - 支援直接點擊分享網址（`?joinStock=CODE`）免手動輸入一鍵秒加入。
   - **平滑無痛資料回填 (Zero-Loss Migration)**：
     - 生成 D1 Migration（`0003_robust_tarot.sql`）新增 `stocks`、`stock_members`、`stock_invites` 表，並為 `items` 關聯 `stock_id`。
@@ -55,6 +57,13 @@
   - 完成 Cloudflare 雙環境（`ai360` 與 `david`）遠端 D1 遷移。
 
 ### Fixed
+- **備品庫齒輪設定按鈕點擊白畫面崩潰修復 (StockSettingsModal White Screen Crash Fix)**：
+  - 修復 `src/api/routes/stocks.ts` 路由 `GET /api/stocks/:id` 未查詢並回傳 `invites` 物件，造成前端 `StockSettingsModal` 在讀取 `invites.length` 時拋出 `TypeError: Cannot read properties of undefined (reading 'length')` 導致 React 樹崩潰白畫面。
+  - 後端全面補齊 `stockInvites` 關聯查詢，並修正 `POST /api/stocks/:id/invites` 回傳契約；前端加入防禦性空陣列防護與初次載入自動備妥邀請碼之機制。
+- **粉圓體 (justfont Huninn) 粗體回退修復與中文排版字體舒適放大**：
+  - 修復 Google Fonts Huninn 僅提供 400 單一字重導致套用 `font-bold` 或 `font-semibold` 時在 WebKit/Blink 瀏覽器自動回退至系統 PingFang TC（蘋方）的字感斷層。
+  - 在 `src/client/index.css` 宣告 `@font-face` 之 `font-weight: 100 900;` 並啟用全域 `font-synthesis: weight style;`，強制瀏覽器正確合成粗體粉圓體；字型優先權調整為 `'Huninn', 'jf-openhuninn'` 置頂。
+  - 將全站基礎字級由 14px 舒適上調至 15px/16px，各層級中文標題與按鈕加大，徹底根除手機中文字體密集難讀問題。
 - **全站字體大小全面盤點與排版層級標準化（徹底解決字體忽大忽小、各自為政）**：
   - 盤點並修正全站所有元件與頁面（`ItemCard`、`ItemModal`、`BatchPhotoModal`、`DashboardView`、`ShoppingView`、`TimelineView`、`SettingsView`、`StockSwitcher`、`StockSettingsModal`、`Navbar`、`Header`、`AuthModal`、`HistoryModal`）。
   - **嚴格建立 6 級排版階層規範（Typographic Hierarchy）**：

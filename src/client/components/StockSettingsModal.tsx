@@ -14,6 +14,7 @@ import {
   ArrowRightLeft,
   Settings,
   UserCheck,
+  UserPlus,
 } from 'lucide-react';
 import { StockResponse, StockMemberResponse, StockInviteResponse, StockRole, UserSession } from '../../shared/types.ts';
 import { useTranslation } from '../i18n/index.tsx';
@@ -77,8 +78,23 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
       setName(res.stock.name);
       setIcon(res.stock.icon);
       setDescription(res.stock.description || '');
-      setMembers(res.members);
-      setInvites(res.invites);
+      setMembers(res.members || []);
+      const fetchedInvites = res.invites || [];
+      setInvites(fetchedInvites);
+
+      // If user can manage stock and no active invites exist, automatically create one so they can copy immediately!
+      const canManage = res.stock.myRole === 'owner' || res.stock.myRole === 'admin';
+      if (canManage && fetchedInvites.length === 0) {
+        try {
+          const invRes = await api.createInvite(stockId, { role: 'member', expiresInDays: 7, maxUses: 10 });
+          const newInv = invRes.invite || (invRes as any);
+          if (newInv && newInv.code) {
+            setInvites([newInv]);
+          }
+        } catch {
+          // ignore auto-create error
+        }
+      }
     } catch (err: any) {
       setError(err.message || (locale === 'zh-TW' ? '無法載入備品庫資訊' : 'Failed to load stock details'));
     } finally {
@@ -122,7 +138,10 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
     setError('');
     try {
       const res = await api.createInvite(stockId, { role: inviteRole, expiresInDays: 7, maxUses: 10 });
-      setInvites((prev) => [res.invite, ...prev]);
+      const newInv = res.invite || (res as any);
+      if (newInv && newInv.code) {
+        setInvites((prev) => [newInv, ...(prev || [])]);
+      }
     } catch (err: any) {
       setError(err.message || '無法產生邀請碼');
     } finally {
@@ -134,7 +153,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
     const url = `${window.location.origin}?joinStock=${code}`;
     navigator.clipboard.writeText(url);
     setCopiedInvite(true);
-    setTimeout(() => setCopiedInvite(false), 2000);
+    setTimeout(() => setCopiedInvite(false), 2500);
   };
 
   const handleChangeMemberRole = async (memberUserId: string, newRole: StockRole) => {
@@ -227,13 +246,13 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">{icon}</span>
+            <span className="text-3xl">{icon}</span>
             <div>
-              <h3 className="font-bold text-[var(--app-text)] text-base">
+              <h3 className="font-bold text-[var(--app-text)] text-lg tracking-tight">
                 {stock?.name || t('stockSettings')}
               </h3>
-              <p className="text-xs text-[var(--app-muted)]">
-                {t('roleOwner')}: {stock?.ownerId === user?.id ? (locale === 'zh-TW' ? '您' : 'You') : '成員'} · {members.length} 位成員
+              <p className="text-sm text-[var(--app-muted)]">
+                {t('roleOwner')}: {stock?.ownerId === user?.id ? (locale === 'zh-TW' ? '您' : 'You') : '成員'} · {(members || []).length} 位成員
               </p>
             </div>
           </div>
@@ -241,9 +260,9 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -252,26 +271,78 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-[var(--app-muted)]">
               <Loader2 className="w-6 h-6 animate-spin text-[var(--app-accent)]" />
-              <span>載入備品庫資訊中...</span>
+              <span className="text-sm font-medium">載入備品庫資訊中...</span>
             </div>
           ) : (
             <>
               {error && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-xs">
+                <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-sm font-medium">
                   {error}
                 </div>
               )}
 
-              {/* 1. Basic Info (Editable for Owner & Admin) */}
+              {/* 🌟 1. 邀請成員專屬卡片 (最顯眼位置) */}
+              {isAdminOrOwner && (
+                <section className="p-4 rounded-2xl bg-[var(--app-accent-soft)] border border-[var(--app-border)] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-[var(--app-text)] flex items-center gap-2">
+                      <UserPlus className="w-4 h-4 text-[var(--app-accent-strong)]" />
+                      <span>邀請家人或夥伴加入「{stock?.name}」</span>
+                    </h4>
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--app-surface)] text-[var(--app-muted)] font-semibold border border-[var(--app-border)]">
+                      免記密碼 · 點擊秒加入
+                    </span>
+                  </div>
+
+                  {(invites || []).length > 0 ? (
+                    <div className="space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--app-surface)] border border-[var(--app-border)] p-4 rounded-xl shadow-sm">
+                        <div>
+                          <div className="text-xs text-[var(--app-muted)] font-medium mb-1">
+                            專屬 8 碼邀請代碼（有效期 7 天）
+                          </div>
+                          <div className="font-mono text-2xl font-black text-[var(--app-accent-strong)] tracking-widest">
+                            {invites[0].code}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyInviteLink(invites[0].code)}
+                          className="app-primary px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all shrink-0"
+                        >
+                          {copiedInvite ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          <span>{copiedInvite ? '已複製邀請連結！' : '一鍵複製專屬邀請連結'}</span>
+                        </button>
+                      </div>
+
+                      <p className="text-xs text-[var(--app-muted)] leading-relaxed">
+                        💡 <strong>分享方式</strong>：點擊上方按鈕複製連結，直接貼給家人（如 LINE / 微信 / 簡訊），對方點開連結即可自動加入共同管理！
+                      </p>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={generatingInvite}
+                      onClick={handleCreateInvite}
+                      className="app-primary w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all"
+                    >
+                      {generatingInvite ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                      <span>產生「{stock?.name}」專屬邀請代碼與分享連結</span>
+                    </button>
+                  )}
+                </section>
+              )}
+
+              {/* 2. Basic Info (Editable for Owner & Admin) */}
               <section className="space-y-3">
                 <h4 className="text-xs font-bold text-[var(--app-muted)] uppercase tracking-wider flex items-center gap-1.5">
-                  <Settings className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
+                  <Settings className="w-4 h-4 text-[var(--app-accent-strong)]" />
                   <span>基本資訊</span>
                 </h4>
 
                 <form onSubmit={handleSaveDetails} className="space-y-3">
                   <div>
-                    <label className="block text-xs font-semibold text-[var(--app-muted)] mb-1.5">
+                    <label className="block text-sm font-semibold text-[var(--app-text)] mb-1.5">
                       {t('stockIcon')}
                     </label>
                     <div className="flex flex-wrap gap-2">
@@ -281,7 +352,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                           type="button"
                           disabled={!isAdminOrOwner}
                           onClick={() => setIcon(i)}
-                          className={`w-9 h-9 rounded-xl text-lg flex items-center justify-center border transition-all ${
+                          className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center border transition-all ${
                             icon === i
                               ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] scale-105 shadow-sm'
                               : 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] hover:bg-[var(--app-surface)]'
@@ -295,7 +366,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-[var(--app-muted)] mb-1">
+                      <label className="block text-sm font-semibold text-[var(--app-text)] mb-1">
                         {t('stockName')}
                       </label>
                       <input
@@ -303,11 +374,11 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                         disabled={!isAdminOrOwner}
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-sm text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)] disabled:opacity-60"
+                        className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-2.5 text-base text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)] disabled:opacity-60"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-[var(--app-muted)] mb-1">
+                      <label className="block text-sm font-semibold text-[var(--app-text)] mb-1">
                         {t('stockDesc')}
                       </label>
                       <input
@@ -316,7 +387,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="選填說明"
-                        className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-sm text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)] disabled:opacity-60"
+                        className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-2.5 text-base text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)] disabled:opacity-60"
                       />
                     </div>
                   </div>
@@ -326,9 +397,9 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                       <button
                         type="submit"
                         disabled={savingDetails || !name.trim()}
-                        className="app-primary px-4 py-2 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-[0.98]"
+                        className="app-primary px-5 py-2.5 font-bold text-sm rounded-xl flex items-center gap-1.5 transition-all shadow-sm active:scale-[0.98]"
                       >
-                        {savingDetails ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                        {savingDetails ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         <span>儲存修改</span>
                       </button>
                     </div>
@@ -338,39 +409,39 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
 
               <hr className="border-[var(--app-border)]" />
 
-              {/* 2. Members Management */}
+              {/* 3. Members Management */}
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-bold text-[var(--app-muted)] uppercase tracking-wider flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    <span>{t('members')} ({members.length})</span>
+                    <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>{t('members')} ({(members || []).length})</span>
                   </h4>
                 </div>
 
                 <div className="space-y-2">
-                  {members.map((member) => {
+                  {(members || []).map((member) => {
                     const isSelf = member.userId === user?.id;
                     const isMemberOwner = member.role === 'owner';
 
                     return (
                       <div
                         key={member.id}
-                        className="flex items-center justify-between p-3 rounded-2xl app-surface-subtle border border-[var(--app-border)]"
+                        className="flex items-center justify-between p-3.5 rounded-2xl app-surface-subtle border border-[var(--app-border)]"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                          <div className="w-8 h-8 rounded-full bg-[var(--app-surface)] border border-[var(--app-border)] flex items-center justify-center text-xs font-bold text-[var(--app-text)] shrink-0">
+                        <div className="flex items-center gap-3 min-w-0 pr-2">
+                          <div className="w-9 h-9 rounded-full bg-[var(--app-surface)] border border-[var(--app-border)] flex items-center justify-center text-sm font-bold text-[var(--app-text)] shrink-0">
                             {member.nickname ? member.nickname.slice(0, 1) : member.email?.slice(0, 1).toUpperCase() || 'U'}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-semibold text-xs text-[var(--app-text)] truncate flex items-center gap-1.5">
+                            <div className="font-bold text-sm text-[var(--app-text)] truncate flex items-center gap-1.5">
                               <span>{member.nickname || member.email || '成員'}</span>
                               {isSelf && (
-                                <span className="text-[11px] font-semibold text-[var(--app-accent-strong)] bg-[var(--app-accent-soft)] px-1.5 py-0.2 rounded-full border border-[var(--app-border)]">
+                                <span className="text-xs font-semibold text-[var(--app-accent-strong)] bg-[var(--app-accent-soft)] px-2 py-0.2 rounded-full border border-[var(--app-border)]">
                                   我
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-[var(--app-muted-low)]">
+                            <span className="text-xs text-[var(--app-muted)]">
                               加入於 {new Date(member.createdAt).toLocaleDateString()}
                             </span>
                           </div>
@@ -390,7 +461,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                             </select>
                           ) : (
                             <span
-                              className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${
+                              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
                                 isMemberOwner
                                   ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30'
                                   : member.role === 'admin'
@@ -412,10 +483,10 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                             <button
                               type="button"
                               onClick={() => handleRemoveMember(member.userId, member.nickname || member.email)}
-                              className="w-7 h-7 rounded-lg flex items-center justify-center text-[var(--app-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--app-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
                               title="移出備品庫"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-4 h-4" />
                             </button>
                           )}
                         </div>
@@ -424,61 +495,48 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                   })}
                 </div>
 
-                {/* Invite section */}
-                {isAdminOrOwner && (
+                {/* Additional Invite Generator for Admins */}
+                {isAdminOrOwner && (invites || []).length > 1 && (
                   <div className="pt-2 p-3.5 rounded-2xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="text-xs font-bold text-[var(--app-text)] flex items-center gap-1.5">
                         <Plus className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
-                        <span>邀請新成員加入</span>
+                        <span>更多邀請代碼</span>
                       </div>
                       <select
                         value={inviteRole}
                         onChange={(e) => setInviteRole(e.target.value as StockRole)}
                         className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg text-xs px-2 py-1 text-[var(--app-text)]"
                       >
-                        <option value="member">預設身分：一般成員</option>
-                        <option value="viewer">預設身分：僅能檢視</option>
-                        <option value="admin">預設身分：共同管理員</option>
+                        <option value="member">一般成員</option>
+                        <option value="viewer">僅能檢視</option>
+                        <option value="admin">共同管理員</option>
                       </select>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleCreateInvite}
-                      disabled={generatingInvite}
-                      className="app-control w-full py-2 border font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all hover:border-[var(--app-accent)]"
-                    >
-                      {generatingInvite ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
-                      <span>產生 8 碼邀請代碼與專屬連結</span>
-                    </button>
-
-                    {invites.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        <div className="text-xs text-[var(--app-muted)]">有效邀請代碼：</div>
-                        {invites.map((inv) => (
-                          <div
-                            key={inv.id}
-                            className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--app-surface)] border border-[var(--app-border)] text-xs font-mono"
-                          >
-                            <span className="font-bold text-[var(--app-accent-strong)] tracking-wider">{inv.code}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-[var(--app-muted)] font-sans">
-                                可用 {inv.maxUses - inv.usedCount} 次
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleCopyInviteLink(inv.code)}
-                                className="app-control px-2.5 py-1 rounded-lg flex items-center gap-1 text-xs font-sans hover:border-[var(--app-accent)]"
-                              >
-                                {copiedInvite ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                                <span>{copiedInvite ? '已複製' : '複製連結'}</span>
-                              </button>
-                            </div>
+                    <div className="space-y-1.5">
+                      {(invites || []).slice(1).map((inv) => (
+                        <div
+                          key={inv.id}
+                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--app-surface)] border border-[var(--app-border)] text-xs font-mono"
+                        >
+                          <span className="font-bold text-[var(--app-accent-strong)] tracking-wider">{inv.code}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-[var(--app-muted)] font-sans">
+                              可用 {inv.maxUses - inv.usedCount} 次
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyInviteLink(inv.code)}
+                              className="app-control px-2.5 py-1 rounded-lg flex items-center gap-1 text-xs font-sans hover:border-[var(--app-accent)]"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>複製</span>
+                            </button>
                           </div>
-                        ))}
-                      </div>
-                    )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </section>

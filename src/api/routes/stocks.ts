@@ -250,6 +250,25 @@ stocksRouter.get('/:id', async (c) => {
     createdAt: m.createdAt,
   }));
 
+  const rawInvites = await db
+    .select()
+    .from(stockInvites)
+    .where(eq(stockInvites.stockId, stockId))
+    .orderBy(desc(stockInvites.createdAt))
+    .all();
+
+  const origin = c.env.APP_ORIGIN || new URL(c.req.url).origin;
+  const invites: StockInviteResponse[] = rawInvites.map((inv) => ({
+    id: inv.id,
+    stockId: inv.stockId,
+    code: inv.code,
+    role: inv.role as StockRole,
+    expiresAt: inv.expiresAt,
+    usedCount: inv.usedCount,
+    maxUses: inv.maxUses,
+    inviteUrl: `${origin}/?joinStock=${inv.code}`,
+  }));
+
   const stockResponse: StockResponse = {
     id: stock.id,
     name: stock.name,
@@ -263,7 +282,7 @@ stocksRouter.get('/:id', async (c) => {
     updatedAt: stock.updatedAt,
   };
 
-  return c.json({ stock: stockResponse, members });
+  return c.json({ stock: stockResponse, members, invites });
 });
 
 // 4. Update Stock metadata (owner or admin only)
@@ -405,8 +424,9 @@ stocksRouter.post('/:id/invites', async (c) => {
   const maxUses = Number(body.maxUses) || 10;
   const now = new Date().toISOString();
 
+  const inviteId = crypto.randomUUID();
   await db.insert(stockInvites).values({
-    id: crypto.randomUUID(),
+    id: inviteId,
     stockId,
     code,
     role: targetRole,
@@ -418,9 +438,22 @@ stocksRouter.post('/:id/invites', async (c) => {
   }).run();
 
   const origin = c.env.APP_ORIGIN || new URL(c.req.url).origin;
-  const inviteUrl = `${origin}/join?code=${code}`;
+  const inviteUrl = `${origin}/?joinStock=${code}`;
+
+  const inviteObj: StockInviteResponse = {
+    id: inviteId,
+    stockId,
+    code,
+    role: targetRole,
+    expiresAt,
+    usedCount: 0,
+    maxUses,
+    inviteUrl,
+  };
 
   return c.json({
+    success: true,
+    invite: inviteObj,
     code,
     role: targetRole,
     expiresAt,

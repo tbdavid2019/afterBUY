@@ -134,10 +134,10 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
         </div>
 
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
-          <div className="flex items-center gap-2">
-            <span className="text-base">📦</span>
-            <h3 className="font-bold text-[var(--app-text)] text-base">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">📦</span>
+            <h3 className="font-bold text-[var(--app-text)] text-lg tracking-tight">
               {mode === 'create'
                 ? t('createStock')
                 : mode === 'join'
@@ -149,14 +149,14 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
             type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Close"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
+            className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-4 overflow-y-auto space-y-3 flex-1 text-[var(--app-text)]">
+        <div className="p-5 overflow-y-auto space-y-3.5 flex-1 text-[var(--app-text)]">
           {mode === 'list' && (
             <>
               {/* Option 1: All Stocks (Default Aggregated View) */}
@@ -166,24 +166,24 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                   onSelectStock('all');
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all text-left ${
+                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${
                   currentStockId === 'all'
                     ? 'border-[var(--app-accent)] bg-[var(--app-accent-soft)] shadow-sm'
                     : 'border-[var(--app-border)] bg-[var(--app-surface)] hover:bg-[var(--app-surface-subtle)]'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] flex items-center justify-center text-lg shrink-0">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] flex items-center justify-center text-xl shrink-0">
                     🌟
                   </div>
                   <div>
-                    <div className="font-bold text-sm text-[var(--app-text)] flex items-center gap-1.5">
+                    <div className="font-bold text-base text-[var(--app-text)] flex items-center gap-2">
                       <span>{t('allStocks')}</span>
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-[var(--app-muted)]">
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full border border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-[var(--app-muted)]">
                         {locale === 'zh-TW' ? '總覽' : 'All'}
                       </span>
                     </div>
-                    <p className="text-xs text-[var(--app-muted)] mt-0.5">{t('allStocksDesc')}</p>
+                    <p className="text-sm text-[var(--app-muted)] mt-0.5">{t('allStocksDesc')}</p>
                   </div>
                 </div>
                 {currentStockId === 'all' && (
@@ -191,21 +191,22 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                 )}
               </button>
 
-              <div className="pt-2 pb-1 flex items-center justify-between text-xs font-semibold text-[var(--app-muted)] px-1">
+              <div className="pt-2 pb-1 flex items-center justify-between text-sm font-bold text-[var(--app-text)] px-1">
                 <span>{t('myStocks')}</span>
-                <span className="text-xs text-[var(--app-muted-low)]">{stocks.length} 個</span>
+                <span className="text-xs font-semibold text-[var(--app-muted)]">{stocks.length} 個備品庫</span>
               </div>
 
               {/* Stock List */}
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {stocks.map((stock) => {
                   const isSelected = currentStockId === stock.id;
                   const roleMeta = getRoleBadge(stock.myRole);
+                  const isOwnerOrAdmin = stock.myRole === 'owner' || stock.myRole === 'admin';
 
                   return (
                     <div
                       key={stock.id}
-                      className={`flex items-center justify-between p-3 rounded-2xl border transition-all ${
+                      className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
                         isSelected
                           ? 'border-[var(--app-accent)] bg-[var(--app-accent-soft)] shadow-sm'
                           : 'border-[var(--app-border)] bg-[var(--app-surface)] hover:bg-[var(--app-surface-subtle)]'
@@ -217,37 +218,52 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                           onSelectStock(stock.id);
                           setIsOpen(false);
                         }}
-                        className="flex-1 flex items-center gap-3 text-left min-w-0 pr-2"
+                        className="flex-1 flex items-center gap-3.5 text-left min-w-0 pr-2"
                       >
-                        <div className="w-10 h-10 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] flex items-center justify-center text-lg shrink-0">
+                        <div className="w-11 h-11 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] flex items-center justify-center text-xl shrink-0">
                           {stock.icon}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-bold text-sm text-[var(--app-text)] truncate flex items-center gap-2">
+                          <div className="font-bold text-base text-[var(--app-text)] truncate flex items-center gap-2">
                             <span className="truncate">{stock.name}</span>
                             <span
-                              className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border shrink-0 ${roleMeta.cls}`}
+                              className={`text-xs font-semibold px-2 py-0.5 rounded-md border shrink-0 ${roleMeta.cls}`}
                             >
                               {roleMeta.label}
                             </span>
                           </div>
-                          <div className="text-xs text-[var(--app-muted)] flex items-center gap-2 mt-0.5">
+                          <div className="text-sm text-[var(--app-muted)] flex items-center gap-2.5 mt-0.5">
                             {stock.description && (
-                              <span className="truncate max-w-[140px] text-[var(--app-muted-low)]">
+                              <span className="truncate max-w-[150px] text-xs text-[var(--app-muted-low)]">
                                 {stock.description}
                               </span>
                             )}
-                            <span className="flex items-center gap-1 text-xs text-[var(--app-muted)] shrink-0">
-                              <Users className="w-3 h-3 opacity-70" />
-                              <span>{stock.memberCount || 1}</span>
+                            <span className="flex items-center gap-1 text-xs text-[var(--app-muted)] shrink-0 font-medium">
+                              <Users className="w-3.5 h-3.5 opacity-70" />
+                              <span>{stock.memberCount || 1} 位成員</span>
                             </span>
                           </div>
                         </div>
                       </button>
 
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0">
                         {isSelected && (
-                          <Check className="w-4 h-4 text-[var(--app-accent-strong)] stroke-[2.5] mr-1" />
+                          <Check className="w-4 h-4 text-[var(--app-accent-strong)] stroke-[2.5]" />
+                        )}
+                        {isOwnerOrAdmin && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsOpen(false);
+                              onOpenStockSettings(stock.id);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--app-accent-soft)] hover:bg-[var(--app-accent)]/20 text-[var(--app-accent-strong)] border border-[var(--app-border)] text-xs font-bold transition-all active:scale-95 shadow-sm"
+                            title="邀請家人加入此備品庫"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                            <span>邀請</span>
+                          </button>
                         )}
                         <button
                           type="button"
@@ -257,7 +273,8 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                             onOpenStockSettings(stock.id);
                           }}
                           aria-label={t('stockSettings')}
-                          className="w-8 h-8 rounded-xl flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
+                          title="備品庫設定"
+                          className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
                         >
                           <Settings className="w-4 h-4" />
                         </button>
@@ -268,27 +285,28 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
               </div>
 
               {/* Actions Footer */}
-              <div className="pt-3 grid grid-cols-2 gap-2 border-t border-[var(--app-border)]">
+              <div className="pt-3 grid grid-cols-2 gap-2.5 border-t border-[var(--app-border)]">
                 <button
                   type="button"
                   onClick={() => {
                     setCreateError('');
                     setMode('create');
                   }}
-                  className="app-primary flex items-center justify-center gap-1.5 p-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.98]"
+                  className="app-primary flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-[0.98]"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>{t('createStock')}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setJoinError('');
+                    setJoinCode('');
                     setMode('join');
                   }}
-                  className="app-control flex items-center justify-center gap-1.5 p-2.5 rounded-xl border text-xs font-bold transition-all hover:border-[var(--app-accent)] active:scale-[0.98]"
+                  className="app-control flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold transition-all active:scale-[0.98]"
                 >
-                  <UserPlus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <UserPlus className="w-4 h-4 text-[var(--app-accent-strong)]" />
                   <span>{t('joinStock')}</span>
                 </button>
               </div>
