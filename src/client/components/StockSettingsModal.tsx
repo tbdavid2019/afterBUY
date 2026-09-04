@@ -232,7 +232,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
               <h3 className="font-bold text-[var(--app-text)] text-base">
                 {stock?.name || t('stockSettings')}
               </h3>
-              <p className="text-[11px] text-[var(--app-muted)]">
+              <p className="text-xs text-[var(--app-muted)]">
                 {t('roleOwner')}: {stock?.ownerId === user?.id ? (locale === 'zh-TW' ? '您' : 'You') : '成員'} · {members.length} 位成員
               </p>
             </div>
@@ -365,12 +365,12 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                             <div className="font-semibold text-xs text-[var(--app-text)] truncate flex items-center gap-1.5">
                               <span>{member.nickname || member.email || '成員'}</span>
                               {isSelf && (
-                                <span className="text-[10px] text-[var(--app-accent-strong)] bg-[var(--app-accent-soft)] px-1.5 py-0.2 rounded border border-[var(--app-border)]">
+                                <span className="text-[11px] font-semibold text-[var(--app-accent-strong)] bg-[var(--app-accent-soft)] px-1.5 py-0.2 rounded-full border border-[var(--app-border)]">
                                   我
                                 </span>
                               )}
                             </div>
-                            <span className="text-[10px] text-[var(--app-muted-low)]">
+                            <span className="text-xs text-[var(--app-muted-low)]">
                               加入於 {new Date(member.createdAt).toLocaleDateString()}
                             </span>
                           </div>
@@ -455,7 +455,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
 
                     {invites.length > 0 && (
                       <div className="space-y-1.5 pt-1">
-                        <div className="text-[11px] text-[var(--app-muted)]">有效邀請代碼：</div>
+                        <div className="text-xs text-[var(--app-muted)]">有效邀請代碼：</div>
                         {invites.map((inv) => (
                           <div
                             key={inv.id}
@@ -463,15 +463,15 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                           >
                             <span className="font-bold text-[var(--app-accent-strong)] tracking-wider">{inv.code}</span>
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-[var(--app-muted)] font-sans">
+                              <span className="text-xs text-[var(--app-muted)] font-sans">
                                 可用 {inv.maxUses - inv.usedCount} 次
                               </span>
                               <button
                                 type="button"
                                 onClick={() => handleCopyInviteLink(inv.code)}
-                                className="app-control px-2 py-1 rounded-lg flex items-center gap-1 text-[11px] font-sans hover:border-[var(--app-accent)]"
+                                className="app-control px-2.5 py-1 rounded-lg flex items-center gap-1 text-xs font-sans hover:border-[var(--app-accent)]"
                               >
-                                {copiedInvite ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                                {copiedInvite ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                                 <span>{copiedInvite ? '已複製' : '複製連結'}</span>
                               </button>
                             </div>
@@ -501,7 +501,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                           <ArrowRightLeft className="w-3.5 h-3.5" />
                           <span>{t('transferOwnership')}</span>
                         </div>
-                        <p className="text-[11px] text-[var(--app-muted)] mt-0.5">
+                        <p className="text-xs text-[var(--app-muted)] mt-0.5">
                           將此備品庫的最高擁有權轉交給其他成員。轉移後，您將自動轉為管理員 (Admin)。
                         </p>
                       </div>
@@ -568,7 +568,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                   <div className="flex items-center justify-between p-3.5 rounded-2xl app-surface-subtle border border-[var(--app-border)]">
                     <div>
                       <div className="font-semibold text-xs text-[var(--app-text)]">退出備品庫</div>
-                      <p className="text-[11px] text-[var(--app-muted)]">退出後將不再能查看與協作此備品庫。</p>
+                      <p className="text-xs text-[var(--app-muted)]">退出後將不再能查看與協作此備品庫。</p>
                     </div>
                     <button
                       type="button"
@@ -586,7 +586,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                   <div className="flex items-center justify-between p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20">
                     <div>
                       <div className="font-semibold text-xs text-rose-700 dark:text-rose-300">刪除備品庫</div>
-                      <p className="text-[11px] text-[var(--app-muted)]">永久刪除此備品庫與所有包含的物品。</p>
+                      <p className="text-xs text-[var(--app-muted)]">永久刪除此備品庫與所有包含的物品。</p>
                     </div>
                     <button
                       type="button"

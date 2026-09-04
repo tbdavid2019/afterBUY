@@ -9,14 +9,14 @@ export interface CategoryMeta {
 }
 
 export const CATEGORIES: Record<ItemCategory, CategoryMeta> = {
-  bathroom: { id: 'bathroom', label: '衛浴洗沐', iconName: 'Bath', color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/20' },
-  kitchen: { id: 'kitchen', label: '廚房飲食', iconName: 'Utensils', color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20' },
-  skincare: { id: 'skincare', label: '美妝保養', iconName: 'Sparkles', color: 'text-pink-400', bg: 'bg-pink-500/10 border-pink-500/20' },
-  medicine: { id: 'medicine', label: '保健醫療', iconName: 'Pill', color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20' },
-  appliances: { id: 'appliances', label: '家電家居', iconName: 'Tv', color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/20' },
-  electronics: { id: 'electronics', label: '3C 數位', iconName: 'Laptop', color: 'text-violet-400', bg: 'bg-violet-500/10 border-violet-500/20' },
-  clothing: { id: 'clothing', label: '貼身穿戴', iconName: 'Shirt', color: 'text-rose-400', bg: 'bg-rose-500/10 border-rose-500/20' },
-  general: { id: 'general', label: '其他生活', iconName: 'Package', color: 'text-slate-400', bg: 'bg-slate-500/10 border-slate-500/20' },
+  bathroom: { id: 'bathroom', label: '衛浴洗沐', iconName: 'Bath', color: 'text-cyan-700 dark:text-cyan-300', bg: 'bg-cyan-500/15 border-cyan-500/30' },
+  kitchen: { id: 'kitchen', label: '廚房飲食', iconName: 'Utensils', color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-500/15 border-amber-500/30' },
+  skincare: { id: 'skincare', label: '美妝保養', iconName: 'Sparkles', color: 'text-pink-700 dark:text-pink-300', bg: 'bg-pink-500/15 border-pink-500/30' },
+  medicine: { id: 'medicine', label: '保健醫療', iconName: 'Pill', color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-500/15 border-emerald-500/30' },
+  appliances: { id: 'appliances', label: '家電家居', iconName: 'Tv', color: 'text-indigo-700 dark:text-indigo-300', bg: 'bg-indigo-500/15 border-indigo-500/30' },
+  electronics: { id: 'electronics', label: '3C 數位', iconName: 'Laptop', color: 'text-violet-700 dark:text-violet-300', bg: 'bg-violet-500/15 border-violet-500/30' },
+  clothing: { id: 'clothing', label: '貼身穿戴', iconName: 'Shirt', color: 'text-rose-700 dark:text-rose-300', bg: 'bg-rose-500/15 border-rose-500/30' },
+  general: { id: 'general', label: '其他生活', iconName: 'Package', color: 'text-[var(--app-muted)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
 };
 
 export interface ItemPreset {

@@ -192,14 +192,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className="pt-1">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--app-text)]">
               {locale === 'zh-TW' ? '先處理今天的日常' : "Today's Consumables"}
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-[var(--app-muted)] mt-1">
               {locale === 'zh-TW' ? '及時看見該換什麼、還缺哪些備品。' : 'See what needs replacing and restock in time.'}
             </p>
           </div>
-          <span className="hidden sm:inline-flex shrink-0 items-center rounded-full border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-400">
+          <span className="hidden sm:inline-flex shrink-0 items-center rounded-full border border-[var(--app-border)] bg-[var(--app-surface-subtle)] px-3 py-1.5 text-xs font-medium text-[var(--app-muted)]">
             {locale === 'zh-TW' ? `${items.length} 項追蹤中` : `${items.length} tracked`}
           </span>
         </div>
@@ -208,17 +208,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Inbox Zero Emotional Card (When all items are healthy or snoozed) */}
       {items.length > 0 && overdueCount === 0 && (
         <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm animate-in fade-in duration-300">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
             <Sparkles className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <h3 className="text-sm font-bold text-[var(--app-text)] flex items-center gap-2">
               <span>{t('allSettledTitle')}</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[11px] bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
                 100% 最佳狀態
               </span>
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">{t('allSettledSubtitle')}</p>
+            <p className="text-xs text-[var(--app-muted)] mt-0.5">{t('allSettledSubtitle')}</p>
           </div>
         </div>
       )}
@@ -231,16 +231,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             aria-pressed={statusFilter === 'due'}
             className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
               statusFilter === 'due'
-                ? 'bg-rose-400/10 border-rose-400/50 text-rose-200 ring-1 ring-rose-400/50'
-                : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+                ? 'bg-rose-500/15 border-rose-500/60 text-rose-800 dark:text-rose-200 ring-1 ring-rose-500/50 shadow-sm'
+                : 'app-surface border-[var(--app-border)] text-[var(--app-muted)] hover:border-[var(--app-accent)]'
             }`}
           >
-            <div className="flex items-center justify-between gap-1 mb-3">
-              <span className="text-[11px] font-semibold">{locale === 'zh-TW' ? '該換/到期' : 'Due / Alert'}</span>
-              <AlertTriangle className="w-4 h-4 text-rose-300" />
+            <div className="flex items-center justify-between gap-1 mb-2.5">
+              <span className="text-xs font-semibold text-[var(--app-text)]">{locale === 'zh-TW' ? '該換/到期' : 'Due / Alert'}</span>
+              <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
             </div>
-            <span className="text-3xl leading-none font-bold tabular-nums text-white">{overdueCount}</span>
-            <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '今天或已過期' : 'Overdue or today'}</span>
+            <span className="text-3xl leading-none font-bold tabular-nums text-[var(--app-text)]">{overdueCount}</span>
+            <span className="block text-xs text-[var(--app-muted-low)] mt-2">{locale === 'zh-TW' ? '今天或已過期' : 'Overdue or today'}</span>
           </button>
 
           <button
@@ -248,16 +248,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             aria-pressed={statusFilter === 'healthy'}
             className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
               statusFilter === 'healthy'
-                ? 'bg-emerald-400/10 border-emerald-400/50 text-emerald-200 ring-1 ring-emerald-400/50'
-                : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+                ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-800 dark:text-emerald-200 ring-1 ring-emerald-500/50 shadow-sm'
+                : 'app-surface border-[var(--app-border)] text-[var(--app-muted)] hover:border-[var(--app-accent)]'
             }`}
           >
-            <div className="flex items-center justify-between gap-1 mb-3">
-              <span className="text-[11px] font-semibold">{t('statusHealthy')}</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+            <div className="flex items-center justify-between gap-1 mb-2.5">
+              <span className="text-xs font-semibold text-[var(--app-text)]">{t('statusHealthy')}</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <span className="text-3xl leading-none font-bold tabular-nums text-white">{healthyCount}</span>
-            <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '目前不需處理' : 'Good condition'}</span>
+            <span className="text-3xl leading-none font-bold tabular-nums text-[var(--app-text)]">{healthyCount}</span>
+            <span className="block text-xs text-[var(--app-muted-low)] mt-2">{locale === 'zh-TW' ? '目前不需處理' : 'Good condition'}</span>
           </button>
 
           <button
@@ -265,16 +265,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             aria-pressed={statusFilter === 'restock'}
             className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
               statusFilter === 'restock'
-                ? 'bg-amber-400/10 border-amber-400/50 text-amber-200 ring-1 ring-amber-400/50'
-                : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+                ? 'bg-amber-500/15 border-amber-500/60 text-amber-800 dark:text-amber-200 ring-1 ring-amber-500/50 shadow-sm'
+                : 'app-surface border-[var(--app-border)] text-[var(--app-muted)] hover:border-[var(--app-accent)]'
             }`}
           >
-            <div className="flex items-center justify-between gap-1 mb-3">
-              <span className="text-[11px] font-semibold">{locale === 'zh-TW' ? '要補貨' : 'Restock'}</span>
-              <ShoppingBag className="w-4 h-4 text-amber-300" />
+            <div className="flex items-center justify-between gap-1 mb-2.5">
+              <span className="text-xs font-semibold text-[var(--app-text)]">{locale === 'zh-TW' ? '要補貨' : 'Restock'}</span>
+              <ShoppingBag className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             </div>
-            <span className="text-3xl leading-none font-bold tabular-nums text-white">{restockCount}</span>
-            <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '備品低於門檻' : 'Low on backup'}</span>
+            <span className="text-3xl leading-none font-bold tabular-nums text-[var(--app-text)]">{restockCount}</span>
+            <span className="block text-xs text-[var(--app-muted-low)] mt-2">{locale === 'zh-TW' ? '備品低於門檻' : 'Low on backup'}</span>
           </button>
         </div>
 
@@ -285,14 +285,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => setStatusFilter(statusFilter === 'snoozed' ? 'all' : 'snoozed')}
-                className={`text-xs px-3 py-1 rounded-full border transition-all font-medium flex items-center gap-1.5 ${
+                className={`text-xs px-3 py-1.5 rounded-full border transition-all font-semibold flex items-center gap-1.5 ${
                   statusFilter === 'snoozed'
-                    ? 'bg-sky-500/20 border-sky-400 text-sky-300 font-bold'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
+                    ? 'bg-sky-500/20 border-sky-400 text-sky-800 dark:text-sky-200 font-bold'
+                    : 'app-control text-[var(--app-muted)] hover:text-[var(--app-text)]'
                 }`}
               >
                 <span>💤 延後中</span>
-                <span className="text-[10px] bg-sky-500/30 text-sky-200 px-1.5 rounded-full font-bold">
+                <span className="text-[11px] bg-sky-500/30 text-sky-900 dark:text-sky-200 px-1.5 rounded-full font-bold">
                   {snoozedCount}
                 </span>
               </button>
@@ -301,14 +301,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => setStatusFilter(statusFilter === 'stored' ? 'all' : 'stored')}
-                className={`text-xs px-3 py-1 rounded-full border transition-all font-medium flex items-center gap-1.5 ${
+                className={`text-xs px-3 py-1.5 rounded-full border transition-all font-semibold flex items-center gap-1.5 ${
                   statusFilter === 'stored'
-                    ? 'bg-indigo-500/20 border-indigo-400 text-indigo-300 font-bold'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
+                    ? 'bg-indigo-500/20 border-indigo-400 text-indigo-800 dark:text-indigo-200 font-bold'
+                    : 'app-control text-[var(--app-muted)] hover:text-[var(--app-text)]'
                 }`}
               >
                 <span>📦 存放備品</span>
-                <span className="text-[10px] bg-indigo-500/30 text-indigo-200 px-1.5 rounded-full font-bold">
+                <span className="text-[11px] bg-indigo-500/30 text-indigo-900 dark:text-indigo-200 px-1.5 rounded-full font-bold">
                   {storedCount}
                 </span>
               </button>
@@ -322,27 +322,27 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Search input */}
         <div className="relative">
           <label htmlFor="dashboard-search" className="sr-only">{locale === 'zh-TW' ? '搜尋物品' : 'Search'}</label>
-          <Search className="w-4 h-4 text-slate-500 absolute left-4 top-3.5" />
+          <Search className="w-4 h-4 text-[var(--app-muted)] absolute left-4 top-3.5" />
           <input
             id="dashboard-search"
             type="text"
             placeholder={locale === 'zh-TW' ? '搜尋物品名稱、備註或型號...' : 'Search items, notes, models...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/80 border border-slate-800 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/15 rounded-2xl pl-11 pr-4 py-3 text-sm text-white placeholder:text-slate-500 outline-none transition-colors"
+            className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] focus:border-[var(--app-accent)] focus:ring-2 focus:ring-[var(--app-accent)]/15 rounded-2xl pl-11 pr-4 py-3 text-sm text-[var(--app-text)] placeholder:text-[var(--app-muted-low)] outline-none transition-colors"
           />
         </div>
 
         {/* Category horizontal scroll */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-          <SlidersHorizontal className="w-4 h-4 shrink-0 text-slate-500" aria-hidden="true" />
+          <SlidersHorizontal className="w-4 h-4 shrink-0 text-[var(--app-muted)]" aria-hidden="true" />
           <button
             onClick={() => setSelectedCategory('all')}
             aria-pressed={selectedCategory === 'all'}
-            className={`flex-shrink-0 text-xs px-3.5 py-2 rounded-full border transition-all font-semibold active:scale-[0.98] ${
+            className={`flex-shrink-0 text-xs px-3.5 py-2 rounded-full border transition-all active:scale-[0.98] ${
               selectedCategory === 'all'
-                ? 'bg-sky-300 text-sky-950 border-sky-200'
-                : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                ? 'app-primary font-bold shadow-sm'
+                : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold'
             }`}
           >
             {locale === 'zh-TW' ? '全部類別' : 'All Categories'}
@@ -352,10 +352,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               key={cat.id}
               onClick={() => setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id)}
               aria-pressed={selectedCategory === cat.id}
-              className={`flex-shrink-0 text-xs px-3.5 py-2 rounded-full border transition-all font-semibold active:scale-[0.98] ${
+              className={`flex-shrink-0 text-xs px-3.5 py-2 rounded-full border transition-all active:scale-[0.98] ${
                 selectedCategory === cat.id
-                  ? 'bg-sky-300 text-sky-950 border-sky-200'
-                  : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                  ? 'app-primary font-bold shadow-sm'
+                  : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold'
               }`}
             >
               {cat.label}
@@ -366,14 +366,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Location horizontal scroll if locations exist */}
         {uniqueLocations.length > 0 && (
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar pt-1">
-            <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-500" aria-hidden="true" />
+            <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--app-muted)]" aria-hidden="true" />
             <button
               onClick={() => setSelectedLocation('all')}
               aria-pressed={selectedLocation === 'all'}
-              className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all font-semibold active:scale-[0.98] ${
+              className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all active:scale-[0.98] ${
                 selectedLocation === 'all'
-                  ? 'bg-amber-300 text-amber-950 border-amber-200'
-                  : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                  ? 'bg-[var(--app-accent-soft)] text-[var(--app-accent-strong)] border-[var(--app-border)] font-bold'
+                  : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold'
               }`}
             >
               {locale === 'zh-TW' ? '全部位置' : 'All Locations'}
@@ -383,10 +383,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 key={loc}
                 onClick={() => setSelectedLocation(selectedLocation === loc ? 'all' : loc)}
                 aria-pressed={selectedLocation === loc}
-                className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all font-semibold active:scale-[0.98] ${
+                className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all active:scale-[0.98] ${
                   selectedLocation === loc
-                    ? 'bg-amber-300 text-amber-950 border-amber-200'
-                    : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                    ? 'bg-[var(--app-accent-soft)] text-[var(--app-accent-strong)] border-[var(--app-border)] font-bold'
+                    : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold'
                 }`}
               >
                 📍 {loc}
@@ -400,14 +400,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section>
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2 min-w-0">
-            <h3 className="text-sm font-bold text-white truncate">
+            <h3 className="text-sm font-bold text-[var(--app-text)] truncate">
               {locale === 'zh-TW' ? '追蹤中的物品' : 'Tracked Items'}{' '}
-              <span className="text-slate-500 font-normal">{filteredItems.length}</span>
+              <span className="text-[var(--app-muted)] font-normal">{filteredItems.length}</span>
             </h3>
             {hasFilters && (
               <button
                 onClick={clearFilters}
-                className="text-xs font-semibold text-sky-300 hover:text-sky-200 underline underline-offset-4 shrink-0"
+                className="text-xs font-semibold text-[var(--app-accent-strong)] hover:underline underline-offset-4 shrink-0"
               >
                 {locale === 'zh-TW' ? '清除篩選' : 'Clear'}
               </button>
@@ -419,9 +419,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <button
               type="button"
               onClick={() => setIsPhotoModalOpen(true)}
-              className="app-control flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold text-sky-300 hover:text-white transition-all active:scale-95"
+              className="app-control flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold text-[var(--app-text)] hover:border-[var(--app-accent)] transition-all active:scale-95"
             >
-              <Camera className="w-3.5 h-3.5 text-sky-400" />
+              <Camera className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
               <span>{t('batchIntake')}</span>
             </button>
 
@@ -433,7 +433,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 if (isSelecting) setSelectedIds(new Set());
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all active:scale-95 ${
-                isSelecting ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold' : 'app-control text-slate-300'
+                isSelecting ? 'app-primary font-bold' : 'app-control text-[var(--app-muted)] hover:text-[var(--app-text)]'
               }`}
             >
               <CheckSquare className="w-3.5 h-3.5" />
@@ -443,14 +443,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {filteredItems.length === 0 ? (
-          <div className="text-center py-14 bg-slate-900/40 rounded-3xl border border-slate-800/60 p-6">
-            <div className="w-12 h-12 rounded-2xl bg-sky-400/10 border border-sky-400/20 text-sky-300 mx-auto flex items-center justify-center mb-3">
+          <div className="text-center py-14 app-surface rounded-3xl border border-[var(--app-border)] p-6 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--app-accent-soft)] border border-[var(--app-border)] text-[var(--app-accent-strong)] mx-auto flex items-center justify-center mb-3">
               <Sparkles className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-bold text-white mb-1">
+            <h3 className="text-base font-bold text-[var(--app-text)] mb-1">
               {items.length === 0 ? t('emptyItemsTitle') : (locale === 'zh-TW' ? '沒有符合條件的物品' : 'No items match filters')}
             </h3>
-            <p className="text-xs text-slate-400 max-w-xs mx-auto mb-4">
+            <p className="text-xs text-[var(--app-muted)] max-w-xs mx-auto mb-4">
               {items.length === 0
                 ? t('emptyItemsDesc')
                 : (locale === 'zh-TW' ? '試著清除搜尋條件或切換分類標籤。' : 'Try clearing filters or changing category.')}
@@ -458,7 +458,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {items.length === 0 && (
               <button
                 onClick={onOpenNewItem}
-                className="inline-flex items-center gap-1.5 bg-sky-300 hover:bg-sky-200 text-sky-950 text-xs font-bold px-4 py-2.5 rounded-full shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all"
+                className="app-primary inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-full shadow-md active:scale-[0.98] transition-all"
               >
                 <Plus className="w-4 h-4" />
                 <span>{locale === 'zh-TW' ? '新增第一個物品' : 'Add First Item'}</span>
@@ -490,15 +490,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Floating Batch Action Bar */}
       {isSelecting && selectedIds.size > 0 && (
         <div className="fixed bottom-20 left-4 right-4 z-40 max-w-lg mx-auto animate-in slide-in-from-bottom-5 duration-200">
-          <div className="bg-slate-900/95 border border-sky-500/40 rounded-2xl p-3 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2">
+          <div className="app-surface border border-[var(--app-border)] rounded-2xl p-3 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 pl-1 min-w-0">
-              <span className="text-xs font-bold text-white truncate">
+              <span className="text-xs font-bold text-[var(--app-text)] truncate">
                 {t('selectedItems', { n: selectedIds.size })}
               </span>
               <button
                 type="button"
                 onClick={handleSelectAll}
-                className="text-[11px] text-sky-400 hover:underline shrink-0"
+                className="text-xs font-semibold text-[var(--app-accent-strong)] hover:underline shrink-0"
               >
                 {selectedIds.size === filteredItems.length
                   ? (locale === 'zh-TW' ? '取消全選' : 'Deselect')
@@ -512,7 +512,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 type="button"
                 disabled={batchActionLoading}
                 onClick={handleRunBatchReplace}
-                className="app-primary px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 shadow-md shadow-sky-500/20 active:scale-95 disabled:opacity-50"
+                className="app-primary px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm active:scale-95 disabled:opacity-50"
               >
                 <RotateCcw className={`w-3.5 h-3.5 ${batchActionLoading ? 'animate-spin' : ''}`} />
                 <span>{t('batchReplaceBtn')}</span>
@@ -523,7 +523,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 type="button"
                 disabled={batchActionLoading}
                 onClick={() => handleRunBatchStock(1)}
-                className="app-control px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10 active:scale-95 disabled:opacity-50"
+                className="app-control px-2.5 py-1.5 rounded-xl text-xs font-semibold text-emerald-600 dark:text-emerald-400 border border-[var(--app-border)] hover:bg-emerald-500/10 active:scale-95 disabled:opacity-50"
               >
                 <span>{t('batchStockAdd')}</span>
               </button>
@@ -533,7 +533,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 type="button"
                 disabled={batchActionLoading}
                 onClick={handleRunBatchDelete}
-                className="app-control px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-400 border-rose-500/30 hover:bg-rose-500/10 active:scale-95 disabled:opacity-50"
+                className="app-control px-2.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 border border-[var(--app-border)] hover:bg-rose-500/10 active:scale-95 disabled:opacity-50"
                 aria-label="Delete selected"
               >
                 <Trash2 className="w-3.5 h-3.5" />

@@ -55,13 +55,26 @@
   - 完成 Cloudflare 雙環境（`ai360` 與 `david`）遠端 D1 遷移。
 
 ### Fixed
+- **全站字體大小全面盤點與排版層級標準化（徹底解決字體忽大忽小、各自為政）**：
+  - 盤點並修正全站所有元件與頁面（`ItemCard`、`ItemModal`、`BatchPhotoModal`、`DashboardView`、`ShoppingView`、`TimelineView`、`SettingsView`、`StockSwitcher`、`StockSettingsModal`、`Navbar`、`Header`、`AuthModal`、`HistoryModal`）。
+  - **嚴格建立 6 級排版階層規範（Typographic Hierarchy）**：
+    1. **Level 1（頁面主標題）**：`text-2xl sm:text-3xl font-bold tracking-tight text-[var(--app-text)]`。
+    2. **Level 2（區塊 / 彈窗標題）**：`text-base sm:text-lg font-bold tracking-tight text-[var(--app-text)]`。
+    3. **Level 3（卡片標題 / 指標數值）**：`text-base font-bold text-[var(--app-text)]`。
+    4. **Level 4（內文 / 標準輸入框）**：`text-sm text-[var(--app-text)]`。
+    5. **Level 5（次要說明 / 輔助文字 / 表單標籤）**：`text-xs font-semibold text-[var(--app-muted)]`。
+    6. **Level 6（狀態標章 / 徽章 / 標籤）**：`text-[11px] font-semibold leading-normal`（嚴格作為全站最小字體底線，專用於膠囊徽章與計數器）。
+  - **全面消滅微小文字與任意括弧像素字體**：
+    - 徹底根除所有 `text-[9px]`、`text-[10px]`、`text-[15px]`、`text-[17px]` 等任意像素級寫法。
+    - 移除所有會造成手機螢幕閱讀吃力的極微小文字，手機單手檢視時資訊清晰聚焦、節奏分明。
+- **雙色主題（日系暖石色 Light Mode 與 青花瓷藍 Dark Mode）色彩一致性重構**：
+  - 徹底移除 `StockSwitcher`、`StockSettingsModal`、`ItemCard`、`ItemModal`、`BatchPhotoModal` 與 `Header` 中的硬編碼純深色類別（如 `bg-slate-900`、`bg-slate-950`、`border-slate-800`、`text-slate-400`、`text-white`）。
+  - 全面採用語意化設計代幣（`app-surface`、`app-surface-subtle`、`app-control`、`app-primary`、`var(--app-text)`、`var(--app-muted)`、`var(--app-accent)` 等）。
+  - 分類標籤採用雙模式自適應色彩方案（如 `text-cyan-700 dark:text-cyan-300 bg-cyan-500/15 border-cyan-500/30`），徹底解決淺色模式下泛白、發灰或對比不足的視覺混亂。
+  - 在日系無印暖石色淺色模式（Light Mode）下，備品庫卡片、抽屜按鈕、身份標籤與物品徽章呈現細緻清晰的溫潤對比；在青花瓷藍深色模式（Dark Mode）下呈現幽藍冷萃與高對比發光感，不再有灰黑污斑或字體隱形。
 - **StockSwitcher 與 StockSettingsModal 視窗層級與 Containing Block 截斷修復**：
   - 徹底解決 `Header` 元素之 `backdrop-blur-md` 導致其內部子元素 `position: fixed` 形成局部 Containing Block，使彈出視窗被強制垂直置中於 64px 導覽列頂部、上半部標題與關閉按鈕被螢幕邊緣截斷的嚴重問題。
   - 全面導入 React `createPortal(..., document.body)` 頂層渲染架構，保證彈出抽屜與設定視窗精準錨定全螢幕視窗（Viewport）。
-- **淺色/深色主題色彩錯亂與對比度全面重構**：
-  - 徹底移除 `StockSwitcher`、`StockSettingsModal`、`ItemCard`、`ItemModal` 與 `Header` 中的硬編碼純深色類別（如 `bg-slate-900`、`bg-slate-800/40`、`bg-sky-950/40`、`text-white`）。
-  - 全面採用語意化設計代幣（`app-surface`、`app-surface-subtle`、`app-control`、`app-primary`、`var(--app-text)`、`var(--app-muted)` 等）。
-  - 在日系無印暖石色淺色模式（Light Mode）下，備品庫卡片、抽屜按鈕、身份標籤與物品徽章呈現細緻清晰的溫潤對比；在青花瓷藍深色模式（Dark Mode）下呈現幽藍冷萃與高對比發光感，不再有灰黑污斑或字體隱形。
 
 ### Changed
 - **品牌字體系統全面升級（JetBrains Mono + justfont 粉圓體）**：

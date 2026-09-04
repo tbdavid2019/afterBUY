@@ -66,8 +66,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 mx-auto flex items-center justify-center">
           <Fingerprint className="w-7 h-7" />
         </div>
-        <h2 className="text-base font-bold text-white">請先登入帳戶</h2>
-        <p className="text-xs text-slate-400 max-w-xs mx-auto">
+        <h2 className="text-base font-bold text-[var(--app-text)]">請先登入帳戶</h2>
+        <p className="text-xs text-[var(--app-muted)] max-w-xs mx-auto">
           登入後即可啟用 WebCal 行事曆訂閱、Web Push 網頁推播與生物辨識 Passkey。
         </p>
         <button
@@ -191,24 +191,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   return (
     <div className="space-y-6 pb-28 pt-1 text-xs">
       {/* 0. Language Selector Card */}
-      <div className="app-surface border p-4 rounded-2xl flex items-center justify-between">
+      <div className="app-surface border border-[var(--app-border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center">
             <Languages className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">{t('languageToggle')}</h3>
-            <span className="text-[11px] text-slate-400">
+            <h3 className="text-base font-bold text-[var(--app-text)]">{t('languageToggle')}</h3>
+            <span className="text-xs text-[var(--app-muted)]">
               {locale === 'zh-TW' ? '繁體中文 (Traditional Chinese)' : 'English (英文)'}
             </span>
           </div>
         </div>
-        <div className="flex bg-slate-900 border border-slate-700/80 rounded-xl p-1 gap-1">
+        <div className="flex bg-[var(--app-surface-subtle)] border border-[var(--app-border)] rounded-xl p-1 gap-1">
           <button
             type="button"
             onClick={() => setLocale('zh-TW')}
             className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              locale === 'zh-TW' ? 'app-primary text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
+              locale === 'zh-TW' ? 'app-primary shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
             }`}
           >
             繁中
@@ -217,7 +217,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             type="button"
             onClick={() => setLocale('en')}
             className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-              locale === 'en' ? 'app-primary text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'
+              locale === 'en' ? 'app-primary shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
             }`}
           >
             EN
@@ -226,14 +226,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* 1. Account Info Card */}
-      <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+      <div className="app-surface border border-[var(--app-border)] p-4 rounded-2xl flex items-center justify-between shadow-sm">
         <div>
-          <span className="text-[11px] text-slate-400">{locale === 'zh-TW' ? '目前登入帳號' : 'Signed In As'}</span>
-          <h3 className="text-sm font-bold text-white mt-0.5">{user.email}</h3>
+          <span className="text-xs text-[var(--app-muted)]">{locale === 'zh-TW' ? '目前登入帳號' : 'Signed In As'}</span>
+          <h3 className="text-base font-bold text-[var(--app-text)] mt-0.5">{user.email}</h3>
         </div>
         <button
           onClick={onLogout}
-          className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-xl font-medium transition-all active:scale-95"
+          className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 hover:text-rose-700 bg-rose-500/10 border border-rose-500/20 px-3 py-1.5 rounded-xl font-semibold transition-all active:scale-95"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>{t('logoutBtn')}</span>
@@ -241,28 +241,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* 2. WebCal Calendar Subscription (Feature Highlight!) */}
-      <div className="app-surface border p-4 rounded-2xl space-y-3">
+      <div className="app-surface border border-[var(--app-border)] p-4 rounded-2xl space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="app-primary-soft w-8 h-8 rounded-xl flex items-center justify-center">
               <Calendar className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">WebCal 行事曆自動同步</h3>
-              <span className="text-[11px] text-sky-300">最強免裝 App 手機原生鬧鐘提醒</span>
+              <h3 className="text-base font-bold text-[var(--app-text)]">WebCal 行事曆自動同步</h3>
+              <span className="text-xs text-[var(--app-accent-strong)] font-semibold">最強免裝 App 手機原生鬧鐘提醒</span>
             </div>
           </div>
           <button
             onClick={handleRotateToken}
             disabled={rotating}
             title="更換金鑰（防止舊連結洩漏）"
-            className="text-slate-400 hover:text-sky-300 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+            className="text-[var(--app-muted)] hover:text-[var(--app-text)] p-1.5 rounded-lg hover:bg-[var(--app-surface-subtle)] transition-colors"
           >
             <RotateCw className={`w-3.5 h-3.5 ${rotating ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
-        <p className="text-slate-300 leading-relaxed text-[11px]">
+        <p className="text-[var(--app-text)] leading-relaxed text-xs">
           訂閱後，所有更換日與保固到期日將**自動同步到 iPhone/Android 行事曆**。系統具備版本號追蹤與 30 天刪除墓碑機制，修改或刪除時日曆舊事件將乾淨消除！
         </p>
 
@@ -272,7 +272,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             href={webcalUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="app-primary flex items-center justify-center gap-1.5 hover:brightness-105 font-semibold py-2.5 rounded-xl shadow-md active:scale-[0.98] transition-all text-center"
+            className="app-primary flex items-center justify-center gap-1.5 hover:brightness-105 font-bold py-2.5 rounded-xl shadow-sm active:scale-[0.98] transition-all text-center"
           >
             <Smartphone className="w-3.5 h-3.5" />
             <span>加入 Apple 日曆</span>
@@ -280,34 +280,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           <button
             onClick={handleCopyCalendar}
-            className="flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold py-2.5 rounded-xl border border-slate-700 active:scale-95 transition-all"
+            className="app-control flex items-center justify-center gap-1.5 hover:border-[var(--app-accent)] font-semibold py-2.5 rounded-xl border active:scale-95 transition-all"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-sky-400" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />}
             <span>{copied ? '已複製！' : '複製訂閱網址'}</span>
           </button>
         </div>
 
-        <div className="text-[10px] text-slate-500 bg-slate-950/50 p-2.5 rounded-xl font-mono break-all select-all">
+        <div className="text-xs text-[var(--app-muted)] bg-[var(--app-surface-subtle)] border border-[var(--app-border)] p-2.5 rounded-xl font-mono break-all select-all">
           {calendarUrl}
         </div>
       </div>
 
       {/* 3. Passkey Biometrics Management */}
-      <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-3">
+      <div className="app-surface border border-[var(--app-border)] p-4 rounded-2xl space-y-3 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center">
               <Fingerprint className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Passkey 生物辨識憑證</h3>
-              <span className="text-[11px] text-slate-400">Touch ID / Face ID 免密秒登</span>
+              <h3 className="text-base font-bold text-[var(--app-text)]">Passkey 生物辨識憑證</h3>
+              <span className="text-xs text-[var(--app-muted)]">Touch ID / Face ID 免密秒登</span>
             </div>
           </div>
           <button
             onClick={handleAddPasskey}
             disabled={enrollingPasskey}
-            className="flex items-center gap-1 bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-500/40 px-3 py-1.5 rounded-xl font-semibold transition-all active:scale-95"
+            className="app-control flex items-center gap-1 hover:border-[var(--app-accent)] px-3 py-1.5 rounded-xl font-semibold transition-all active:scale-95"
           >
             {enrollingPasskey ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <>+ 綁定此裝置</>}
           </button>
@@ -316,27 +316,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* Devices list */}
         <div className="space-y-2 pt-1">
           {devices.length === 0 ? (
-            <p className="text-slate-500 text-[11px] py-2">
+            <p className="text-[var(--app-muted)] text-xs py-2">
               尚未綁定任何 Passkey 裝置。點擊右上角立即啟用！
             </p>
           ) : (
             devices.map((d) => (
               <div
                 key={d.id}
-                className="bg-slate-950/60 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between"
+                className="app-surface-subtle border border-[var(--app-border)] p-2.5 rounded-xl flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   <div>
-                    <span className="text-slate-200 font-semibold">{d.deviceName}</span>
-                    <span className="text-[10px] text-slate-500 block">
+                    <span className="text-[var(--app-text)] font-semibold">{d.deviceName}</span>
+                    <span className="text-xs text-[var(--app-muted-low)] block">
                       建立於: {d.createdAt.split('T')[0]}
                     </span>
                   </div>
                 </div>
                 <button
                   onClick={() => handleDeletePasskey(d.id)}
-                  className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+                  className="text-[var(--app-muted)] hover:text-rose-600 dark:hover:text-rose-400 p-1.5 rounded-lg hover:bg-[var(--app-surface)] transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -347,23 +347,23 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* 4. Notification Preferences */}
-      <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-2xl space-y-3">
+      <div className="app-surface border border-[var(--app-border)] p-4 rounded-2xl space-y-3 shadow-sm">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
             <Bell className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">通知偏好設定</h3>
-            <span className="text-[11px] text-slate-400">Web Push 與 Email 晨間摘要</span>
+            <h3 className="text-base font-bold text-[var(--app-text)]">通知偏好設定</h3>
+            <span className="text-xs text-[var(--app-muted)]">Web Push 與 Email 晨間摘要</span>
           </div>
         </div>
 
         <div className="space-y-3 pt-2">
           {/* Web Push */}
-          <div className="flex items-center justify-between bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+          <div className="flex items-center justify-between app-surface-subtle p-3 rounded-xl border border-[var(--app-border)]">
             <div>
-              <span className="text-slate-200 font-semibold block">PWA 網頁系統推播</span>
-              <span className="text-[11px] text-slate-400">
+              <span className="text-[var(--app-text)] font-semibold block">PWA 網頁系統推播</span>
+              <span className="text-xs text-[var(--app-muted)]">
                 權限狀態: {pushStatus === 'granted' ? '已允許 ✅' : pushStatus === 'denied' ? '已封鎖 ❌' : '尚未啟用'}
               </span>
             </div>
@@ -371,25 +371,25 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <button
                 onClick={handleEnablePush}
                 disabled={pushSubscribing}
-                className="app-primary hover:brightness-105 font-bold px-3 py-1.5 rounded-xl transition-all"
+                className="app-primary hover:brightness-105 font-bold px-3 py-1.5 rounded-xl transition-all shadow-sm"
               >
                 {pushSubscribing ? '授權中...' : '啟用推播'}
               </button>
             ) : (
-              <span className="text-[11px] text-emerald-400 font-semibold">運作中</span>
+              <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">運作中</span>
             )}
           </div>
 
           {/* Email Digest */}
-          <div className="flex items-center justify-between bg-slate-950/50 p-3 rounded-xl border border-slate-800/60">
+          <div className="flex items-center justify-between app-surface-subtle p-3 rounded-xl border border-[var(--app-border)]">
             <div>
-              <span className="text-slate-200 font-semibold block">Email 晨間提醒信</span>
-              <span className="text-[11px] text-slate-400">每日早上 08:00 寄發即將到期耗材</span>
+              <span className="text-[var(--app-text)] font-semibold block">Email 晨間提醒信</span>
+              <span className="text-xs text-[var(--app-muted)]">每日早上 08:00 寄發即將到期耗材</span>
             </div>
             <button
               onClick={() => handleToggleEmail(!settings.emailEnabled)}
               className={`w-10 h-6 rounded-full transition-colors p-0.5 flex items-center ${
-                settings.emailEnabled ? 'bg-sky-500 justify-end' : 'bg-slate-800 justify-start'
+                settings.emailEnabled ? 'app-primary justify-end' : 'bg-[var(--app-surface)] border border-[var(--app-border)] justify-start'
               }`}
             >
               <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
@@ -398,7 +398,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           {/* Lead Days */}
           <div>
-            <label className="block text-slate-400 text-[11px] mb-1.5">提前提醒天數</label>
+            <label className="block text-[var(--app-muted)] text-xs mb-1.5 font-semibold">提前提醒天數</label>
             <div className="grid grid-cols-3 gap-2">
               {[1, 3, 7].map((days) => (
                 <button
@@ -406,8 +406,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={() => handleChangeWarningDays(days)}
                   className={`py-2 rounded-xl border font-semibold text-center transition-all ${
                     settings.warningDaysBefore === days
-                      ? 'bg-sky-500/20 border-sky-500 text-sky-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'app-primary font-bold shadow-sm'
+                      : 'app-control text-[var(--app-muted)] hover:text-[var(--app-text)]'
                   }`}
                 >
                   提前 {days} 天
@@ -419,15 +419,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* 5. Phase 2 VIP Tier Preview */}
-      <div className="bg-slate-900/50 border border-slate-800/60 p-4 rounded-2xl flex items-center justify-between">
+      <div className="app-surface-subtle border border-[var(--app-border)] p-4 rounded-2xl flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Crown className="w-5 h-5 text-amber-400" />
+          <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           <div>
-            <span className="text-slate-200 font-bold block">VIP 簡訊通知服務 (Phase 2)</span>
-            <span className="text-[11px] text-slate-500">耗材耗盡或緊急到期時直發簡訊</span>
+            <span className="text-[var(--app-text)] font-bold block">VIP 簡訊通知服務 (Phase 2)</span>
+            <span className="text-xs text-[var(--app-muted)]">耗材耗盡或緊急到期時直發簡訊</span>
           </div>
         </div>
-        <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">
+        <span className="text-[11px] bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">
           即將推出
         </span>
       </div>

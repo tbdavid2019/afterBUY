@@ -138,11 +138,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="app-surface border rounded-2xl w-full max-w-sm p-6 shadow-2xl relative overflow-hidden">
+      <div className="app-surface border border-[var(--app-border)] rounded-2xl w-full max-w-sm p-6 shadow-2xl relative overflow-hidden">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition-colors"
+          className="absolute top-4 right-4 text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -151,11 +151,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
         {step === 'email' && (
           <div>
             <div className="text-center mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 mx-auto flex items-center justify-center mb-3">
+              <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-[var(--app-accent-strong)] mx-auto flex items-center justify-center mb-3">
                 <Fingerprint className="w-6 h-6" />
               </div>
-              <h2 className="text-lg font-bold text-white">無密碼登入 / 註冊</h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <h2 className="text-lg font-bold text-[var(--app-text)]">無密碼登入 / 註冊</h2>
+              <p className="text-xs text-[var(--app-muted)] mt-1">
                 使用生物辨識或 Email 驗證碼，免記任何密碼
               </p>
             </div>
@@ -164,7 +164,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
             <button
               onClick={handlePasskeyLogin}
               disabled={loading}
-              className="app-primary w-full flex items-center justify-center gap-2 hover:brightness-105 font-bold py-3 rounded-xl shadow-lg shadow-sky-500/20 transition-all active:scale-[0.98] disabled:opacity-50 mb-4 text-sm"
+              className="app-primary w-full flex items-center justify-center gap-2 hover:brightness-105 font-bold py-3 rounded-xl shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 mb-4 text-sm"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -177,30 +177,30 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
             </button>
 
             <div className="flex items-center my-4">
-              <div className="flex-1 border-t border-slate-800"></div>
-              <span className="px-3 text-[11px] text-slate-500 uppercase tracking-wider">或使用 Email</span>
-              <div className="flex-1 border-t border-slate-800"></div>
+              <div className="flex-1 border-t border-[var(--app-border)]"></div>
+              <span className="px-3 text-xs text-[var(--app-muted)] uppercase tracking-wider">或使用 Email</span>
+              <div className="flex-1 border-t border-[var(--app-border)]"></div>
             </div>
 
             {/* Email OTP Input Form */}
             <form onSubmit={handleSendOtp} className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">電子信箱 Email</label>
+                <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">電子信箱 Email</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Mail className="w-4 h-4 text-[var(--app-muted)] absolute left-3 top-3" />
                   <input
                     type="email"
                     required
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white placeholder:text-slate-600 outline-none transition-colors"
+                    className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] focus:ring-1 focus:ring-[var(--app-accent)] rounded-xl pl-9 pr-3 py-2.5 text-sm text-[var(--app-text)] placeholder:text-[var(--app-muted-low)] outline-none transition-colors"
                   />
                 </div>
               </div>
 
               {errorMessage && (
-                <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5">
+                <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5">
                   {errorMessage}
                 </div>
               )}
@@ -208,7 +208,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               <button
                 type="submit"
                 disabled={loading || !email}
-                className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2.5 rounded-xl border border-slate-700 text-xs transition-all active:scale-95 disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 app-control hover:border-[var(--app-accent)] font-semibold py-2.5 rounded-xl border text-xs transition-all active:scale-95 disabled:opacity-50"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>發送 6 位數驗證碼 <ArrowRight className="w-3.5 h-3.5" /></>}
               </button>
@@ -223,16 +223,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               <div className="app-primary-soft w-12 h-12 rounded-2xl border mx-auto flex items-center justify-center mb-3">
                 <KeyRound className="w-6 h-6" />
               </div>
-              <h2 className="text-lg font-bold text-white">輸入驗證碼</h2>
-              <p className="text-xs text-slate-400 mt-1">
-                已發送 6 位數驗證碼至 <span className="text-sky-400 font-medium">{email}</span>
+              <h2 className="text-lg font-bold text-[var(--app-text)]">輸入驗證碼</h2>
+              <p className="text-xs text-[var(--app-muted)] mt-1">
+                已發送 6 位數驗證碼至 <span className="text-[var(--app-accent-strong)] font-semibold">{email}</span>
               </p>
             </div>
 
             {devOtpHint && (
               <div className="app-primary-soft mb-4 text-center border p-2.5 rounded-xl">
-                <span className="text-[11px] block mb-1">【本地開發測試】驗證碼：</span>
-                <span className="text-lg font-mono font-bold tracking-widest text-sky-300">{devOtpHint}</span>
+                <span className="text-xs font-semibold block mb-1 text-[var(--app-accent-strong)]">【本地開發測試】驗證碼：</span>
+                <span className="text-lg font-mono font-bold tracking-widest text-[var(--app-accent-strong)]">{devOtpHint}</span>
               </div>
             )}
 
@@ -246,12 +246,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
                   placeholder="000000"
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 text-center font-mono text-2xl tracking-[0.4em] py-3 rounded-xl text-white outline-none"
+                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] text-center font-mono text-2xl tracking-[0.4em] py-3 rounded-xl text-[var(--app-text)] outline-none"
                 />
               </div>
 
               {errorMessage && (
-                <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5 text-center">
+                <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-lg p-2.5 text-center">
                   {errorMessage}
                 </div>
               )}
@@ -259,16 +259,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               <button
                 type="submit"
                 disabled={loading || otpCode.length !== 6}
-                className="app-primary w-full flex items-center justify-center gap-2 hover:brightness-105 font-bold py-3 rounded-xl text-sm transition-all active:scale-[0.98] disabled:opacity-50"
+                className="app-primary w-full flex items-center justify-center gap-2 hover:brightness-105 font-bold py-3 rounded-xl text-sm transition-all active:scale-[0.98] disabled:opacity-50 shadow-sm"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>驗證並登入</span>}
               </button>
 
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-2">
+              <div className="flex items-center justify-between text-xs text-[var(--app-muted)] pt-2">
                 <button
                   type="button"
                   onClick={() => setStep('email')}
-                  className="hover:text-slate-300 transition-colors"
+                  className="hover:text-[var(--app-text)] transition-colors"
                 >
                   修改 Email
                 </button>
@@ -276,7 +276,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
                   type="button"
                   disabled={countdown > 0}
                   onClick={handleSendOtp}
-                  className="hover:text-sky-400 transition-colors disabled:opacity-40"
+                  className="hover:text-[var(--app-accent-strong)] transition-colors disabled:opacity-40 font-semibold"
                 >
                   {countdown > 0 ? `重新發送 (${countdown}s)` : '重新發送驗證碼'}
                 </button>
@@ -288,11 +288,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
         {/* Step 3: Passkey Enrollment Prompt */}
         {step === 'prompt_passkey' && (
           <div className="text-center py-2">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center mb-3">
               <Sparkles className="w-7 h-7" />
             </div>
-            <h2 className="text-lg font-bold text-white">啟用 Face ID / 指紋秒登？</h2>
-            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+            <h2 className="text-lg font-bold text-[var(--app-text)]">啟用 Face ID / 指紋秒登？</h2>
+            <p className="text-xs text-[var(--app-muted)] mt-2 leading-relaxed">
               為此裝置啟用 Passkey，下次打開 afterBUY 只要按一下指紋或人臉辨識即可直接登入，無須再收驗證碼！
             </p>
 
@@ -300,14 +300,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               <button
                 onClick={handleEnrollPasskey}
                 disabled={loading}
-                className="app-primary w-full flex items-center justify-center gap-2 hover:brightness-105 font-semibold py-3 rounded-xl text-sm shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all"
+                className="app-primary w-full flex items-center justify-center gap-2 hover:brightness-105 font-bold py-3 rounded-xl text-sm shadow-sm active:scale-[0.98] transition-all"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Fingerprint className="w-5 h-5" /> 立即啟用 Passkey</>}
               </button>
 
               <button
                 onClick={handleSkipPasskey}
-                className="w-full py-2.5 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+                className="w-full py-2.5 text-xs text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors font-semibold"
               >
                 稍後再說，直接進入
               </button>

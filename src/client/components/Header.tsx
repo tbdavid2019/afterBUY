@@ -41,10 +41,10 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-slate-950 font-black text-sm tracking-tight">aB</span>
           </div>
           <div>
-            <h1 className="text-[15px] font-bold tracking-tight text-[var(--app-text)] flex items-center gap-1.5">
+            <h1 className="text-base font-bold tracking-tight text-[var(--app-text)] flex items-center gap-1.5">
               <span>afterBuy</span>
-              <span className="text-sky-600 dark:text-sky-400 font-extrabold text-sm">該換囉</span>
-              <span className="text-[9px] font-bold tracking-[0.12em] uppercase text-[var(--app-accent-strong)] border border-[var(--app-border)] bg-[var(--app-surface-subtle)] px-1.5 py-0.5 rounded-full">
+              <span className="text-[var(--app-accent-strong)] font-extrabold text-sm">該換囉</span>
+              <span className="text-[11px] font-bold tracking-wider uppercase text-[var(--app-accent-strong)] border border-[var(--app-border)] bg-[var(--app-surface-subtle)] px-1.5 py-0.5 rounded-full">
                 PWA
               </span>
             </h1>
@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
                 />
               </div>
             ) : (
-              <p className="text-[11px] text-[var(--app-muted)] mt-0.5">{t('appSubtitle')}</p>
+              <p className="text-xs text-[var(--app-muted)] mt-0.5">{t('appSubtitle')}</p>
             )}
           </div>
         </div>

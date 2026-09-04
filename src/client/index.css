@@ -19,30 +19,32 @@
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --font-app: 'JetBrains Mono', 'Huninn', 'jf-openhuninn', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-    --app-bg: #f2f0ea;
-    --app-text: #272522;
-    --app-muted: #716d65;
-    --app-muted-low: #969188;
-    --app-surface: #fbfaf7;
-    --app-surface-subtle: #e8e5dd;
+    --app-bg: #f5f4ef;
+    --app-text: #23211e;
+    --app-muted: #68645c;
+    --app-muted-low: #918c82;
+    --app-surface: #ffffff;
+    --app-surface-subtle: #edeae2;
     --app-border: #d8d3c9;
-    --app-accent: #a44f40;
-    --app-accent-strong: #833b31;
-    --app-accent-soft: #f1dfd8;
+    --app-border-subtle: #e6e2d9;
+    --app-accent: #b55140;
+    --app-accent-strong: #8c3729;
+    --app-accent-soft: #faece7;
     color-scheme: light;
   }
 
   :root[data-theme='dark'] {
-    --app-bg: #081f33;
-    --app-text: #f1f7f8;
-    --app-muted: #a9c0c9;
-    --app-muted-low: #7895a4;
-    --app-surface: #0d2d48;
-    --app-surface-subtle: #123c5c;
-    --app-border: #245a7c;
-    --app-accent: #9ed6eb;
-    --app-accent-strong: #d8f0f5;
-    --app-accent-soft: #16496b;
+    --app-bg: #081a2e;
+    --app-text: #f1f7f9;
+    --app-muted: #9cb7c6;
+    --app-muted-low: #698696;
+    --app-surface: #0c253f;
+    --app-surface-subtle: #113254;
+    --app-border: #1d466c;
+    --app-border-subtle: #163756;
+    --app-accent: #70c4e8;
+    --app-accent-strong: #d2f0fb;
+    --app-accent-soft: #144265;
     color-scheme: dark;
   }
 
@@ -65,12 +67,12 @@
   }
 
   .app-header {
-    background: color-mix(in srgb, var(--app-bg) 94%, transparent) !important;
+    background: color-mix(in srgb, var(--app-bg) 92%, transparent) !important;
     border-color: var(--app-border) !important;
   }
 
   .app-navbar {
-    background: color-mix(in srgb, var(--app-bg) 96%, transparent) !important;
+    background: color-mix(in srgb, var(--app-bg) 95%, transparent) !important;
     border-color: var(--app-border) !important;
   }
 
@@ -100,7 +102,11 @@
 
   .app-primary {
     background: var(--app-accent) !important;
-    color: var(--app-bg) !important;
+    color: #ffffff !important;
+  }
+
+  :root[data-theme='dark'] .app-primary {
+    color: #081a2e !important;
   }
 
   .app-primary-soft {
@@ -114,11 +120,12 @@
     color: var(--app-accent-strong) !important;
   }
 
-  /* Re-tint the older utility-driven surfaces while the rest of the UI moves to tokens. */
+  /* Universal re-tinting of legacy slate classes to design tokens */
   [data-theme='light'] [class~='bg-slate-950'],
   [data-theme='light'] [class~='bg-slate-950/50'],
-  [data-theme='light'] [class~='bg-slate-950/60'] {
-    background-color: #e7e3db !important;
+  [data-theme='light'] [class~='bg-slate-950/60'],
+  [data-theme='light'] [class~='bg-slate-950/80'] {
+    background-color: #edeae2 !important;
   }
 
   [data-theme='light'] [class~='bg-slate-900'],
@@ -127,7 +134,8 @@
   [data-theme='light'] [class~='bg-slate-900/60'],
   [data-theme='light'] [class~='bg-slate-900/70'],
   [data-theme='light'] [class~='bg-slate-900/80'],
-  [data-theme='light'] [class~='bg-slate-900/90'] {
+  [data-theme='light'] [class~='bg-slate-900/90'],
+  [data-theme='light'] [class~='bg-slate-900/95'] {
     background-color: var(--app-surface) !important;
   }
 
@@ -139,7 +147,10 @@
   [data-theme='light'] [class~='border-slate-800'],
   [data-theme='light'] [class~='border-slate-800/60'],
   [data-theme='light'] [class~='border-slate-800/80'],
-  [data-theme='light'] [class~='border-slate-700'] {
+  [data-theme='light'] [class~='border-slate-800/90'],
+  [data-theme='light'] [class~='border-slate-700'],
+  [data-theme='light'] [class~='border-slate-700/80'],
+  [data-theme='light'] [class~='border-slate-600'] {
     border-color: var(--app-border) !important;
   }
 
@@ -154,17 +165,20 @@
     color: var(--app-muted) !important;
   }
 
-  [data-theme='light'] [class~='text-slate-500'] {
+  [data-theme='light'] [class~='text-slate-500'],
+  [data-theme='light'] [class~='text-slate-600'] {
     color: var(--app-muted-low) !important;
   }
 
   [data-theme='light'] [class~='text-sky-300'],
-  [data-theme='light'] [class~='text-sky-400'] {
+  [data-theme='light'] [class~='text-sky-400'],
+  [data-theme='light'] [class~='text-sky-500'] {
     color: var(--app-accent-strong) !important;
   }
 
   [data-theme='light'] [class~='bg-sky-500/10'],
-  [data-theme='light'] [class~='bg-sky-500/20'] {
+  [data-theme='light'] [class~='bg-sky-500/20'],
+  [data-theme='light'] [class~='bg-sky-500/30'] {
     background-color: var(--app-accent-soft) !important;
   }
 
@@ -174,35 +188,100 @@
     border-color: color-mix(in srgb, var(--app-accent) 35%, transparent) !important;
   }
 
+  /* Status Colors in Light Mode */
   [data-theme='light'] [class~='text-emerald-400'],
   [data-theme='light'] [class~='text-emerald-300'] {
-    color: #3f7657 !important;
+    color: #2b7049 !important;
+  }
+  [data-theme='light'] [class~='bg-emerald-500/20'],
+  [data-theme='light'] [class~='bg-emerald-400/10'],
+  [data-theme='light'] [class~='bg-emerald-500/10'] {
+    background-color: #eaf6ef !important;
+  }
+  [data-theme='light'] [class~='border-emerald-500/25'],
+  [data-theme='light'] [class~='border-emerald-500/30'],
+  [data-theme='light'] [class~='border-emerald-400/50'] {
+    border-color: #b7e2c9 !important;
   }
 
   [data-theme='light'] [class~='text-amber-400'],
   [data-theme='light'] [class~='text-amber-300'] {
-    color: #86601d !important;
+    color: #936014 !important;
+  }
+  [data-theme='light'] [class~='bg-amber-500/10'],
+  [data-theme='light'] [class~='bg-amber-500/20'],
+  [data-theme='light'] [class~='bg-amber-400/10'] {
+    background-color: #fef7ea !important;
+  }
+  [data-theme='light'] [class~='border-amber-500/20'],
+  [data-theme='light'] [class~='border-amber-500/30'],
+  [data-theme='light'] [class~='border-amber-400/50'],
+  [data-theme='light'] [class~='border-amber-400/30'] {
+    border-color: #f2dab4 !important;
   }
 
   [data-theme='light'] [class~='text-rose-400'],
-  [data-theme='light'] [class~='text-rose-300'] {
-    color: #a33f4c !important;
+  [data-theme='light'] [class~='text-rose-300'],
+  [data-theme='light'] [class~='text-rose-200'] {
+    color: #a83838 !important;
   }
-
-  [data-theme='light'] [class~='text-cyan-400'] {
-    color: #2c7477 !important;
+  [data-theme='light'] [class~='bg-rose-500/10'],
+  [data-theme='light'] [class~='bg-rose-500/20'],
+  [data-theme='light'] [class~='bg-rose-400/10'] {
+    background-color: #fdeeee !important;
   }
-
-  [data-theme='light'] [class~='text-pink-400'] {
-    color: #995566 !important;
+  [data-theme='light'] [class~='border-rose-500/20'],
+  [data-theme='light'] [class~='border-rose-500/30'],
+  [data-theme='light'] [class~='border-rose-400/50'],
+  [data-theme='light'] [class~='border-rose-400/45'] {
+    border-color: #f5c2c2 !important;
   }
 
   [data-theme='light'] [class~='text-indigo-400'],
   [data-theme='light'] [class~='text-indigo-300'],
-  [data-theme='light'] [class~='text-violet-400'] {
-    color: #5c6584 !important;
+  [data-theme='light'] [class~='text-indigo-200'] {
+    color: #4b588a !important;
+  }
+  [data-theme='light'] [class~='bg-indigo-500/10'],
+  [data-theme='light'] [class~='bg-indigo-500/20'] {
+    background-color: #f0f2fb !important;
+  }
+  [data-theme='light'] [class~='border-indigo-500/20'],
+  [data-theme='light'] [class~='border-indigo-500/30'] {
+    border-color: #c9d2f3 !important;
   }
 
+  [data-theme='light'] [class~='text-cyan-400'] {
+    color: #1f6f75 !important;
+  }
+  [data-theme='light'] [class~='bg-cyan-500/10'] {
+    background-color: #eaf6f7 !important;
+  }
+  [data-theme='light'] [class~='border-cyan-500/20'] {
+    border-color: #b7e4e7 !important;
+  }
+
+  [data-theme='light'] [class~='text-pink-400'] {
+    color: #9c3f68 !important;
+  }
+  [data-theme='light'] [class~='bg-pink-500/10'] {
+    background-color: #fbebf2 !important;
+  }
+  [data-theme='light'] [class~='border-pink-500/20'] {
+    border-color: #f5c4db !important;
+  }
+
+  [data-theme='light'] [class~='text-violet-400'] {
+    color: #634f8a !important;
+  }
+  [data-theme='light'] [class~='bg-violet-500/10'] {
+    background-color: #f3eff9 !important;
+  }
+  [data-theme='light'] [class~='border-violet-500/20'] {
+    border-color: #d6caee !important;
+  }
+
+  /* Dark Mode Tokens */
   [data-theme='dark'] [class~='bg-slate-950'] {
     background-color: var(--app-bg) !important;
   }
@@ -213,7 +292,8 @@
   [data-theme='dark'] [class~='bg-slate-900/60'],
   [data-theme='dark'] [class~='bg-slate-900/70'],
   [data-theme='dark'] [class~='bg-slate-900/80'],
-  [data-theme='dark'] [class~='bg-slate-900/90'] {
+  [data-theme='dark'] [class~='bg-slate-900/90'],
+  [data-theme='dark'] [class~='bg-slate-900/95'] {
     background-color: var(--app-surface) !important;
   }
 
@@ -225,13 +305,35 @@
   [data-theme='dark'] [class~='border-slate-800'],
   [data-theme='dark'] [class~='border-slate-800/60'],
   [data-theme='dark'] [class~='border-slate-800/80'],
-  [data-theme='dark'] [class~='border-slate-700'] {
+  [data-theme='dark'] [class~='border-slate-800/90'],
+  [data-theme='dark'] [class~='border-slate-700'],
+  [data-theme='dark'] [class~='border-slate-700/80'],
+  [data-theme='dark'] [class~='border-slate-600'] {
     border-color: var(--app-border) !important;
   }
 
+  [data-theme='dark'] [class~='text-white'],
+  [data-theme='dark'] [class~='text-slate-100'] {
+    color: var(--app-text) !important;
+  }
+
+  [data-theme='dark'] [class~='text-slate-200'],
+  [data-theme='dark'] [class~='text-slate-300'] {
+    color: #dbeaf0 !important;
+  }
+
+  [data-theme='dark'] [class~='text-slate-400'] {
+    color: var(--app-muted) !important;
+  }
+
+  [data-theme='dark'] [class~='text-slate-500'],
+  [data-theme='dark'] [class~='text-slate-600'] {
+    color: var(--app-muted-low) !important;
+  }
+
   ::selection {
-    background: #7dd3fc;
-    color: #082f49;
+    background: var(--app-accent);
+    color: var(--app-bg);
   }
 
   button,
@@ -243,7 +345,7 @@
 
   button:focus-visible,
   input:focus-visible {
-    outline: 2px solid #7dd3fc;
+    outline: 2px solid var(--app-accent);
     outline-offset: 2px;
   }
 }

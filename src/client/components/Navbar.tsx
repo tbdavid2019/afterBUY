@@ -28,18 +28,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-label={t('navDashboard')}
           aria-current={currentTab === 'dashboard' ? 'page' : undefined}
           className={`app-nav-item relative flex flex-col items-center justify-center flex-1 h-12 max-w-[5rem] rounded-2xl transition-all duration-200 active:scale-[0.97] ${
-            currentTab === 'dashboard' ? 'app-nav-item-active font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+            currentTab === 'dashboard' ? 'app-nav-item-active font-bold' : 'text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] hover:text-[var(--app-text)] font-semibold'
           }`}
         >
           <div className="relative">
             <Layers className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
             {overdueCount > 0 && (
-              <span className="absolute -top-1 -right-2 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1 -right-2 w-4 h-4 bg-rose-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">
                 {overdueCount > 9 ? '9+' : overdueCount}
               </span>
             )}
           </div>
-          <span className="text-[11px] tracking-tight">{t('navDashboard')}</span>
+          <span className="text-[11px] tracking-tight font-semibold">{t('navDashboard')}</span>
         </button>
 
         {/* 2. Timeline Tab */}
@@ -48,11 +48,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-label={t('navCalendar')}
           aria-current={currentTab === 'timeline' ? 'page' : undefined}
           className={`app-nav-item relative flex flex-col items-center justify-center flex-1 h-12 max-w-[5rem] rounded-2xl transition-all duration-200 active:scale-[0.97] ${
-            currentTab === 'timeline' ? 'app-nav-item-active font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+            currentTab === 'timeline' ? 'app-nav-item-active font-bold' : 'text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] hover:text-[var(--app-text)] font-semibold'
           }`}
         >
           <CalendarDays className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
-          <span className="text-[11px] tracking-tight">{t('navCalendar')}</span>
+          <span className="text-[11px] tracking-tight font-semibold">{t('navCalendar')}</span>
         </button>
 
         {/* 3. Shopping / Stock Tab */}
@@ -61,18 +61,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-label={t('navShopping')}
           aria-current={currentTab === 'shopping' ? 'page' : undefined}
           className={`app-nav-item relative flex flex-col items-center justify-center flex-1 h-12 max-w-[5rem] rounded-2xl transition-all duration-200 active:scale-[0.97] ${
-            currentTab === 'shopping' ? 'app-nav-item-active font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+            currentTab === 'shopping' ? 'app-nav-item-active font-bold' : 'text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] hover:text-[var(--app-text)] font-semibold'
           }`}
         >
           <div className="relative">
             <ShoppingBag className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
             {restockCount > 0 && (
-              <span className="absolute -top-1 -right-2 w-4 h-4 bg-amber-500 text-amber-950 text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-2 w-4 h-4 bg-amber-500 text-slate-950 text-[11px] font-bold rounded-full flex items-center justify-center shadow-sm">
                 {restockCount > 9 ? '9+' : restockCount}
               </span>
             )}
           </div>
-          <span className="text-[11px] tracking-tight">{t('navShopping')}</span>
+          <span className="text-[11px] tracking-tight font-semibold">{t('navShopping')}</span>
         </button>
 
         {/* 4. Settings Tab */}
@@ -81,11 +81,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-label={t('navSettings')}
           aria-current={currentTab === 'settings' ? 'page' : undefined}
           className={`app-nav-item relative flex flex-col items-center justify-center flex-1 h-12 max-w-[5rem] rounded-2xl transition-all duration-200 active:scale-[0.97] ${
-            currentTab === 'settings' ? 'app-nav-item-active font-semibold' : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+            currentTab === 'settings' ? 'app-nav-item-active font-bold' : 'text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] hover:text-[var(--app-text)] font-semibold'
           }`}
         >
           <Settings2 className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
-          <span className="text-[11px] tracking-tight">{t('navSettings')}</span>
+          <span className="text-[11px] tracking-tight font-semibold">{t('navSettings')}</span>
         </button>
       </div>
     </nav>
