@@ -13,6 +13,9 @@ import {
   Clock,
   CheckCircle2,
   Check,
+  Sparkles,
+  Moon,
+  MapPin,
 } from 'lucide-react';
 import { ItemResponse } from '../../shared/types.ts';
 import { CATEGORIES } from '../utils/category.ts';
@@ -25,6 +28,8 @@ interface ItemCardProps {
   onEdit: (item: ItemResponse) => void;
   onDelete: (id: string) => void;
   onViewHistory: (item: ItemResponse) => void;
+  onStartUsing?: (id: string) => void;
+  onSnooze?: (id: string, days: number) => void;
   selectable?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
@@ -37,15 +42,18 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   onEdit,
   onDelete,
   onViewHistory,
+  onStartUsing,
+  onSnooze,
   selectable,
   isSelected,
   onToggleSelect,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
+  const [showSnoozeMenu, setShowSnoozeMenu] = useState(false);
   const [replacing, setReplacing] = useState(false);
 
   const categoryMeta = CATEGORIES[item.category] || CATEGORIES.general;
-  const statusInfo = formatRemainingDaysText(item.remainingDays);
+  const statusInfo = formatRemainingDaysText(item.remainingDays, item.healthStatus);
 
   const handleQuickReplace = async () => {
     setReplacing(true);
@@ -97,6 +105,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           >
             {categoryMeta.label}
           </span>
+          {item.location && (
+            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border border-slate-700 bg-slate-900/80 text-slate-300">
+              <MapPin className="w-2.5 h-2.5 text-sky-400" />
+              <span>{item.location}</span>
+            </span>
+          )}
           <span className={`inline-flex shrink-0 items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full border ${statusInfo.badge}`}>
             <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" />
             {statusInfo.text}
@@ -182,29 +196,45 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         </div>
       </div>
 
-      {/* Progress & Countdown Section */}
-      <div className="mb-4">
-        <div className="flex items-baseline justify-between mb-1.5">
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
-            <span>下次處理 · {item.nextDueDate}</span>
+      {/* Progress & Countdown Section OR Stored Mode Banner */}
+      {item.isStored ? (
+        <div className="bg-indigo-500/10 border border-indigo-500/20 p-3 rounded-2xl flex items-center gap-2.5 mb-4">
+          <Package className="w-5 h-5 text-indigo-400 shrink-0" />
+          <div className="text-xs">
+            <p className="font-bold text-indigo-200">先存放中（未拆封備品）</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">拆封時點擊下方「開始使用」即可啟動更換週期計時</p>
           </div>
         </div>
+      ) : (
+        <div className="mb-4">
+          <div className="flex items-baseline justify-between mb-1.5">
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <Clock className="w-3.5 h-3.5 text-slate-500" />
+              <span>下次處理 · {item.nextDueDate}</span>
+            </div>
+            {item.healthStatus === 'snoozed' && item.snoozeUntil && (
+              <span className="text-[10px] font-semibold text-sky-400 flex items-center gap-1">
+                <Moon className="w-3 h-3" />
+                延後至 {item.snoozeUntil}
+              </span>
+            )}
+          </div>
 
-        {/* Lifespan Progress Bar */}
-        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden" role="progressbar" aria-valuenow={item.percentageRemaining} aria-valuemin={0} aria-valuemax={100} aria-label={`${item.name} 週期剩餘比例`}>
-          <div
-            className={`h-full ${getProgressColor()} rounded-full transition-[width] duration-500`}
-            style={{ width: `${item.percentageRemaining}%` }}
-          />
+          {/* Lifespan Progress Bar */}
+          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden" role="progressbar" aria-valuenow={item.percentageRemaining} aria-valuemin={0} aria-valuemax={100} aria-label={`${item.name} 週期剩餘比例`}>
+            <div
+              className={`h-full ${getProgressColor()} rounded-full transition-[width] duration-500`}
+              style={{ width: `${item.percentageRemaining}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between mt-2 text-[11px]">
+            <span className={statusInfo.color}>{item.remainingDays < 0 ? '需要立即處理' : statusInfo.text}</span>
+            <span className="text-slate-500">已使用 {Math.max(0, Math.min(100, 100 - item.percentageRemaining))}%</span>
+          </div>
         </div>
-        <div className="flex items-center justify-between mt-2 text-[11px]">
-          <span className={statusInfo.color}>{item.remainingDays < 0 ? '需要立即處理' : statusInfo.text}</span>
-          <span className="text-slate-500">已使用 {Math.max(0, Math.min(100, 100 - item.percentageRemaining))}%</span>
-        </div>
-      </div>
+      )}
 
-      {/* Bottom Info: Stock Counter & 1-Tap Replace Button */}
+      {/* Bottom Info: Stock Counter & Actions */}
       <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-800/60">
         {/* Backup Stock Adjustment */}
         <div className="app-surface-subtle flex items-center gap-1.5 border px-2.5 py-1.5 rounded-xl">
@@ -232,20 +262,76 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           </div>
         </div>
 
-        {/* 1-Tap "Replaced Today" Action */}
-        <button
-          onClick={handleQuickReplace}
-          disabled={replacing}
-          aria-busy={replacing}
-          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-[0.98] shadow-md ${
-            replacing
-              ? 'bg-emerald-300 text-emerald-950 scale-[0.98]'
-              : 'app-primary hover:brightness-105 shadow-sky-500/20'
-          }`}
-        >
-          <RotateCcw className={`w-3.5 h-3.5 ${replacing ? 'animate-spin' : ''}`} />
-          <span>{replacing ? '已更新！' : '今天已換'}</span>
-        </button>
+        {/* Action Buttons */}
+        {item.isStored ? (
+          <button
+            type="button"
+            onClick={() => onStartUsing?.(item.id)}
+            className="app-primary flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-md shadow-indigo-500/25 active:scale-[0.98] transition-all"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>開始使用</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-1.5 relative">
+            {/* Snooze button when due or overdue */}
+            {(item.healthStatus === 'overdue' || item.healthStatus === 'due_soon') && onSnooze && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowSnoozeMenu(!showSnoozeMenu)}
+                  title="稍後再說（延後提醒）"
+                  className="app-control px-2.5 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1 transition-colors"
+                >
+                  <Moon className="w-3.5 h-3.5 text-sky-400" />
+                  <span>稍後</span>
+                </button>
+                {showSnoozeMenu && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setShowSnoozeMenu(false)} />
+                    <div className="absolute right-0 bottom-11 z-30 w-32 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl py-1 text-xs text-slate-200">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowSnoozeMenu(false);
+                          onSnooze(item.id, 3);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-slate-700 transition-colors"
+                      >
+                        延後 3 天
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowSnoozeMenu(false);
+                          onSnooze(item.id, 7);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-slate-700 transition-colors"
+                      >
+                        延後 7 天
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* 1-Tap "Replaced Today" Action */}
+            <button
+              onClick={handleQuickReplace}
+              disabled={replacing}
+              aria-busy={replacing}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all active:scale-[0.98] shadow-md ${
+                replacing
+                  ? 'bg-emerald-300 text-emerald-950 scale-[0.98]'
+                  : 'app-primary hover:brightness-105 shadow-sky-500/20'
+              }`}
+            >
+              <RotateCcw className={`w-3.5 h-3.5 ${replacing ? 'animate-spin' : ''}`} />
+              <span>{replacing ? '已更新！' : '今天已換'}</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -30,6 +30,9 @@ const DEMO_ITEMS: ItemResponse[] = [
     minStockAlert: 1,
     price: 320,
     specModel: 'EB50',
+    location: '主衛浴',
+    isStored: false,
+    snoozeUntil: null,
     notes: 'EB50 多動向交叉刷頭',
     imageUrl: '/images/items/toothbrush-head.png',
     calendarSequence: 0,
@@ -57,6 +60,9 @@ const DEMO_ITEMS: ItemResponse[] = [
     minStockAlert: 1,
     price: 250,
     specModel: 'MAXTRA+ 全效型',
+    location: '廚房流理台',
+    isStored: false,
+    snoozeUntil: null,
     notes: '建議水質硬度高時每月更換',
     imageUrl: '/images/items/water-filter.png',
     calendarSequence: 0,
@@ -84,6 +90,9 @@ const DEMO_ITEMS: ItemResponse[] = [
     minStockAlert: 1,
     price: 850,
     specModel: '60ml 金鑽高效',
+    location: '臥室梳妝台',
+    isStored: false,
+    snoozeUntil: null,
     notes: '金鑽高效防曬露 60ml',
     imageUrl: '/images/items/sunscreen.png',
     calendarSequence: 0,
@@ -111,6 +120,9 @@ const DEMO_ITEMS: ItemResponse[] = [
     minStockAlert: 0,
     price: 12900,
     specModel: 'RD-200HG',
+    location: '客廳',
+    isStored: false,
+    snoozeUntil: null,
     notes: '登錄享全機 3 年保固',
     imageUrl: '/images/items/dehumidifier.png',
     calendarSequence: 0,
@@ -319,6 +331,64 @@ export const App: React.FC = () => {
     await loadUserAndItems();
   };
 
+  const handleStartUsing = async (id: string) => {
+    if (!user) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      setItems((prev) =>
+        prev.map((i) => {
+          if (i.id !== id) return i;
+          const updated = {
+            ...i,
+            startDate: todayStr,
+            isStored: false,
+            snoozeUntil: null,
+          };
+          return {
+            ...updated,
+            ...computeItemStatus(updated),
+          };
+        })
+      );
+      return;
+    }
+
+    try {
+      await api.startUsingItem(id);
+      await loadUserAndItems();
+    } catch (err: any) {
+      alert(err.message || '啟用失敗');
+    }
+  };
+
+  const handleSnooze = async (id: string, days: number) => {
+    if (!user) {
+      const targetDate = new Date();
+      targetDate.setDate(targetDate.getDate() + days);
+      const snoozeUntil = targetDate.toISOString().split('T')[0];
+      setItems((prev) =>
+        prev.map((i) => {
+          if (i.id !== id) return i;
+          const updated = {
+            ...i,
+            snoozeUntil,
+          };
+          return {
+            ...updated,
+            ...computeItemStatus(updated),
+          };
+        })
+      );
+      return;
+    }
+
+    try {
+      await api.snoozeItem(id, days);
+      await loadUserAndItems();
+    } catch (err: any) {
+      alert(err.message || '延後失敗');
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await api.logout();
@@ -358,6 +428,8 @@ export const App: React.FC = () => {
             onDelete={handleDeleteItem}
             onViewHistory={(item) => setHistoryItem(item)}
             onOpenNewItem={handleOpenNewItem}
+            onStartUsing={handleStartUsing}
+            onSnooze={handleSnooze}
             onBatchReplace={handleBatchReplace}
             onBatchStock={handleBatchStock}
             onBatchDelete={handleBatchDelete}

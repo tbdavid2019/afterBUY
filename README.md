@@ -1,10 +1,10 @@
-# afterBUY 🛒
+# afterBuy 該換囉 🛒
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-tbdavid2019%2FafterBUY-black.svg?logo=github)](https://github.com/tbdavid2019/afterBUY)
 [![llms.txt](https://img.shields.io/badge/llms.txt-Standard-green.svg)](./public/llms.txt)
 
-> **買了之後，別再忘記換！**
+> **買了之後，別再忘記換！該換的時候，一眼就知道！**
 > 一款手機優先的 Cloudflare 邊緣原生 PWA 生活耗材週期更換、保存期限、保固與備品庫存管理工具。
 
 ---
@@ -17,25 +17,31 @@
    - 保存期限與保固：家電保固到期日、食品藥品有效期限。
    - 擴充常備品項：貼身內褲（90~180 天淘汰換新）、貼身內衣（180~365 天）、棉襪、機車安全帽（3 年交安換新）、印表機墨水、維他命C/保健品、乾電池等。
    - 屬性擴充：支援記錄「購買金額（Price）」與「規格型號（Spec/Model）」。
-2. **手機拍照建檔（單品直拍 + 批次智慧標籤 + 訪客即開即用）與多選批次操作**：
+2. **「先存放」未拆封管理與「延後提醒 (Snooze)」**：
+   - **存放模式 (Stored Mode)**：買了先囤著？勾選「先存放，還沒有要開始使用」，暫不啟動倒數計時。等拆封當天點擊「✨ 開始使用」，自動以當天為起始日啟動追蹤。
+   - **延後提醒 (Snooze)**：目前暫時還不想更換？點擊選單「延後 3 天」或「延後 7 天」，貼心守護生活節奏不造成通知疲勞。
+   - **存放位置標籤 (Location)**：支援標註衛浴、廚房、臥室、客廳等空間位置，並支援按位置快速篩選。
+   - **Inbox Zero 成就卡片**：所有物品都處於最佳狀態時，自動呈現「100% 最佳狀態」祝賀卡片。
+3. **手機拍照建檔（單品直拍 + 批次智慧標籤 + 訪客即開即用）與多選批次操作**：
    - **單品拍照屬性**：新增與編輯物品時支援「相機直拍（`capture="environment"`）」與「相簿選圖」，可即時預覽縮圖與移除。
    - **批次連續拍照建檔**：支援手機後鏡頭連續拍或相簿多選，提供常用範本標籤（內褲、安全帽、墨水等）一鍵秒填，多圖並行上傳至 R2。
    - **訪客零阻礙體驗**：訪客無須登入即可暢玩拍照建檔與本地新增，即開即用零網路報錯。
    - **多選批次打卡**：首頁多選模式結合浮動操作列，支援「🔥 一鍵全部換新（批次更換扣庫存）」、「📦 批次 +1 備品」與「🗑️ 批次刪除」。
    - **採購清單一鍵補貨**：在備品採購頁支援一鍵為所有急需補貨物品批次補庫存。
-3. **極速中英雙語系切換（Bilingual i18n）**：
-   - 原生支援繁體中文（`zh-TW`）與英文（`en`），頂部導覽列與設定頁一鍵切換，零依賴極致輕量，持久化記憶至 `localStorage`。
-4. **無密碼雙軌登入（Passwordless）**：
+4. **字體系統與極速中英雙語系切換**：
+   - **雙軌精緻字型**：英數採用幾何等寬之 **JetBrains Mono**，中文採用溫潤生活的 **justfont 粉圓體 (Huninn)**。
+   - **雙語系支援**：原生支援繁體中文（`zh-TW`）與英文（`en`），頂部導覽列與設定頁一鍵切換，零依賴極致輕量，持久化記憶至 `localStorage`。
+5. **無密碼雙軌登入（Passwordless）**：
    - **Passkey**：支援 Face ID / Touch ID / Windows Hello 生物辨識一秒極速登入。
    - **Email OTP**：6 位數一次性驗證碼，具備 Cloudflare KV 頻率限制（1 次/分、5 次/天）與新舊帳號自動 Provisioning。
-5. **全覆蓋分階段通知管道（Multi-Channel Alerts）**：
+6. **全覆蓋分階段通知管道（Multi-Channel Alerts）**：
    - **Phase 1 (MVP)**：
      - **PWA Web Push**：Service Worker 背景系統通知（桌面 / Android / iOS 16.4+ 加入主畫面）。
      - **WebCal 日曆同步（推薦）**：RFC 5545 標準 `.ics` 訂閱流，透過穩定 `UID`、遞增 `SEQUENCE`、`STATUS:CANCELLED` 墓碑機制與 **Calendar Token 安全輪替**，確保 Apple/Google 日曆精準更新，絕無舊事件殘留。
      - **Email 提醒**：每日晨間摘要與即將到期提醒。
    - **Phase 2 (VIP 加值)**：
      - **VIP SMS**：高優先級緊急耗材缺貨與到期簡訊（排除 LINE / Telegram）。
-6. **行動優先設計（Mobile-First RWD）**：
+7. **行動優先設計（Mobile-First RWD）**：
    - 專為單手操作設計的底部導覽列（含 iOS 安全邊界 `pb-safe`）與清楚的生命週期進度條。
    - 淺色主題採無印良品風格；深色主題採青花瓷藍風格，可在右上角切換並自動保存偏好。
    - 常用物品範本提供統一的無品牌生活物品圖片，並支援在物品卡片中顯示自訂圖片。

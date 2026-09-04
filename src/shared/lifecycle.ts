@@ -58,6 +58,8 @@ export function computeItemStatus(
     warrantyDate?: string | null;
     backupStock: number;
     minStockAlert?: number;
+    isStored?: boolean | null;
+    snoozeUntil?: string | null;
   },
   referenceDate: Date = new Date()
 ): {
@@ -69,6 +71,7 @@ export function computeItemStatus(
   healthStatus: HealthStatus;
   needsRestock: boolean;
 } {
+  const refDateStr = formatDateLocal(referenceDate);
   const nextDueDate = computeNextDueDate(item);
   const [sy, sm, sd] = item.startDate.split('-').map(Number);
   const [dy, dm, dd] = nextDueDate.split('-').map(Number);
@@ -85,7 +88,12 @@ export function computeItemStatus(
   let percentageRemaining = Math.max(0, Math.min(100, Math.round((remainingDays / totalDays) * 100)));
 
   let healthStatus: HealthStatus = 'healthy';
-  if (remainingDays <= 0) {
+  if (item.isStored) {
+    healthStatus = 'stored';
+    percentageRemaining = 100;
+  } else if (item.snoozeUntil && item.snoozeUntil > refDateStr) {
+    healthStatus = 'snoozed';
+  } else if (remainingDays <= 0) {
     healthStatus = 'overdue';
     percentageRemaining = 0;
   } else if (remainingDays <= 7 || percentageRemaining <= 15) {
@@ -111,7 +119,24 @@ export function computeItemStatus(
 /**
  * Returns a human-friendly description of days remaining.
  */
-export function formatRemainingDaysText(remainingDays: number): { text: string; color: string; badge: string } {
+export function formatRemainingDaysText(
+  remainingDays: number,
+  healthStatus?: HealthStatus
+): { text: string; color: string; badge: string } {
+  if (healthStatus === 'stored') {
+    return {
+      text: '存放中（未拆封）',
+      color: 'text-indigo-400',
+      badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+    };
+  }
+  if (healthStatus === 'snoozed') {
+    return {
+      text: '延後提醒中',
+      color: 'text-sky-400',
+      badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+    };
+  }
   if (remainingDays < 0) {
     const days = Math.abs(remainingDays);
     return {

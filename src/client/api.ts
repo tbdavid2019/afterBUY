@@ -100,6 +100,9 @@ export const api = {
     minStockAlert?: number;
     price?: number | null;
     specModel?: string | null;
+    location?: string | null;
+    isStored?: boolean;
+    snoozeUntil?: string | null;
     notes?: string;
     imageUrl?: string;
   }): Promise<{ success: boolean; item: any }> {
@@ -122,6 +125,9 @@ export const api = {
     minStockAlert: number;
     price: number | null;
     specModel: string | null;
+    location: string | null;
+    isStored: boolean;
+    snoozeUntil: string | null;
     notes: string;
     imageUrl: string;
   }>): Promise<{ success: boolean; item: any }> {
@@ -137,6 +143,17 @@ export const api = {
 
   async markReplaced(id: string): Promise<{ success: boolean; newStock: number; startDate: string }> {
     return request(`/items/${id}/replace`, { method: 'POST' });
+  },
+
+  async startUsingItem(id: string): Promise<{ success: boolean; startDate: string; isStored: boolean }> {
+    return request(`/items/${id}/start-using`, { method: 'POST' });
+  },
+
+  async snoozeItem(id: string, days = 7): Promise<{ success: boolean; snoozeUntil: string }> {
+    return request(`/items/${id}/snooze`, {
+      method: 'POST',
+      body: JSON.stringify({ days }),
+    });
   },
 
   async batchReplace(itemIds: string[]): Promise<{ success: boolean; count: number; items: any[] }> {

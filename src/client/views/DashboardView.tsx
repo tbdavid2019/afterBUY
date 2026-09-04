@@ -11,6 +11,7 @@ import {
   CheckSquare,
   RotateCcw,
   Trash2,
+  MapPin,
 } from 'lucide-react';
 import { ItemResponse, HealthStatus, ItemCategory, UserSession } from '../../shared/types.ts';
 import { ItemCard } from '../components/ItemCard.tsx';
@@ -26,6 +27,8 @@ interface DashboardViewProps {
   onDelete: (id: string) => void;
   onViewHistory: (item: ItemResponse) => void;
   onOpenNewItem: () => void;
+  onStartUsing?: (id: string) => void;
+  onSnooze?: (id: string, days: number) => void;
   onBatchReplace?: (ids: string[]) => Promise<void>;
   onBatchStock?: (ids: string[], delta: number) => Promise<void>;
   onBatchDelete?: (ids: string[]) => Promise<void>;
@@ -42,6 +45,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onDelete,
   onViewHistory,
   onOpenNewItem,
+  onStartUsing,
+  onSnooze,
   onBatchReplace,
   onBatchStock,
   onBatchDelete,
@@ -51,8 +56,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   const { t, locale } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'due' | 'healthy' | 'restock'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'due' | 'healthy' | 'restock' | 'snoozed' | 'stored'>('all');
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory | 'all'>('all');
+  const [selectedLocation, setSelectedLocation] = useState<string | 'all'>('all');
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
@@ -62,6 +68,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const overdueCount = items.filter((i) => i.healthStatus === 'overdue' || i.healthStatus === 'due_soon').length;
   const healthyCount = items.filter((i) => i.healthStatus === 'healthy').length;
   const restockCount = items.filter((i) => i.needsRestock).length;
+  const snoozedCount = items.filter((i) => i.healthStatus === 'snoozed').length;
+  const storedCount = items.filter((i) => i.isStored || i.healthStatus === 'stored').length;
+
+  // Extract unique locations
+  const uniqueLocations = useMemo(() => {
+    const locSet = new Set<string>();
+    items.forEach((i) => {
+      if (i.location && i.location.trim()) {
+        locSet.add(i.location.trim());
+      }
+    });
+    return Array.from(locSet);
+  }, [items]);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -70,7 +89,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         const q = searchQuery.toLowerCase();
         const matchName = item.name.toLowerCase().includes(q);
         const matchNotes = item.notes?.toLowerCase().includes(q);
-        if (!matchName && !matchNotes) return false;
+        const matchLocation = item.location?.toLowerCase().includes(q);
+        if (!matchName && !matchNotes && !matchLocation) return false;
       }
 
       // 2. Status filter
@@ -80,6 +100,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         if (item.healthStatus !== 'healthy') return false;
       } else if (statusFilter === 'restock') {
         if (!item.needsRestock) return false;
+      } else if (statusFilter === 'snoozed') {
+        if (item.healthStatus !== 'snoozed') return false;
+      } else if (statusFilter === 'stored') {
+        if (!item.isStored && item.healthStatus !== 'stored') return false;
       }
 
       // 3. Category filter
@@ -87,16 +111,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         return false;
       }
 
+      // 4. Location filter
+      if (selectedLocation !== 'all' && item.location !== selectedLocation) {
+        return false;
+      }
+
       return true;
     });
-  }, [items, searchQuery, statusFilter, selectedCategory]);
+  }, [items, searchQuery, statusFilter, selectedCategory, selectedLocation]);
 
-  const hasFilters = Boolean(searchQuery.trim()) || statusFilter !== 'all' || selectedCategory !== 'all';
+  const hasFilters = Boolean(searchQuery.trim()) || statusFilter !== 'all' || selectedCategory !== 'all' || selectedLocation !== 'all';
 
   const clearFilters = () => {
     setSearchQuery('');
     setStatusFilter('all');
     setSelectedCategory('all');
+    setSelectedLocation('all');
   };
 
   const handleToggleSelect = (id: string) => {
@@ -165,8 +195,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <h2 className="text-2xl sm:text-3xl font-bold tracking-[-0.03em] text-white">
               {locale === 'zh-TW' ? '先處理今天的日常' : "Today's Consumables"}
             </h2>
-            <p className="text-sm text-slate-400 mt-2">
-              {locale === 'zh-TW' ? '快速看見要換什麼、還缺哪些備品。' : 'See what needs replacing and restock in time.'}
+            <p className="text-sm text-slate-400 mt-1">
+              {locale === 'zh-TW' ? '及時看見該換什麼、還缺哪些備品。' : 'See what needs replacing and restock in time.'}
             </p>
           </div>
           <span className="hidden sm:inline-flex shrink-0 items-center rounded-full border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-400">
@@ -175,58 +205,116 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
+      {/* Inbox Zero Emotional Card (When all items are healthy or snoozed) */}
+      {items.length > 0 && overdueCount === 0 && (
+        <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-2xl p-4 flex items-center gap-3.5 shadow-sm animate-in fade-in duration-300">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <span>{t('allSettledTitle')}</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+                100% 最佳狀態
+              </span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">{t('allSettledSubtitle')}</p>
+          </div>
+        </div>
+      )}
+
       {/* 1. Metric Overview */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'due' ? 'all' : 'due')}
-          aria-pressed={statusFilter === 'due'}
-          className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
-            statusFilter === 'due'
-              ? 'bg-rose-400/10 border-rose-400/50 text-rose-200 ring-1 ring-rose-400/50'
-              : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-1 mb-3">
-            <span className="text-[11px] font-semibold">{locale === 'zh-TW' ? '該處理' : 'Due / Alert'}</span>
-            <AlertTriangle className="w-4 h-4 text-rose-300" />
-          </div>
-          <span className="text-3xl leading-none font-bold tabular-nums text-white">{overdueCount}</span>
-          <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '到期或快到期' : 'Overdue or soon'}</span>
-        </button>
+      <div className="space-y-2">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'due' ? 'all' : 'due')}
+            aria-pressed={statusFilter === 'due'}
+            className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
+              statusFilter === 'due'
+                ? 'bg-rose-400/10 border-rose-400/50 text-rose-200 ring-1 ring-rose-400/50'
+                : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-1 mb-3">
+              <span className="text-[11px] font-semibold">{locale === 'zh-TW' ? '該換/到期' : 'Due / Alert'}</span>
+              <AlertTriangle className="w-4 h-4 text-rose-300" />
+            </div>
+            <span className="text-3xl leading-none font-bold tabular-nums text-white">{overdueCount}</span>
+            <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '今天或已過期' : 'Overdue or today'}</span>
+          </button>
 
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'healthy' ? 'all' : 'healthy')}
-          aria-pressed={statusFilter === 'healthy'}
-          className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
-            statusFilter === 'healthy'
-              ? 'bg-emerald-400/10 border-emerald-400/50 text-emerald-200 ring-1 ring-emerald-400/50'
-              : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-1 mb-3">
-            <span className="text-[11px] font-semibold">{t('statusHealthy')}</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-          </div>
-          <span className="text-3xl leading-none font-bold tabular-nums text-white">{healthyCount}</span>
-          <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '目前不需處理' : 'Good condition'}</span>
-        </button>
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'healthy' ? 'all' : 'healthy')}
+            aria-pressed={statusFilter === 'healthy'}
+            className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
+              statusFilter === 'healthy'
+                ? 'bg-emerald-400/10 border-emerald-400/50 text-emerald-200 ring-1 ring-emerald-400/50'
+                : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-1 mb-3">
+              <span className="text-[11px] font-semibold">{t('statusHealthy')}</span>
+              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+            </div>
+            <span className="text-3xl leading-none font-bold tabular-nums text-white">{healthyCount}</span>
+            <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '目前不需處理' : 'Good condition'}</span>
+          </button>
 
-        <button
-          onClick={() => setStatusFilter(statusFilter === 'restock' ? 'all' : 'restock')}
-          aria-pressed={statusFilter === 'restock'}
-          className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
-            statusFilter === 'restock'
-              ? 'bg-amber-400/10 border-amber-400/50 text-amber-200 ring-1 ring-amber-400/50'
-              : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-1 mb-3">
-            <span className="text-[11px] font-semibold">{locale === 'zh-TW' ? '要補貨' : 'Restock'}</span>
-            <ShoppingBag className="w-4 h-4 text-amber-300" />
+          <button
+            onClick={() => setStatusFilter(statusFilter === 'restock' ? 'all' : 'restock')}
+            aria-pressed={statusFilter === 'restock'}
+            className={`p-3.5 sm:p-4 rounded-2xl border transition-all text-left active:scale-[0.98] ${
+              statusFilter === 'restock'
+                ? 'bg-amber-400/10 border-amber-400/50 text-amber-200 ring-1 ring-amber-400/50'
+                : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900'
+            }`}
+          >
+            <div className="flex items-center justify-between gap-1 mb-3">
+              <span className="text-[11px] font-semibold">{locale === 'zh-TW' ? '要補貨' : 'Restock'}</span>
+              <ShoppingBag className="w-4 h-4 text-amber-300" />
+            </div>
+            <span className="text-3xl leading-none font-bold tabular-nums text-white">{restockCount}</span>
+            <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '備品低於門檻' : 'Low on backup'}</span>
+          </button>
+        </div>
+
+        {/* Secondary Filter Chips: Snoozed & Stored */}
+        {(snoozedCount > 0 || storedCount > 0) && (
+          <div className="flex items-center gap-2 pt-1">
+            {snoozedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'snoozed' ? 'all' : 'snoozed')}
+                className={`text-xs px-3 py-1 rounded-full border transition-all font-medium flex items-center gap-1.5 ${
+                  statusFilter === 'snoozed'
+                    ? 'bg-sky-500/20 border-sky-400 text-sky-300 font-bold'
+                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>💤 延後中</span>
+                <span className="text-[10px] bg-sky-500/30 text-sky-200 px-1.5 rounded-full font-bold">
+                  {snoozedCount}
+                </span>
+              </button>
+            )}
+            {storedCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setStatusFilter(statusFilter === 'stored' ? 'all' : 'stored')}
+                className={`text-xs px-3 py-1 rounded-full border transition-all font-medium flex items-center gap-1.5 ${
+                  statusFilter === 'stored'
+                    ? 'bg-indigo-500/20 border-indigo-400 text-indigo-300 font-bold'
+                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-white'
+                }`}
+              >
+                <span>📦 存放備品</span>
+                <span className="text-[10px] bg-indigo-500/30 text-indigo-200 px-1.5 rounded-full font-bold">
+                  {storedCount}
+                </span>
+              </button>
+            )}
           </div>
-          <span className="text-3xl leading-none font-bold tabular-nums text-white">{restockCount}</span>
-          <span className="block text-[11px] text-slate-500 mt-2">{locale === 'zh-TW' ? '備品低於門檻' : 'Low on backup'}</span>
-        </button>
+        )}
       </div>
 
       {/* 2. Search & Category Filters */}
@@ -274,6 +362,38 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </button>
           ))}
         </div>
+
+        {/* Location horizontal scroll if locations exist */}
+        {uniqueLocations.length > 0 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar pt-1">
+            <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-500" aria-hidden="true" />
+            <button
+              onClick={() => setSelectedLocation('all')}
+              aria-pressed={selectedLocation === 'all'}
+              className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all font-semibold active:scale-[0.98] ${
+                selectedLocation === 'all'
+                  ? 'bg-amber-300 text-amber-950 border-amber-200'
+                  : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+              }`}
+            >
+              {locale === 'zh-TW' ? '全部位置' : 'All Locations'}
+            </button>
+            {uniqueLocations.map((loc) => (
+              <button
+                key={loc}
+                onClick={() => setSelectedLocation(selectedLocation === loc ? 'all' : loc)}
+                aria-pressed={selectedLocation === loc}
+                className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full border transition-all font-semibold active:scale-[0.98] ${
+                  selectedLocation === loc
+                    ? 'bg-amber-300 text-amber-950 border-amber-200'
+                    : 'bg-slate-900/70 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700'
+                }`}
+              >
+                📍 {loc}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 3. Items List Header with Batch Actions Toolbar */}
@@ -356,6 +476,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onViewHistory={onViewHistory}
+                onStartUsing={onStartUsing}
+                onSnooze={onSnooze}
                 selectable={isSelecting}
                 isSelected={selectedIds.has(item.id)}
                 onToggleSelect={handleToggleSelect}

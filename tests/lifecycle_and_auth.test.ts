@@ -59,6 +59,34 @@ describe('Lifecycle & Status Engine', () => {
     assert.match(formatRemainingDaysText(0).text, /今天該換/);
     assert.match(formatRemainingDaysText(5).text, /剩餘 5 天/);
   });
+
+  it('should compute stored health status when isStored is true', () => {
+    const status = computeItemStatus({
+      startDate: '2026-01-01',
+      trackingMode: 'cycle',
+      cycleDays: 30,
+      backupStock: 2,
+      isStored: true,
+    });
+    assert.equal(status.healthStatus, 'stored');
+    assert.match(formatRemainingDaysText(status.remainingDays, status.healthStatus).text, /存放中/);
+  });
+
+  it('should compute snoozed health status when snoozeUntil is in future', () => {
+    const now = new Date('2026-02-15T00:00:00');
+    const status = computeItemStatus(
+      {
+        startDate: '2026-01-01',
+        trackingMode: 'cycle',
+        cycleDays: 30, // Overdue on 2026-01-31
+        backupStock: 1,
+        snoozeUntil: '2026-02-20',
+      },
+      now
+    );
+    assert.equal(status.healthStatus, 'snoozed');
+    assert.match(formatRemainingDaysText(status.remainingDays, status.healthStatus).text, /延後提醒中/);
+  });
 });
 
 describe('Auth & Session Crypto Utilities', () => {

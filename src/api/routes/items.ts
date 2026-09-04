@@ -4,7 +4,7 @@ import { HonoEnv } from '../types.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { getDb, items, itemHistory } from '../db/index.ts';
 import { computeItemStatus } from '../../shared/lifecycle.ts';
-import { ItemCategory, TrackingMode } from '../../shared/types.ts';
+import { ItemCategory, TrackingMode, HealthStatus } from '../../shared/types.ts';
 
 export const itemsRouter = new Hono<HonoEnv>();
 
@@ -23,32 +23,41 @@ itemsRouter.get('/', async (c) => {
 
   const now = new Date();
   const computedItems = rawItems.map((item) => {
-    const status = computeItemStatus(
-      {
-        startDate: item.startDate,
-        trackingMode: item.trackingMode as TrackingMode,
-        cycleDays: item.cycleDays,
-        paoMonths: item.paoMonths,
-        expiryDate: item.expiryDate,
-        warrantyDate: item.warrantyDate,
-        backupStock: item.backupStock,
-        minStockAlert: item.minStockAlert,
-      },
-      now
+    const status = computeItemStatus({
+      startDate: item.startDate,
+      trackingMode: item.trackingMode as TrackingMode,
+      cycleDays: item.cycleDays,
+      paoMonths: item.paoMonths,
+      expiryDate: item.expiryDate,
+      warrantyDate: item.warrantyDate,
+      backupStock: item.backupStock,
+      minStockAlert: item.minStockAlert,
+      isStored: Boolean(item.isStored),
+      snoozeUntil: item.snoozeUntil,
+    },
+    now
     );
 
     return {
       ...item,
       category: item.category as ItemCategory,
       trackingMode: item.trackingMode as TrackingMode,
+      isStored: Boolean(item.isStored),
       ...status,
     };
   });
 
-  // Sort by urgency: overdue -> due_soon -> healthy, then remainingDays ascending
-  const urgencyWeight = { overdue: 0, due_soon: 1, healthy: 2, out_of_stock: 3 };
+  // Sort by urgency: overdue -> due_soon -> snoozed -> healthy -> stored
+  const urgencyWeight: Record<HealthStatus, number> = {
+    overdue: 0,
+    due_soon: 1,
+    snoozed: 2,
+    healthy: 3,
+    out_of_stock: 4,
+    stored: 5,
+  };
   computedItems.sort((a, b) => {
-    const diff = urgencyWeight[a.healthStatus] - urgencyWeight[b.healthStatus];
+    const diff = (urgencyWeight[a.healthStatus] ?? 3) - (urgencyWeight[b.healthStatus] ?? 3);
     if (diff !== 0) return diff;
     return a.remainingDays - b.remainingDays;
   });
@@ -72,6 +81,9 @@ itemsRouter.post('/', async (c) => {
     minStockAlert?: number;
     price?: number;
     specModel?: string;
+    location?: string;
+    isStored?: boolean;
+    snoozeUntil?: string;
     notes?: string;
     imageUrl?: string;
   }>();
@@ -100,6 +112,9 @@ itemsRouter.post('/', async (c) => {
     minStockAlert: Math.max(0, body.minStockAlert ?? 1),
     price: body.price !== undefined && body.price !== null ? Math.max(0, Math.round(body.price)) : null,
     specModel: body.specModel?.trim() || null,
+    location: body.location?.trim() || null,
+    isStored: body.isStored ? 1 : 0,
+    snoozeUntil: body.snoozeUntil || null,
     notes: body.notes?.trim() || null,
     imageUrl: body.imageUrl || null,
     calendarSequence: 0,
@@ -110,7 +125,7 @@ itemsRouter.post('/', async (c) => {
 
   await db.insert(items).values(newItem);
 
-  return c.json({ success: true, item: newItem }, 201);
+  return c.json({ success: true, item: { ...newItem, isStored: Boolean(newItem.isStored) } }, 201);
 });
 
 // 3. Batch Replace (One-tap mark replaced for multiple selected items)
@@ -249,6 +264,9 @@ itemsRouter.put('/:id', async (c) => {
     minStockAlert: body.minStockAlert !== undefined ? Math.max(0, body.minStockAlert) : existing.minStockAlert,
     price: body.price !== undefined ? (body.price === null ? null : Math.max(0, Math.round(body.price))) : existing.price,
     specModel: body.specModel !== undefined ? body.specModel?.trim() || null : existing.specModel,
+    location: body.location !== undefined ? body.location?.trim() || null : existing.location,
+    isStored: body.isStored !== undefined ? (body.isStored ? 1 : 0) : existing.isStored,
+    snoozeUntil: body.snoozeUntil !== undefined ? body.snoozeUntil : existing.snoozeUntil,
     notes: body.notes !== undefined ? body.notes?.trim() || null : existing.notes,
     imageUrl: body.imageUrl !== undefined ? body.imageUrl : existing.imageUrl,
     calendarSequence: existing.calendarSequence + 1,
@@ -260,7 +278,90 @@ itemsRouter.put('/:id', async (c) => {
     .set(updatedData)
     .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
 
-  return c.json({ success: true, item: { ...existing, ...updatedData } });
+  return c.json({
+    success: true,
+    item: {
+      ...existing,
+      ...updatedData,
+      isStored: Boolean(updatedData.isStored),
+    },
+  });
+});
+
+// 7. Start using a stored item (Switch from Stored to Active countdown starting today)
+itemsRouter.post('/:id/start-using', async (c) => {
+  const user = c.get('user')!;
+  const itemId = c.req.param('id');
+  const db = getDb(c.env.DB);
+
+  const existing = await db
+    .select()
+    .from(items)
+    .where(and(eq(items.id, itemId), eq(items.userId, user.id), isNull(items.deletedAt)))
+    .get();
+
+  if (!existing) {
+    return c.json({ error: '找不到該物品' }, 404);
+  }
+
+  const nowIso = new Date().toISOString();
+  const todayStr = nowIso.split('T')[0];
+
+  await db
+    .update(items)
+    .set({
+      isStored: 0,
+      startDate: todayStr,
+      snoozeUntil: null,
+      calendarSequence: existing.calendarSequence + 1,
+      updatedAt: nowIso,
+    })
+    .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
+
+  return c.json({
+    success: true,
+    message: '物品已開始使用！計時正式啟動',
+    startDate: todayStr,
+    isStored: false,
+  });
+});
+
+// 8. Snooze reminder (Postpone by 3, 7 or custom days)
+itemsRouter.post('/:id/snooze', async (c) => {
+  const user = c.get('user')!;
+  const itemId = c.req.param('id');
+  const { days = 7 } = await c.req.json<{ days?: number }>();
+  const db = getDb(c.env.DB);
+
+  const existing = await db
+    .select()
+    .from(items)
+    .where(and(eq(items.id, itemId), eq(items.userId, user.id), isNull(items.deletedAt)))
+    .get();
+
+  if (!existing) {
+    return c.json({ error: '找不到該物品' }, 404);
+  }
+
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + Math.max(1, days));
+  const snoozeUntilStr = targetDate.toISOString().split('T')[0];
+  const nowIso = new Date().toISOString();
+
+  await db
+    .update(items)
+    .set({
+      snoozeUntil: snoozeUntilStr,
+      calendarSequence: existing.calendarSequence + 1,
+      updatedAt: nowIso,
+    })
+    .where(and(eq(items.id, itemId), eq(items.userId, user.id)));
+
+  return c.json({
+    success: true,
+    message: `已延後提醒 ${days} 天`,
+    snoozeUntil: snoozeUntilStr,
+  });
 });
 
 // 4. Soft Delete item (Retain for 30-day tombstone in WebCal)

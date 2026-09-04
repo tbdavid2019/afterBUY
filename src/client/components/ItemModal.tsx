@@ -36,6 +36,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [minStockAlert, setMinStockAlert] = useState(1);
   const [price, setPrice] = useState<number | ''>('');
   const [specModel, setSpecModel] = useState('');
+  const [location, setLocation] = useState('');
+  const [isStored, setIsStored] = useState(false);
   const [notes, setNotes] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -59,6 +61,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setMinStockAlert(itemToEdit.minStockAlert);
       setPrice(itemToEdit.price !== null && itemToEdit.price !== undefined ? itemToEdit.price : '');
       setSpecModel(itemToEdit.specModel || '');
+      setLocation(itemToEdit.location || '');
+      setIsStored(Boolean(itemToEdit.isStored));
       setNotes(itemToEdit.notes || '');
       setImageUrl(itemToEdit.imageUrl || '');
     } else {
@@ -75,6 +79,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setMinStockAlert(1);
       setPrice('');
       setSpecModel('');
+      setLocation('');
+      setIsStored(false);
       setNotes('');
       setImageUrl('');
     }
@@ -154,6 +160,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             minStockAlert: Number(minStockAlert),
             price: price === '' ? null : Number(price),
             specModel: specModel.trim() || null,
+            location: location.trim() || null,
+            isStored,
+            snoozeUntil: itemToEdit.snoozeUntil || null,
             notes: notes.trim() || null,
             imageUrl: imageUrl || null,
             updatedAt: new Date().toISOString(),
@@ -166,6 +175,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               warrantyDate: trackingMode === 'warranty' ? warrantyDate : null,
               backupStock: Number(backupStock),
               minStockAlert: Number(minStockAlert),
+              isStored,
+              snoozeUntil: itemToEdit.snoozeUntil || null,
             }),
           };
           onUpdateGuestItem?.(updated);
@@ -185,6 +196,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             minStockAlert: Number(minStockAlert),
             price: price === '' ? null : Number(price),
             specModel: specModel.trim() || null,
+            location: location.trim() || null,
+            isStored,
+            snoozeUntil: null,
             notes: notes.trim() || null,
             imageUrl: imageUrl || null,
             calendarSequence: 0,
@@ -199,6 +213,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               warrantyDate: trackingMode === 'warranty' ? warrantyDate : null,
               backupStock: Number(backupStock),
               minStockAlert: Number(minStockAlert),
+              isStored,
+              snoozeUntil: null,
             }),
           };
           onAddGuestItem?.(newItem);
@@ -221,6 +237,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           minStockAlert: Number(minStockAlert),
           price: price === '' ? null : Number(price),
           specModel: specModel.trim() || null,
+          location: location.trim() || null,
+          isStored,
           notes: notes.trim() || null as any,
           imageUrl: imageUrl || null as any,
         });
@@ -238,6 +256,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           minStockAlert: Number(minStockAlert),
           price: price === '' ? null : Number(price),
           specModel: specModel.trim() || null,
+          location: location.trim() || null,
+          isStored,
           notes: notes.trim() || undefined,
           imageUrl: imageUrl || undefined,
         });
@@ -574,6 +594,63 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white outline-none font-medium placeholder-slate-600"
               />
             </div>
+          </div>
+
+          {/* Location */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-300">存放位置 (選填)</label>
+              <span className="text-[10px] text-slate-500">方便找備品與打掃</span>
+            </div>
+            <input
+              type="text"
+              placeholder="例如：主臥衛浴、廚房水槽下、陽台、儲藏室..."
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 focus:border-sky-500 rounded-xl px-3.5 py-2 text-white outline-none text-xs placeholder-slate-600"
+            />
+            <div className="flex gap-1.5 mt-1.5 overflow-x-auto no-scrollbar pb-0.5">
+              {['衛浴', '廚房', '臥室', '客廳', '陽台', '儲藏室', '隨身包', '辦公室'].map((loc) => (
+                <button
+                  key={loc}
+                  type="button"
+                  onClick={() => setLocation(loc)}
+                  className={`text-[10px] px-2.5 py-0.5 rounded-full border transition-all shrink-0 ${
+                    location === loc
+                      ? 'border-sky-400 bg-sky-500/20 text-sky-300 font-semibold'
+                      : 'border-slate-800 bg-slate-900/80 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {loc}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Stored / Inactive Mode Toggle */}
+          <div className="bg-slate-950/60 border border-slate-800/80 p-3.5 rounded-2xl flex items-center justify-between gap-3">
+            <div className="flex-1 min-w-0 pr-2">
+              <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5 cursor-pointer">
+                <Package className="w-3.5 h-3.5 text-indigo-400" />
+                <span>先存放，還沒有要開始使用</span>
+              </label>
+              <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
+                囤貨備品專用。開啟後暫不啟動倒數，日後在物品卡片點擊「開始使用」才開始計時。
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsStored(!isStored)}
+              className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${
+                isStored ? 'bg-indigo-500' : 'bg-slate-800'
+              }`}
+            >
+              <span
+                className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
+                  isStored ? 'left-6' : 'left-1'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Notes */}

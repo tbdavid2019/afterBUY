@@ -35,6 +35,9 @@ export const items = sqliteTable('items', {
   minStockAlert: integer('min_stock_alert').notNull().default(1),
   price: integer('price'), // Purchase price / cost (e.g. NT$ integer or cents)
   specModel: text('spec_model'), // Model, cartridge spec, battery size, etc.
+  location: text('location'), // Location: 衛浴, 廚房, 臥室, 儲藏室, etc.
+  isStored: integer('is_stored').notNull().default(0), // 1 = 先存放尚未開始使用, 0 = 啟用中
+  snoozeUntil: text('snooze_until'), // YYYY-MM-DD for snooze delay
   notes: text('notes'),
   imageUrl: text('image_url'),
   calendarSequence: integer('calendar_sequence').notNull().default(0),

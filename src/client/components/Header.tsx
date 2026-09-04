@@ -25,7 +25,8 @@ export const Header: React.FC<HeaderProps> = ({ user, onOpenAuth, onOpenNewItem,
           </div>
           <div>
             <h1 className="text-[15px] font-bold tracking-tight text-white flex items-center gap-1.5">
-              afterBUY
+              <span>afterBuy</span>
+              <span className="text-sky-400 font-extrabold text-sm">該換囉</span>
               <span className="text-[9px] font-bold tracking-[0.12em] uppercase text-sky-300 border border-sky-400/25 px-1.5 py-0.5 rounded-full">
                 PWA
               </span>

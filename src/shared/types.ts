@@ -1,5 +1,5 @@
 export type TrackingMode = 'cycle' | 'pao' | 'expiry' | 'warranty';
-export type HealthStatus = 'healthy' | 'due_soon' | 'overdue' | 'out_of_stock';
+export type HealthStatus = 'healthy' | 'due_soon' | 'overdue' | 'out_of_stock' | 'snoozed' | 'stored';
 export type ItemCategory = 'bathroom' | 'kitchen' | 'skincare' | 'medicine' | 'appliances' | 'electronics' | 'clothing' | 'general';
 
 export interface UserSession {
@@ -24,6 +24,9 @@ export interface ItemResponse {
   minStockAlert: number;
   price: number | null;
   specModel: string | null;
+  location: string | null;
+  isStored: boolean;
+  snoozeUntil: string | null;
   notes: string | null;
   imageUrl: string | null;
   calendarSequence: number;
