@@ -72,7 +72,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </p>
         <button
           onClick={onOpenAuth}
-          className="app-primary inline-flex items-center gap-2 font-semibold text-xs px-5 py-2.5 rounded-full shadow-lg shadow-sky-500/20 active:scale-[0.98]"
+          className="app-primary inline-flex items-center gap-2 font-semibold text-xs px-5 py-2.5 rounded-xl shadow-sm active:scale-[0.98]"
         >
           <Fingerprint className="w-4 h-4" />
           <span>立即無密碼登入</span>

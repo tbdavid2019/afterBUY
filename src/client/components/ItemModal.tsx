@@ -4,6 +4,7 @@ import { ItemResponse, ItemCategory, TrackingMode, UserSession, StockResponse } 
 import { computeItemStatus } from '../../shared/lifecycle.ts';
 import { CATEGORIES, ITEM_PRESETS, ItemPreset } from '../utils/category.ts';
 import { api } from '../api.ts';
+import { useTranslation } from '../i18n/index.tsx';
 
 interface ItemModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   onAddGuestItem,
   onUpdateGuestItem,
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [category, setCategory] = useState<ItemCategory>('general');
   const [trackingMode, setTrackingMode] = useState<TrackingMode>('cycle');
@@ -303,6 +305,13 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
         {/* Scrollable Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 text-sm">
+          {!user && (
+            <div className="bg-sky-500/10 border border-sky-500/20 text-sky-700 dark:text-sky-300 rounded-xl px-3.5 py-2.5 text-xs flex items-center gap-2">
+              <Sparkles className="w-4 h-4 shrink-0 text-sky-500" />
+              <span>{t('guestModeModalHint')}</span>
+            </div>
+          )}
+
           {/* Preset quick pills (Only when creating new item) */}
           {!itemToEdit && (
             <div>

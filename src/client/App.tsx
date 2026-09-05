@@ -455,6 +455,14 @@ export const App: React.FC = () => {
     setCurrentTab('dashboard');
   };
 
+  const handleClearDemoItems = () => {
+    setItems([]);
+  };
+
+  const handleRestoreDemoItems = () => {
+    setItems(DEMO_ITEMS);
+  };
+
   // Counts for badge
   const overdueCount = items.filter((i) => i.healthStatus === 'overdue' || i.healthStatus === 'due_soon').length;
   const restockCount = items.filter((i) => i.needsRestock).length;
@@ -494,6 +502,9 @@ export const App: React.FC = () => {
             onRefreshItems={loadUserAndItems}
             user={user}
             onAddGuestItems={(newItems) => setItems((prev) => [...newItems, ...prev])}
+            onOpenAuth={() => setIsAuthOpen(true)}
+            onClearDemoItems={handleClearDemoItems}
+            onRestoreDemoItems={handleRestoreDemoItems}
           />
         )}
 

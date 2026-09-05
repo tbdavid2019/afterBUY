@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Trash2,
   MapPin,
+  Fingerprint,
 } from 'lucide-react';
 import { ItemResponse, HealthStatus, ItemCategory, UserSession } from '../../shared/types.ts';
 import { ItemCard } from '../components/ItemCard.tsx';
@@ -35,6 +36,9 @@ interface DashboardViewProps {
   onRefreshItems?: () => void;
   user?: UserSession | null;
   onAddGuestItems?: (items: ItemResponse[]) => void;
+  onOpenAuth?: () => void;
+  onClearDemoItems?: () => void;
+  onRestoreDemoItems?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -53,6 +57,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onRefreshItems,
   user,
   onAddGuestItems,
+  onOpenAuth,
+  onClearDemoItems,
+  onRestoreDemoItems,
 }) => {
   const { t, locale } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -204,6 +211,64 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </span>
         </div>
       </section>
+
+      {/* Guest Mode Onboarding & Interactive Sandbox Banner */}
+      {!user && (
+        <section className="app-surface border border-sky-500/30 dark:border-sky-400/25 rounded-2xl p-4 sm:p-5 shadow-sm relative overflow-hidden transition-all animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-sky-500/15 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/25 mt-0.5">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-sm sm:text-base font-bold text-[var(--app-text)]">
+                    {t('guestModeBannerTitle')}
+                  </h3>
+                  <span className="text-[11px] font-semibold bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/20 px-2 py-0.5 rounded-full">
+                    {t('guestModeBannerBadge')}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--app-muted)] leading-relaxed max-w-2xl">
+                  {t('guestModeBannerDesc')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 self-start sm:self-center">
+              {items.length > 0 && onClearDemoItems && (
+                <button
+                  type="button"
+                  onClick={onClearDemoItems}
+                  className="app-control px-3 py-2 rounded-xl border text-xs font-semibold text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors active:scale-95"
+                >
+                  {t('guestModeClearDemoBtn')}
+                </button>
+              )}
+              {items.length === 0 && onRestoreDemoItems && (
+                <button
+                  type="button"
+                  onClick={onRestoreDemoItems}
+                  className="app-control px-3 py-2 rounded-xl border text-xs font-semibold text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors active:scale-95 flex items-center gap-1.5"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>{t('guestModeRestoreDemoBtn')}</span>
+                </button>
+              )}
+              {onOpenAuth && (
+                <button
+                  type="button"
+                  onClick={onOpenAuth}
+                  className="app-primary px-3.5 py-2 rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 hover:brightness-105 active:scale-95 transition-all"
+                >
+                  <Fingerprint className="w-4 h-4 shrink-0" />
+                  <span>{t('guestModeLoginBtn')}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Inbox Zero Emotional Card (When all items are healthy or snoozed) */}
       {items.length > 0 && overdueCount === 0 && (
@@ -443,26 +508,39 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {filteredItems.length === 0 ? (
-          <div className="text-center py-14 app-surface rounded-3xl border border-[var(--app-border)] p-6 shadow-sm">
+          <div className="text-center py-14 app-surface rounded-2xl border border-[var(--app-border)] p-6 shadow-sm">
             <div className="w-12 h-12 rounded-2xl bg-[var(--app-accent-soft)] border border-[var(--app-border)] text-[var(--app-accent-strong)] mx-auto flex items-center justify-center mb-3">
               <Sparkles className="w-6 h-6" />
             </div>
             <h3 className="text-base font-bold text-[var(--app-text)] mb-1">
-              {items.length === 0 ? t('emptyItemsTitle') : (locale === 'zh-TW' ? '沒有符合條件的物品' : 'No items match filters')}
+              {items.length === 0
+                ? (!user ? t('guestModeClearedTitle') : t('emptyItemsTitle'))
+                : (locale === 'zh-TW' ? '沒有符合條件的物品' : 'No items match filters')}
             </h3>
             <p className="text-xs text-[var(--app-muted)] max-w-xs mx-auto mb-4">
               {items.length === 0
-                ? t('emptyItemsDesc')
+                ? (!user ? t('guestModeClearedDesc') : t('emptyItemsDesc'))
                 : (locale === 'zh-TW' ? '試著清除搜尋條件或切換分類標籤。' : 'Try clearing filters or changing category.')}
             </p>
             {items.length === 0 && (
-              <button
-                onClick={onOpenNewItem}
-                className="app-primary inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-full shadow-md active:scale-[0.98] transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{locale === 'zh-TW' ? '新增第一個物品' : 'Add First Item'}</span>
-              </button>
+              <div className="flex items-center justify-center gap-2.5 flex-wrap">
+                <button
+                  onClick={onOpenNewItem}
+                  className="app-primary inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-xl shadow-sm active:scale-[0.96] transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{locale === 'zh-TW' ? '新增第一個物品' : 'Add First Item'}</span>
+                </button>
+                {!user && onRestoreDemoItems && (
+                  <button
+                    onClick={onRestoreDemoItems}
+                    className="app-control inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2.5 rounded-xl border border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] active:scale-[0.96] transition-all"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>{t('guestModeRestoreDemoBtn')}</span>
+                  </button>
+                )}
+              </div>
             )}
           </div>
         ) : (
