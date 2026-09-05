@@ -6,6 +6,7 @@ import { getDb, items, itemHistory, stocks, stockMembers, users } from '../db/in
 import { computeItemStatus } from '../../shared/lifecycle.ts';
 import { ItemCategory, TrackingMode, HealthStatus, StockRole } from '../../shared/types.ts';
 import { ensureUserDefaultStock } from './stocks.ts';
+import { addBusinessDays, businessDate } from '../../shared/date.ts';
 
 export const itemsRouter = new Hono<HonoEnv>();
 
@@ -201,7 +202,7 @@ itemsRouter.post('/', async (c) => {
 
   const db = getDb(c.env.DB);
   const nowIso = new Date().toISOString();
-  const todayStr = nowIso.split('T')[0];
+  const todayStr = businessDate();
   const itemId = crypto.randomUUID();
 
   // Resolve target Stock ID
@@ -263,7 +264,7 @@ itemsRouter.post('/batch-replace', async (c) => {
 
   const db = getDb(c.env.DB);
   const nowIso = new Date().toISOString();
-  const todayStr = nowIso.split('T')[0];
+  const todayStr = businessDate();
   const updatedItems: any[] = [];
 
   for (const id of itemIds) {
@@ -271,10 +272,12 @@ itemsRouter.post('/batch-replace', async (c) => {
     if (!access) continue;
 
     const existing = access.item;
+    if (existing.isStored || (existing.trackingMode !== 'cycle' && existing.trackingMode !== 'pao')) continue;
     const newStock = Math.max(0, existing.backupStock - 1);
     const updatedData = {
       startDate: todayStr,
       backupStock: newStock,
+      snoozeUntil: null,
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
     };
@@ -417,7 +420,7 @@ itemsRouter.post('/:id/start-using', async (c) => {
 
   const existing = access.item;
   const nowIso = new Date().toISOString();
-  const todayStr = nowIso.split('T')[0];
+  const todayStr = businessDate();
 
   await db
     .update(items)
@@ -450,9 +453,7 @@ itemsRouter.post('/:id/snooze', async (c) => {
   if (access === false) return c.json({ error: '權限不足' }, 403);
 
   const existing = access.item;
-  const targetDate = new Date();
-  targetDate.setDate(targetDate.getDate() + Math.max(1, days));
-  const snoozeUntilStr = targetDate.toISOString().split('T')[0];
+  const snoozeUntilStr = addBusinessDays(new Date(), Math.max(1, days));
   const nowIso = new Date().toISOString();
 
   await db
@@ -506,8 +507,11 @@ itemsRouter.post('/:id/replace', async (c) => {
   if (access === false) return c.json({ error: '權限不足' }, 403);
 
   const existing = access.item;
+  if (existing.isStored || (existing.trackingMode !== 'cycle' && existing.trackingMode !== 'pao')) {
+    return c.json({ error: '只有啟用中的週期或開封保存期物品可以標記更換' }, 400);
+  }
   const nowIso = new Date().toISOString();
-  const todayStr = nowIso.split('T')[0];
+  const todayStr = businessDate();
   const newStock = Math.max(0, existing.backupStock - 1);
 
   await db
@@ -515,6 +519,7 @@ itemsRouter.post('/:id/replace', async (c) => {
     .set({
       startDate: todayStr,
       backupStock: newStock,
+      snoozeUntil: null,
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
     })

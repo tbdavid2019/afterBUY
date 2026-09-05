@@ -4,14 +4,11 @@ import { App } from './App.tsx';
 import { I18nProvider } from './i18n/index.tsx';
 import './index.css';
 
-// Auto-reload when new service worker takes over
+// Check for updates without forcibly reloading. The app prompts at a safe
+// boundary so a guest form or local photo edit is not interrupted.
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      refreshing = true;
-      window.location.reload();
-    }
+    window.dispatchEvent(new Event('afterbuy-sw-update'));
   });
 
   window.addEventListener('load', () => {

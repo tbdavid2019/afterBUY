@@ -6,6 +6,7 @@ import { requireAuth } from '../middleware/auth.ts';
 import { getDb, users, items, notificationSettings, pushSubscriptions, stocks, stockMembers } from '../db/index.ts';
 import { computeNextDueDate } from '../../shared/lifecycle.ts';
 import { TrackingMode } from '../../shared/types.ts';
+import { businessDate, businessDateDiff } from '../../shared/date.ts';
 
 export const notificationsRouter = new Hono<HonoEnv>();
 
@@ -142,8 +143,7 @@ notificationsRouter.post('/push-subscribe', requireAuth, async (c) => {
 // 5. Scheduled Cron Notification Dispatcher
 export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
   const db = getDb(env.DB);
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayDate = new Date(todayStr + 'T00:00:00');
+  const todayStr = businessDate();
 
   // Configure VAPID if available
   if (env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY) {
@@ -195,6 +195,10 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
     const urgentItems: Array<{ item: typeof items.$inferSelect; daysRemaining: number; nextDue: string; stockName: string }> = [];
 
     for (const item of userItems) {
+      // Stored cycle/PAO items have no active timer. Snoozed items are
+      // intentionally silent until the requested business date.
+      if (item.isStored && item.trackingMode !== 'expiry' && item.trackingMode !== 'warranty') continue;
+      if (item.snoozeUntil && item.snoozeUntil > todayStr) continue;
       const nextDue = computeNextDueDate({
         trackingMode: item.trackingMode as TrackingMode,
         startDate: item.startDate,
@@ -204,8 +208,7 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
         warrantyDate: item.warrantyDate,
       });
 
-      const due = new Date(nextDue + 'T00:00:00');
-      const daysRemaining = Math.round((due.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysRemaining = businessDateDiff(todayStr, nextDue);
 
       if (daysRemaining <= warningDays) {
         const stockName = (item.stockId && stockNameMap.get(item.stockId)) || '甜蜜的家';

@@ -3,7 +3,7 @@ import { eq, and, isNull, desc } from 'drizzle-orm';
 import { HonoEnv } from '../types.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { getDb, stocks, stockMembers, stockInvites, items, users } from '../db/index.ts';
-import { StockResponse, StockMemberResponse, StockRole } from '../../shared/types.ts';
+import { StockResponse, StockMemberResponse, StockInviteResponse, StockRole } from '../../shared/types.ts';
 
 export const stocksRouter = new Hono<HonoEnv>();
 

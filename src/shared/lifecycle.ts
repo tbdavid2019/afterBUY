@@ -1,11 +1,5 @@
-import type { TrackingMode, HealthStatus, ItemResponse } from './types.ts';
-
-function formatDateLocal(d: Date): string {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+import type { TrackingMode, HealthStatus } from './types.ts';
+import { addBusinessDays, businessDate, businessDateDiff, parseBusinessDate } from './date.ts';
 
 /**
  * Calculates the next due date based on the item's tracking mode and start date.
@@ -18,21 +12,17 @@ export function computeNextDueDate(item: {
   expiryDate?: string | null;
   warrantyDate?: string | null;
 }): string {
-  const [y, m, d] = item.startDate.split('-').map(Number);
-  const start = new Date(y, m - 1, d);
+  const start = parseBusinessDate(item.startDate);
 
   switch (item.trackingMode) {
     case 'cycle': {
       const days = item.cycleDays || 90;
-      const due = new Date(start);
-      due.setDate(due.getDate() + days);
-      return formatDateLocal(due);
+      return addBusinessDays(item.startDate, days);
     }
     case 'pao': {
       const months = item.paoMonths || 6;
-      const due = new Date(start);
-      due.setMonth(due.getMonth() + months);
-      return formatDateLocal(due);
+      const due = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + months, start.getUTCDate()));
+      return due.toISOString().slice(0, 10);
     }
     case 'expiry': {
       return item.expiryDate || item.startDate;
@@ -71,24 +61,18 @@ export function computeItemStatus(
   healthStatus: HealthStatus;
   needsRestock: boolean;
 } {
-  const refDateStr = formatDateLocal(referenceDate);
+  const refDateStr = businessDate(referenceDate);
   const nextDueDate = computeNextDueDate(item);
-  const [sy, sm, sd] = item.startDate.split('-').map(Number);
-  const [dy, dm, dd] = nextDueDate.split('-').map(Number);
-  
-  const start = new Date(sy, sm - 1, sd);
-  const due = new Date(dy, dm - 1, dd);
-  const ref = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
-
-  const msPerDay = 1000 * 60 * 60 * 24;
-  const totalDays = Math.max(1, Math.round((due.getTime() - start.getTime()) / msPerDay));
-  const elapsedDays = Math.round((ref.getTime() - start.getTime()) / msPerDay);
-  const remainingDays = Math.round((due.getTime() - ref.getTime()) / msPerDay);
+  const totalDays = Math.max(1, businessDateDiff(item.startDate, nextDueDate));
+  const elapsedDays = businessDateDiff(item.startDate, refDateStr);
+  const remainingDays = businessDateDiff(refDateStr, nextDueDate);
 
   let percentageRemaining = Math.max(0, Math.min(100, Math.round((remainingDays / totalDays) * 100)));
 
   let healthStatus: HealthStatus = 'healthy';
-  if (item.isStored) {
+  // A stored fixed-date item can still expire while it is unopened. Stored
+  // cycle/PAO items have no active lifespan until they are started.
+  if (item.isStored && item.trackingMode !== 'expiry' && item.trackingMode !== 'warranty') {
     healthStatus = 'stored';
     percentageRemaining = 100;
   } else if (item.snoozeUntil && item.snoozeUntil > refDateStr) {

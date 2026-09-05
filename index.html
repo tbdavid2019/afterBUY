@@ -46,25 +46,6 @@
     <!-- LLMs Specification Discovery (llmstxt.org) -->
     <link rel="help" type="text/plain" href="/llms.txt" title="LLM Documentation" />
 
-    <!-- Instant Service Worker Update & Refresh Script -->
-    <script>
-      (function() {
-        if ('serviceWorker' in navigator) {
-          var reloading = false;
-          navigator.serviceWorker.addEventListener('controllerchange', function() {
-            if (!reloading) {
-              reloading = true;
-              window.location.reload();
-            }
-          });
-          navigator.serviceWorker.getRegistrations().then(function(regs) {
-            for (var i = 0; i < regs.length; i++) {
-              regs[i].update();
-            }
-          });
-        }
-      })();
-    </script>
   </head>
   <body class="min-h-dvh flex flex-col font-sans">
     <div id="root" class="flex-1 flex flex-col"></div>

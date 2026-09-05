@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header.tsx';
 import { Navbar, NavTab } from './components/Navbar.tsx';
 import { DashboardView } from './views/DashboardView.tsx';
@@ -12,7 +12,9 @@ import { StockSettingsModal } from './components/StockSettingsModal.tsx';
 import { api } from './api.ts';
 import { UserSession, ItemResponse, StockResponse } from '../shared/types.ts';
 import { computeItemStatus } from '../shared/lifecycle.ts';
+import { addBusinessDays, businessDate } from '../shared/date.ts';
 import { getInitialTheme, type ThemeMode } from './utils/theme.ts';
+import { DEMO_ITEM_IDS, mergeGuestItems, readGuestItems, writeGuestItems } from './utils/guestStorage.ts';
 
 // Initial demo items for guest preview
 const DEMO_ITEMS: ItemResponse[] = [
@@ -23,7 +25,7 @@ const DEMO_ITEMS: ItemResponse[] = [
     category: 'bathroom',
     trackingMode: 'cycle',
     cycleDays: 90,
-    startDate: new Date(Date.now() - 85 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    startDate: businessDate(new Date(Date.now() - 85 * 24 * 60 * 60 * 1000)),
     paoMonths: null,
     expiryDate: null,
     warrantyDate: null,
@@ -40,7 +42,7 @@ const DEMO_ITEMS: ItemResponse[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...computeItemStatus({
-      startDate: new Date(Date.now() - 85 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      startDate: businessDate(new Date(Date.now() - 85 * 24 * 60 * 60 * 1000)),
       trackingMode: 'cycle',
       cycleDays: 90,
       backupStock: 2,
@@ -53,7 +55,7 @@ const DEMO_ITEMS: ItemResponse[] = [
     category: 'kitchen',
     trackingMode: 'cycle',
     cycleDays: 30,
-    startDate: new Date(Date.now() - 32 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    startDate: businessDate(new Date(Date.now() - 32 * 24 * 60 * 60 * 1000)),
     paoMonths: null,
     expiryDate: null,
     warrantyDate: null,
@@ -70,7 +72,7 @@ const DEMO_ITEMS: ItemResponse[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...computeItemStatus({
-      startDate: new Date(Date.now() - 32 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      startDate: businessDate(new Date(Date.now() - 32 * 24 * 60 * 60 * 1000)),
       trackingMode: 'cycle',
       cycleDays: 30,
       backupStock: 0,
@@ -83,7 +85,7 @@ const DEMO_ITEMS: ItemResponse[] = [
     category: 'skincare',
     trackingMode: 'pao',
     cycleDays: null,
-    startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    startDate: businessDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)),
     paoMonths: 12,
     expiryDate: null,
     warrantyDate: null,
@@ -100,7 +102,7 @@ const DEMO_ITEMS: ItemResponse[] = [
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     ...computeItemStatus({
-      startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      startDate: businessDate(new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)),
       trackingMode: 'pao',
       paoMonths: 12,
       backupStock: 1,
@@ -154,7 +156,10 @@ export const App: React.FC = () => {
     return null;
   });
   const [devices, setDevices] = useState<any[]>([]);
-  const [items, setItems] = useState<ItemResponse[]>(DEMO_ITEMS);
+  const [items, setItems] = useState<ItemResponse[]>(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('afterbuy_user')) return [];
+    return mergeGuestItems(DEMO_ITEMS);
+  });
   const [stocks, setStocks] = useState<StockResponse[]>([]);
   const [currentStockId, setCurrentStockId] = useState<string>('all');
   const [settingsStockId, setSettingsStockId] = useState<string | null>(null);
@@ -166,6 +171,22 @@ export const App: React.FC = () => {
   const [theme, setTheme] = useState<ThemeMode>(() =>
     getInitialTheme(typeof window === 'undefined' ? null : window.localStorage.getItem('afterbuy-theme'))
   );
+  const [isLoading, setIsLoading] = useState(() => typeof window !== 'undefined' && Boolean(localStorage.getItem('afterbuy_user')));
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const stockRequestId = useRef(0);
+
+  const setGuestItems = (next: ItemResponse[] | ((previous: ItemResponse[]) => ItemResponse[])) => {
+    setItems((previous) => {
+      const resolved = typeof next === 'function' ? next(previous) : next;
+      try {
+        writeGuestItems(resolved);
+      } catch (error: any) {
+        // Keep the in-memory edit usable, but make a quota failure explicit.
+        window.setTimeout(() => window.alert(error.message), 0);
+      }
+      return resolved;
+    });
+  };
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -173,8 +194,81 @@ export const App: React.FC = () => {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f2f0ea' : '#081f33');
   }, [theme]);
 
+  useEffect(() => {
+    const onServiceWorkerUpdate = async () => {
+      if (!window.confirm('afterBuy 有新版可用。現在更新會保留目前資料，是否立即套用？')) return;
+      const registrations = await navigator.serviceWorker?.getRegistrations();
+      registrations?.forEach((registration) => registration.waiting?.postMessage({ type: 'SKIP_WAITING' }));
+    };
+    window.addEventListener('afterbuy-sw-update', onServiceWorkerUpdate);
+    return () => window.removeEventListener('afterbuy-sw-update', onServiceWorkerUpdate);
+  }, []);
+
+  const importGuestItems = async (availableStocks: StockResponse[]): Promise<number> => {
+    const localItems = readGuestItems();
+    if (localItems.length === 0) return 0;
+    const editableStock = availableStocks.find((stock) => stock.myRole !== 'viewer');
+    if (!editableStock) return 0;
+    const selected = localItems.filter((item) => !DEMO_ITEM_IDS.has(item.id));
+    if (selected.length === 0 || !window.confirm(`要將本機新增的 ${selected.length} 項物品帶入「${editableStock.name}」嗎？`)) {
+      return 0;
+    }
+
+    const importedIds = new Set<string>();
+    for (const item of selected) {
+      try {
+        let imageUrl = item.imageUrl || undefined;
+        if (imageUrl?.startsWith('data:')) {
+          const match = imageUrl.match(/^data:([^;,]+)?(?:;base64)?,(.*)$/s);
+          if (!match) throw new Error('照片格式無法辨識');
+          const mime = match[1] || 'image/jpeg';
+          const bytes = Uint8Array.from(atob(match[2]), (char) => char.charCodeAt(0));
+          const extension = mime.split('/')[1] || 'jpg';
+          const upload = await api.uploadImage(new File([bytes], `guest-${item.id}.${extension}`, { type: mime }));
+          imageUrl = upload.url;
+        }
+        await api.createItem({
+          stockId: editableStock.id,
+          name: item.name,
+          category: item.category,
+          trackingMode: item.trackingMode,
+          cycleDays: item.cycleDays ?? undefined,
+          startDate: item.startDate,
+          paoMonths: item.paoMonths ?? undefined,
+          expiryDate: item.expiryDate ?? undefined,
+          warrantyDate: item.warrantyDate ?? undefined,
+          backupStock: item.backupStock,
+          minStockAlert: item.minStockAlert,
+          price: item.price,
+          specModel: item.specModel,
+          location: item.location,
+          isStored: item.isStored,
+          snoozeUntil: item.snoozeUntil,
+          notes: item.notes || undefined,
+          imageUrl,
+        });
+        importedIds.add(item.id);
+      } catch (error) {
+        console.error(`Failed to import guest item ${item.id}`, error);
+      }
+    }
+
+    if (importedIds.size > 0) {
+      try {
+        writeGuestItems(localItems.filter((item) => !importedIds.has(item.id)));
+      } catch (error: any) {
+        window.alert(error.message);
+      }
+      window.alert(`已帶入 ${importedIds.size} 項本機物品。${selected.length - importedIds.size > 0 ? `另有 ${selected.length - importedIds.size} 項保留在本機，稍後可重試。` : ''}`);
+    }
+    return importedIds.size;
+  };
+
   // Load User, Stocks & Items
-  const loadUserAndItems = async (stockIdToLoad?: string) => {
+  const loadUserAndItems = async (stockIdToLoad?: string, offerGuestImport = false) => {
+    const requestId = ++stockRequestId.current;
+    setIsLoading(true);
+    setLoadError(null);
     try {
       const meRes = await api.getMe();
       if (meRes.user) {
@@ -186,11 +280,15 @@ export const App: React.FC = () => {
 
         // Load stocks
         const stocksRes = await api.getStocks();
+        if (requestId !== stockRequestId.current) return;
         setStocks(stocksRes.stocks);
+
+        if (offerGuestImport) await importGuestItems(stocksRes.stocks);
 
         // Load items for specified stock or currentStockId
         const effectiveStockId = stockIdToLoad !== undefined ? stockIdToLoad : currentStockId;
         const itemsRes = await api.getItems(effectiveStockId);
+        if (requestId !== stockRequestId.current) return;
         setItems(itemsRes.items);
 
         // Check for joinStock URL query param (e.g. ?joinStock=CODE)
@@ -222,26 +320,33 @@ export const App: React.FC = () => {
           setUser(null);
           setStocks([]);
           setCurrentStockId('all');
-          setItems(DEMO_ITEMS);
+          setItems(mergeGuestItems(DEMO_ITEMS));
         }
       }
     } catch (err) {
       console.error('Failed to load user or items:', err);
+      if (requestId === stockRequestId.current) setLoadError(err instanceof Error ? err.message : '資料載入失敗，請稍後重試');
+    } finally {
+      if (requestId === stockRequestId.current) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    loadUserAndItems();
+    loadUserAndItems(undefined, typeof window !== 'undefined' && Boolean(localStorage.getItem('afterbuy_user')));
   }, []);
 
   const handleSelectStock = async (stockId: string) => {
     setCurrentStockId(stockId);
     if (user) {
+      const requestId = ++stockRequestId.current;
       try {
         const itemsRes = await api.getItems(stockId);
+        if (requestId !== stockRequestId.current) return;
         setItems(itemsRes.items);
       } catch (err) {
+        if (requestId !== stockRequestId.current) return;
         console.error('Failed to switch stock:', err);
+        setLoadError(err instanceof Error ? err.message : '備品庫切換失敗');
       }
     }
   };
@@ -264,15 +369,17 @@ export const App: React.FC = () => {
   const handleReplace = async (id: string) => {
     if (!user) {
       // Local demo mode replace
-      setItems((prev) =>
+      setGuestItems((prev) =>
         prev.map((i) => {
           if (i.id !== id) return i;
-          const todayStr = new Date().toISOString().split('T')[0];
+          if (i.isStored || (i.trackingMode !== 'cycle' && i.trackingMode !== 'pao')) return i;
+          const todayStr = businessDate();
           const newStock = Math.max(0, i.backupStock - 1);
           return {
             ...i,
             startDate: todayStr,
             backupStock: newStock,
+            snoozeUntil: null,
             ...computeItemStatus({
               ...i,
               startDate: todayStr,
@@ -294,7 +401,7 @@ export const App: React.FC = () => {
 
   const handleAdjustStock = async (id: string, delta: number) => {
     if (!user) {
-      setItems((prev) =>
+      setGuestItems((prev) =>
         prev.map((i) => {
           if (i.id !== id) return i;
           const newStock = Math.max(0, i.backupStock + delta);
@@ -319,7 +426,7 @@ export const App: React.FC = () => {
   const handleDeleteItem = async (id: string) => {
     if (!confirm('確定要刪除此物品？')) return;
     if (!user) {
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      setGuestItems((prev) => prev.filter((i) => i.id !== id));
       return;
     }
 
@@ -333,15 +440,17 @@ export const App: React.FC = () => {
 
   const handleBatchReplace = async (ids: string[]) => {
     if (!user) {
-      const todayStr = new Date().toISOString().split('T')[0];
-      setItems((prev) =>
+      const todayStr = businessDate();
+      setGuestItems((prev) =>
         prev.map((i) => {
           if (!ids.includes(i.id)) return i;
+          if (i.isStored || (i.trackingMode !== 'cycle' && i.trackingMode !== 'pao')) return i;
           const newStock = Math.max(0, i.backupStock - 1);
           return {
             ...i,
             startDate: todayStr,
             backupStock: newStock,
+            snoozeUntil: null,
             ...computeItemStatus({
               ...i,
               startDate: todayStr,
@@ -358,7 +467,7 @@ export const App: React.FC = () => {
 
   const handleBatchStock = async (ids: string[], delta: number) => {
     if (!user) {
-      setItems((prev) =>
+      setGuestItems((prev) =>
         prev.map((i) => {
           if (!ids.includes(i.id)) return i;
           const newStock = Math.max(0, i.backupStock + delta);
@@ -377,7 +486,7 @@ export const App: React.FC = () => {
 
   const handleBatchDelete = async (ids: string[]) => {
     if (!user) {
-      setItems((prev) => prev.filter((i) => !ids.includes(i.id)));
+      setGuestItems((prev) => prev.filter((i) => !ids.includes(i.id)));
       return;
     }
     await api.batchDelete(ids);
@@ -386,8 +495,8 @@ export const App: React.FC = () => {
 
   const handleStartUsing = async (id: string) => {
     if (!user) {
-      const todayStr = new Date().toISOString().split('T')[0];
-      setItems((prev) =>
+      const todayStr = businessDate();
+      setGuestItems((prev) =>
         prev.map((i) => {
           if (i.id !== id) return i;
           const updated = {
@@ -415,10 +524,8 @@ export const App: React.FC = () => {
 
   const handleSnooze = async (id: string, days: number) => {
     if (!user) {
-      const targetDate = new Date();
-      targetDate.setDate(targetDate.getDate() + days);
-      const snoozeUntil = targetDate.toISOString().split('T')[0];
-      setItems((prev) =>
+      const snoozeUntil = addBusinessDays(new Date(), Math.max(1, days));
+      setGuestItems((prev) =>
         prev.map((i) => {
           if (i.id !== id) return i;
           const updated = {
@@ -451,17 +558,41 @@ export const App: React.FC = () => {
     }
     setUser(null);
     setDevices([]);
-    setItems(DEMO_ITEMS);
+    setStocks([]);
+    setCurrentStockId('all');
+    setSettingsStockId(null);
+    setItems(mergeGuestItems(DEMO_ITEMS));
     setCurrentTab('dashboard');
   };
 
   const handleClearDemoItems = () => {
-    setItems([]);
+    setItems(readGuestItems());
   };
 
   const handleRestoreDemoItems = () => {
-    setItems(DEMO_ITEMS);
+    setItems(mergeGuestItems(DEMO_ITEMS));
   };
+
+  // Guest status is derived locally, so refresh it when a tab crosses midnight
+  // or returns from the background. Logged-in statuses remain API authoritative.
+  useEffect(() => {
+    const refreshGuestStatuses = () => {
+      if (user) {
+        void loadUserAndItems();
+        return;
+      }
+      setItems((previous) => previous.map((item) => ({ ...item, ...computeItemStatus(item) })));
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') refreshGuestStatuses();
+    };
+    window.addEventListener('visibilitychange', onVisibility);
+    const interval = window.setInterval(refreshGuestStatuses, 60_000);
+    return () => {
+      window.removeEventListener('visibilitychange', onVisibility);
+      window.clearInterval(interval);
+    };
+  }, [user]);
 
   // Counts for badge
   const overdueCount = items.filter((i) => i.healthStatus === 'overdue' || i.healthStatus === 'due_soon').length;
@@ -485,6 +616,12 @@ export const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 pt-3 md:pt-5">
+        {(isLoading || loadError) && (
+          <div className="mb-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-subtle)] px-3 py-2 text-sm text-[var(--app-muted)]" role={loadError ? 'alert' : 'status'}>
+            {loadError || '正在載入最新資料…'}
+            {loadError && <button type="button" className="ml-2 underline" onClick={() => loadUserAndItems()}>重試</button>}
+          </div>
+        )}
         {currentTab === 'dashboard' && (
           <DashboardView
             items={items}
@@ -501,7 +638,7 @@ export const App: React.FC = () => {
             onBatchDelete={handleBatchDelete}
             onRefreshItems={loadUserAndItems}
             user={user}
-            onAddGuestItems={(newItems) => setItems((prev) => [...newItems, ...prev])}
+            onAddGuestItems={(newItems) => setGuestItems((prev) => [...newItems, ...prev])}
             onOpenAuth={() => setIsAuthOpen(true)}
             onClearDemoItems={handleClearDemoItems}
             onRestoreDemoItems={handleRestoreDemoItems}
@@ -549,7 +686,7 @@ export const App: React.FC = () => {
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={(loggedUser) => {
           setUser(loggedUser);
-          loadUserAndItems();
+          loadUserAndItems(undefined, true);
         }}
       />
 
@@ -564,9 +701,9 @@ export const App: React.FC = () => {
           setItemToEdit(null);
         }}
         onSave={() => loadUserAndItems()}
-        onAddGuestItem={(newItem) => setItems((prev) => [newItem, ...prev])}
+        onAddGuestItem={(newItem) => setGuestItems((prev) => [newItem, ...prev])}
         onUpdateGuestItem={(updatedItem) =>
-          setItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)))
+          setGuestItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)))
         }
       />
 

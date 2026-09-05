@@ -6,6 +6,7 @@ import { getDb, users, items, stocks, stockMembers } from '../db/index.ts';
 import { computeNextDueDate } from '../../shared/lifecycle.ts';
 import { TrackingMode } from '../../shared/types.ts';
 import { generateRandomToken } from '../utils/auth.ts';
+import { businessDate } from '../../shared/date.ts';
 
 export const calendarRouter = new Hono<HonoEnv>();
 
@@ -31,6 +32,7 @@ calendarRouter.get('/:token.ics', async (c) => {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const appOrigin = c.env.APP_ORIGIN || 'https://afterbuy.app';
   const nowIsoCompact = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const todayStr = businessDate();
 
   // Check 1: User's All-in-One Calendar
   const user = await db.select().from(users).where(eq(users.calendarToken, token)).get();
@@ -96,8 +98,11 @@ calendarRouter.get('/:token.ics', async (c) => {
       warrantyDate: item.warrantyDate,
     });
 
-    const dueDateFormatted = nextDue.replace(/-/g, '');
-    const isCancelled = Boolean(item.deletedAt);
+    const isStoredInactive = Boolean(item.isStored) && item.trackingMode !== 'expiry' && item.trackingMode !== 'warranty';
+    const isSnoozed = Boolean(item.snoozeUntil && item.snoozeUntil > todayStr);
+    const scheduledDate: string = isSnoozed && item.snoozeUntil ? item.snoozeUntil : nextDue;
+    const dueDateFormatted = scheduledDate.replace(/-/g, '');
+    const isCancelled = Boolean(item.deletedAt) || isStoredInactive;
     const sequence = isCancelled ? item.calendarSequence + 1 : item.calendarSequence;
 
     const actionText = item.trackingMode === 'warranty' ? '保固到期' : item.trackingMode === 'expiry' ? '有效期限' : '更換提醒';
@@ -125,7 +130,7 @@ calendarRouter.get('/:token.ics', async (c) => {
       `DTSTAMP:${nowIsoCompact}`,
       `DTSTART;VALUE=DATE:${dueDateFormatted}`,
       `DTEND;VALUE=DATE:${dueDateFormatted}`,
-      `SUMMARY:🔄 該換了：${stockPrefix}${safeName} (${actionText})`,
+      `SUMMARY:${isSnoozed ? '💤 延後提醒：' : '🔄 該換了：'}${stockPrefix}${safeName} (${actionText})`,
       `DESCRIPTION:空間: ${stockPrefix.replace(/[\[\]\s]/g, '') || '家庭'}\\n類別: ${safeCategory}\\n目前備品庫存: ${item.backupStock}\\n前往 afterBuy 該換囉 查看: ${appOrigin}`,
       `SEQUENCE:${sequence}`,
       'STATUS:CONFIRMED',

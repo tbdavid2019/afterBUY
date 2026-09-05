@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Sparkles, Calendar, Package, AlertCircle, Camera, ImagePlus, Loader2, Check } from 'lucide-react';
 import { ItemResponse, ItemCategory, TrackingMode, UserSession, StockResponse } from '../../shared/types.ts';
 import { computeItemStatus } from '../../shared/lifecycle.ts';
+import { businessDate } from '../../shared/date.ts';
 import { CATEGORIES, ITEM_PRESETS, ItemPreset } from '../utils/category.ts';
 import { api } from '../api.ts';
 import { useTranslation } from '../i18n/index.tsx';
@@ -34,7 +35,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [category, setCategory] = useState<ItemCategory>('general');
   const [trackingMode, setTrackingMode] = useState<TrackingMode>('cycle');
   const [cycleDays, setCycleDays] = useState(90);
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(businessDate());
   const [paoMonths, setPaoMonths] = useState(6);
   const [expiryDate, setExpiryDate] = useState('');
   const [warrantyDate, setWarrantyDate] = useState('');
@@ -79,7 +80,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setCategory('bathroom');
       setTrackingMode('cycle');
       setCycleDays(90);
-      setStartDate(new Date().toISOString().split('T')[0]);
+      setStartDate(businessDate());
       setPaoMonths(6);
       setExpiryDate('');
       setWarrantyDate('');

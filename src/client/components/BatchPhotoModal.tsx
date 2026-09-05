@@ -5,6 +5,7 @@ import { useTranslation } from '../i18n/index.tsx';
 import { ItemCategory, TrackingMode, UserSession, ItemResponse } from '../../shared/types.ts';
 import { CATEGORIES, ITEM_PRESETS, ItemPreset } from '../utils/category.ts';
 import { computeItemStatus } from '../../shared/lifecycle.ts';
+import { businessDate } from '../../shared/date.ts';
 
 interface DraftItem {
   id: string;
@@ -117,7 +118,7 @@ export const BatchPhotoModal: React.FC<BatchPhotoModalProps> = ({
     setSaving(true);
     setErrorMessage('');
     try {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = businessDate();
       if (!user) {
         // Guest mode: save into local items state
         const createdGuestItems: ItemResponse[] = drafts.map((draft) => ({
