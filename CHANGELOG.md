@@ -23,8 +23,13 @@
   - **沙盒彈性操控 (Clear & Restore Demo Items)**：
     - 提供「清空示範資料」按鈕，支援想要自行手動建立第一批耗材的訪客獲得乾淨環境。
     - 提供「恢復示範資料」按鈕，空狀態下亦提供一鍵恢復示範物品入口。
-  - **新增與編輯物品提示**：在物品編輯視窗（ItemModal）頂部增加體驗提示橫幅，提醒訪客內容暫存於當前瀏覽器，登入後將無縫同步至個人雲端空間。
-  - **中英雙語（zh-TW / en）國際化擴充**：同步於語系字典增列體驗模式相關多組語意化詞條。
+### Fixed
+- **PWA Service Worker 快取死鎖修復與 NetworkFirst 自動重整機制**：
+  - 修復 `vite-plugin-pwa` 預設將 `index.html` 納入 Cache-First 導致瀏覽器長期鎖死於舊版靜態 Bundle 的問題。
+  - 將導覽請求（Navigation）調整為 `NetworkFirst` 策略，連線時即時獲取最新 `index.html`，離線時自動回退快取。
+  - 於 `index.html` 與 `main.tsx` 注入 `controllerchange` 與主動 `registration.update()` 監聽，當 Service Worker 偵測到新版本時自動無縫重整頁面，徹底告別舊快取困擾。
+- **標題文字中文字元垂直折行擠壓修復 (Vertical Stack Text Fix)**：
+  - 為 `afterBuy` 與 `該換囉` 標題元素全面加入 `whitespace-nowrap shrink-0`，杜絕在極窄螢幕或系統大字級模式下中文逐字斷行排成垂直欄位的嚴重版面錯誤。
 
 ---
 

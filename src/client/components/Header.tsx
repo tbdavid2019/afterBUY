@@ -36,14 +36,14 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="app-header sticky top-0 z-30 backdrop-blur-md border-b pt-safe">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         {/* Logo & Slogan */}
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
           <div className="w-9 h-9 rounded-xl bg-sky-400 dark:bg-sky-300 flex items-center justify-center shadow-[0_8px_24px_-10px_rgba(56,189,248,0.8)] shrink-0">
             <span className="text-slate-950 font-black text-sm tracking-tight">aB</span>
           </div>
-          <div className="min-w-0">
-            <h1 className="text-base font-bold tracking-tight text-[var(--app-text)] flex items-center gap-1.5 truncate">
-              <span>afterBuy</span>
-              <span className="text-[var(--app-accent-strong)] font-extrabold text-sm">該換囉</span>
+          <div className="shrink-0 flex flex-col justify-center">
+            <h1 className="text-base font-bold tracking-tight text-[var(--app-text)] flex items-center gap-1.5 whitespace-nowrap shrink-0">
+              <span className="shrink-0 whitespace-nowrap">afterBuy</span>
+              <span className="text-[var(--app-accent-strong)] font-extrabold text-sm shrink-0 whitespace-nowrap">該換囉</span>
             </h1>
             {user && onSelectStock && onOpenStockSettings && onRefreshStocks ? (
               <div className="mt-0.5">
@@ -56,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
                 />
               </div>
             ) : (
-              <p className="text-xs text-[var(--app-muted)] mt-0.5 hidden sm:block truncate">{t('appSubtitle')}</p>
+              <p className="text-xs text-[var(--app-muted)] mt-0.5 hidden sm:block whitespace-nowrap truncate">{t('appSubtitle')}</p>
             )}
           </div>
         </div>
