@@ -33,10 +33,7 @@ APP_NAME = "afterBUY"
 APP_ORIGIN = "http://localhost:5173"
 EMAIL_FROM = "afterBUY <notifications@create360.ai>"
 VAPID_PUBLIC_KEY = ""
-VAPID_PRIVATE_KEY = ""
 VAPID_SUBJECT = "mailto:support@afterbuy.app"
-CRON_SECRET = "afterbuy-cron-secret-local"
-SESSION_SECRET = "afterbuy-super-secure-session-secret-local-32chars"
 
 # ------------------------------------------------
 # Environment: ai360 (Account ID: aa3bf2b79b8bbdbf05b4e289bd7c4d91)
@@ -66,11 +63,8 @@ bucket_name = "afterbuy-r2"
 APP_NAME = "afterBUY"
 APP_ORIGIN = "https://afterbuy.create360.ai"
 EMAIL_FROM = "afterBUY <notifications@create360.ai>"
-VAPID_PUBLIC_KEY = "BFAkih4zSmmMr8lh7tyUvm8-C-GZ5-vtggY2Tig9KS-Z6JN2vtGoFhAuJmwuyn2QsMZnFX19Gf4nExKChPkLOFY"
-VAPID_PRIVATE_KEY = "41Avt2-IWCIpsR0dVq6JE17KH4XdGlhRy7ni-lNpOLk"
+VAPID_PUBLIC_KEY = "BJP-YovIwnpBJ7fyMTVN4HDQxYY1p9oVyyh9lggEEnRKmzFaaShRIguB5WT5_Ks5YJprRxPtXzslj7pj74qaGOA"
 VAPID_SUBJECT = "mailto:support@afterbuy.app"
-CRON_SECRET = "afterbuy-cron-secret-local"
-SESSION_SECRET = "1c2f93fdc2e64effc349fc68f36f2d9558808897ec60203b866caa6908924481"
 
 # ------------------------------------------------
 # Environment: david (Account ID: 379570860738dd1757ba7f67ef2bdffe)
@@ -100,8 +94,5 @@ bucket_name = "afterbuy-r2"
 APP_NAME = "afterBUY"
 APP_ORIGIN = "https://afterbuy.david888.com"
 EMAIL_FROM = "afterBUY <notifications@vip.david888.com>"
-VAPID_PUBLIC_KEY = "BFAkih4zSmmMr8lh7tyUvm8-C-GZ5-vtggY2Tig9KS-Z6JN2vtGoFhAuJmwuyn2QsMZnFX19Gf4nExKChPkLOFY"
-VAPID_PRIVATE_KEY = "41Avt2-IWCIpsR0dVq6JE17KH4XdGlhRy7ni-lNpOLk"
+VAPID_PUBLIC_KEY = "BJP-YovIwnpBJ7fyMTVN4HDQxYY1p9oVyyh9lggEEnRKmzFaaShRIguB5WT5_Ks5YJprRxPtXzslj7pj74qaGOA"
 VAPID_SUBJECT = "mailto:support@afterbuy.app"
-CRON_SECRET = "afterbuy-cron-secret-local"
-SESSION_SECRET = "1c2f93fdc2e64effc349fc68f36f2d9558808897ec60203b866caa6908924481"

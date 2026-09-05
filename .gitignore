@@ -9,3 +9,5 @@ local.db-journal
 .DS_Store
 *.log
 local.md
+.dev.vars
+.dev.vars.*

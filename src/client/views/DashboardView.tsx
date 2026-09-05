@@ -92,12 +92,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-4 pb-32">
       <section className="pt-1">
-        <div className="flex items-end justify-between gap-3">
-          <div className="min-w-0">
-            <h2 className="ui-page-title tracking-tight text-[var(--app-text)]">{locale === 'zh-TW' ? '物品' : 'Items'}</h2>
-            <p className="ui-body mt-1 text-[var(--app-muted)]">{locale === 'zh-TW' ? `${items.length} 件物品 · 快速掌握下一步` : `${items.length} tracked · see what needs attention`}</p>
-          </div>
-          <button type="button" onClick={onOpenNewItem} className="app-primary ui-button flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3 shadow-sm"><Plus className="h-4 w-4" />{locale === 'zh-TW' ? '新增' : 'Add'}</button>
+        <div className="min-w-0">
+          <h2 className="ui-page-title tracking-tight text-[var(--app-text)]">{locale === 'zh-TW' ? '物品' : 'Items'}</h2>
+          <p className="ui-body mt-1 text-[var(--app-muted)]">{locale === 'zh-TW' ? `${items.length} 件物品 · 快速掌握下一步` : `${items.length} tracked · see what needs attention`}</p>
         </div>
       </section>
 

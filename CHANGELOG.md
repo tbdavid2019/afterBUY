@@ -6,6 +6,17 @@
 
 ## 2026-09-05
 
+### Security
+- **落實最高安全鐵律 · 全面輪替 VAPID 金鑰並徹底清除程式庫明文憑據**：
+  - 輪替全新 VAPID 公私鑰對、隨機 64-char `SESSION_SECRET` 與 `CRON_SECRET`，原私鑰全面廢止作廢。
+  - 將私密金鑰自 `wrangler.toml` 的 `vars` 全數移除，一律改由 Cloudflare Workers 平台加密 Secrets (`wrangler secret put`) 儲存與注入。
+  - 淨化 `README.md` 中硬編碼之舊金鑰範例，全數替換為安全的佔位符。
+  - `.gitignore` 補充忽略 `.dev.vars*`。
+
+### Fixed
+- **消除首頁雙重「新增」按鈕**：
+  - 解決頂部固定導覽列（`Header`）與首頁「物品」標題列同時渲染兩個「+ 新增」按鈕的疊床架屋問題，移除標題列重複按鈕，保持頂層單一明確操作入口。
+
 ### Changed
 - **徹底廢除傷眼 12px/13px 微縮字級，建立真正符合手機人體工學的 4 級原生排版系統**：
   - **拒絕手機瞇眼看字**：全面拔除前版設定的 `12px`（`.ui-badge`）與 `13px`（`.ui-meta`）過小字級，重新以 iOS Human Interface Guidelines 與頂級 App（Airbnb、Linear、Apple Health）規範為基準，精確收斂為 4 種清晰可讀字級：

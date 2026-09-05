@@ -95,16 +95,16 @@
 ```ini
 APP_NAME=afterBUY
 APP_ORIGIN=http://localhost:5173
-SESSION_SECRET=1c2f93fdc2e64effc349fc68f36f2d9558808897ec60203b866caa6908924481
-CRON_SECRET=e76a6aa08212339bb971260296ebe211
+SESSION_SECRET=your_32_character_session_secret_here
+CRON_SECRET=your_cron_trigger_secret_here
 
 # 郵件服務 (可選填 Resend，未填寫時系統會在終端機自動輸出 [DEV OTP] 供本地測試)
 RESEND_API_KEY=
 EMAIL_FROM=afterBUY <notifications@afterbuy.app>
 
-# Web Push VAPID 金鑰 (已自動產生可用之一對公私鑰)
-VAPID_PUBLIC_KEY=BFAkih4zSmmMr8lh7tyUvm8-C-GZ5-vtggY2Tig9KS-Z6JN2vtGoFhAuJmwuyn2QsMZnFX19Gf4nExKChPkLOFY
-VAPID_PRIVATE_KEY=41Avt2-IWCIpsR0dVq6JE17KH4XdGlhRy7ni-lNpOLk
+# Web Push VAPID 金鑰
+VAPID_PUBLIC_KEY=your_vapid_public_key_here
+VAPID_PRIVATE_KEY=your_vapid_private_key_here
 VAPID_SUBJECT=mailto:support@afterbuy.app
 
 # 本地端資料庫
