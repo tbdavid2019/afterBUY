@@ -193,7 +193,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
 
               <div className="pt-2 pb-1 flex items-center justify-between text-sm font-bold text-[var(--app-text)] px-1">
                 <span>{t('myStocks')}</span>
-                <span className="text-xs font-semibold text-[var(--app-muted)]">{stocks.length} 個備品庫</span>
+                <span className="ui-meta font-semibold text-[var(--app-muted)]">{stocks.length} 個備品庫</span>
               </div>
 
               {/* Stock List */}
@@ -227,18 +227,18 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                           <div className="font-bold text-base text-[var(--app-text)] truncate flex items-center gap-2">
                             <span className="truncate">{stock.name}</span>
                             <span
-                              className={`text-xs font-semibold px-2 py-0.5 rounded-md border shrink-0 ${roleMeta.cls}`}
+                              className={`ui-badge font-semibold px-2 py-0.5 rounded-md border shrink-0 ${roleMeta.cls}`}
                             >
                               {roleMeta.label}
                             </span>
                           </div>
                           <div className="text-sm text-[var(--app-muted)] flex items-center gap-2.5 mt-0.5">
                             {stock.description && (
-                              <span className="truncate max-w-[150px] text-xs text-[var(--app-muted-low)]">
+                              <span className="truncate max-w-[150px] ui-meta text-[var(--app-muted-low)]">
                                 {stock.description}
                               </span>
                             )}
-                            <span className="flex items-center gap-1 text-xs text-[var(--app-muted)] shrink-0 font-medium">
+                            <span className="flex items-center gap-1 ui-meta text-[var(--app-muted)] shrink-0 font-medium">
                               <Users className="w-3.5 h-3.5 opacity-70" />
                               <span>{stock.memberCount || 1} 位成員</span>
                             </span>
@@ -258,10 +258,10 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                               setIsOpen(false);
                               onOpenStockSettings(stock.id);
                             }}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--app-accent-soft)] hover:bg-[var(--app-accent)]/20 text-[var(--app-accent-strong)] border border-[var(--app-border)] text-xs font-bold transition-all active:scale-95 shadow-sm"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--app-accent-soft)] hover:bg-[var(--app-accent)]/20 text-[var(--app-accent-strong)] border border-[var(--app-border)] ui-label font-bold transition-all active:scale-95 shadow-sm min-h-11"
                             title="邀請家人加入此備品庫"
                           >
-                            <UserPlus className="w-3.5 h-3.5" />
+                            <UserPlus className="w-4 h-4" />
                             <span>邀請</span>
                           </button>
                         )}
@@ -317,7 +317,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
           {mode === 'create' && (
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[var(--app-text)] mb-1.5">
+                <label className="block ui-meta font-semibold text-[var(--app-text)] mb-1.5">
                   {t('stockIcon')}
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -326,7 +326,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                       key={icon}
                       type="button"
                       onClick={() => setNewIcon(icon)}
-                      className={`w-9 h-9 rounded-xl text-lg flex items-center justify-center border transition-all ${
+                      className={`w-11 h-11 rounded-xl text-lg flex items-center justify-center border transition-all ${
                         newIcon === icon
                           ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] scale-105 shadow-sm'
                           : 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] hover:bg-[var(--app-surface)]'
@@ -339,7 +339,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">
+                <label className="block ui-meta font-semibold text-[var(--app-text)] mb-1">
                   {t('stockName')} *
                 </label>
                 <input
@@ -348,12 +348,12 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                   placeholder={locale === 'zh-TW' ? '例：甜蜜的家、電子工作室、露營裝備' : 'e.g., Sweet Home, Workshop'}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)] placeholder:text-[var(--app-muted-low)]"
+                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-3 ui-body text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)] placeholder:text-[var(--app-muted-low)]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">
+                <label className="block ui-meta font-semibold text-[var(--app-text)] mb-1">
                   {t('stockDesc')}
                 </label>
                 <input
@@ -361,12 +361,12 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                   placeholder={locale === 'zh-TW' ? '選填，簡短說明' : 'Optional description'}
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)] placeholder:text-[var(--app-muted-low)]"
+                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-3 ui-body text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)] placeholder:text-[var(--app-muted-low)]"
                 />
               </div>
 
               {createError && (
-                <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl p-2.5">
+                <div className="ui-meta text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
                   {createError}
                 </div>
               )}
@@ -375,16 +375,16 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                 <button
                   type="button"
                   onClick={() => setMode('list')}
-                  className="app-control flex-1 py-2.5 rounded-xl border text-xs font-bold"
+                  className="app-control flex-1 min-h-11 rounded-xl border ui-button font-bold"
                 >
                   {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={createLoading || !newName.trim()}
-                  className="app-primary flex-1 py-2.5 rounded-xl disabled:opacity-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                  className="app-primary flex-1 min-h-11 rounded-xl disabled:opacity-50 ui-button font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
                 >
-                  {createLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                  {createLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   <span>{t('createStock')}</span>
                 </button>
               </div>
@@ -395,7 +395,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
           {mode === 'join' && (
             <form onSubmit={handleJoin} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">
+                <label className="block ui-meta font-semibold text-[var(--app-text)] mb-1">
                   {t('inviteCode')} (8 碼英數字)
                 </label>
                 <input
@@ -405,9 +405,9 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                   placeholder="e.g. A1B2C3D4"
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                  className="w-full font-mono uppercase tracking-widest text-center text-lg bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2.5 text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+                  className="w-full font-mono uppercase tracking-widest text-center text-lg bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-3 text-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
                 />
-                <p className="text-xs text-[var(--app-muted)] mt-1.5">
+                <p className="ui-meta text-[var(--app-muted)] mt-1.5">
                   {locale === 'zh-TW'
                     ? '輸入備品庫成員提供給您的 8 碼邀請代碼。'
                     : 'Enter the 8-character invite code provided by a stock member.'}
@@ -415,7 +415,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
               </div>
 
               {joinError && (
-                <div className="text-xs text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl p-2.5">
+                <div className="ui-meta text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">
                   {joinError}
                 </div>
               )}
@@ -424,16 +424,16 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                 <button
                   type="button"
                   onClick={() => setMode('list')}
-                  className="app-control flex-1 py-2.5 rounded-xl border text-xs font-bold"
+                  className="app-control flex-1 min-h-11 rounded-xl border ui-button font-bold"
                 >
                   {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={joinLoading || !joinCode.trim()}
-                  className="app-primary flex-1 py-2.5 rounded-xl disabled:opacity-50 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                  className="app-primary flex-1 min-h-11 rounded-xl disabled:opacity-50 ui-button font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm"
                 >
-                  {joinLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
+                  {joinLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
                   <span>{t('joinStock')}</span>
                 </button>
               </div>
@@ -454,13 +454,13 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
           setIsOpen(true);
         }}
         aria-label={t('switchStock')}
-        className="app-control inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold hover:border-[var(--app-accent)] transition-all active:scale-[0.97]"
+        className="app-control inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border ui-badge font-semibold hover:border-[var(--app-accent)] transition-all active:scale-[0.97]"
       >
         <span className="text-sm">{activeStock ? activeStock.icon : '🌟'}</span>
         <span className="max-w-[110px] sm:max-w-[150px] truncate text-[var(--app-text)]">
           {activeStock ? activeStock.name : t('allStocks')}
         </span>
-        <ChevronDown className="w-3 h-3 text-[var(--app-muted)] shrink-0 opacity-80" />
+        <ChevronDown className="w-3.5 h-3.5 text-[var(--app-muted)] shrink-0 opacity-80" />
       </button>
 
       {/* Render via Portal to document.body so it NEVER gets trapped in header's backdrop-filter */}

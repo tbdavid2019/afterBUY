@@ -7,6 +7,15 @@
 ## 2026-09-05
 
 ### Changed
+- **徹底廢除傷眼 12px/13px 微縮字級，建立真正符合手機人體工學的 4 級原生排版系統**：
+  - **拒絕手機瞇眼看字**：全面拔除前版設定的 `12px`（`.ui-badge`）與 `13px`（`.ui-meta`）過小字級，重新以 iOS Human Interface Guidelines 與頂級 App（Airbnb、Linear、Apple Health）規範為基準，精確收斂為 4 種清晰可讀字級：
+    1. **頁面主標題 (`.ui-page-title`)**：`24px` / 行高 `32px`，清晰醒目。
+    2. **區塊與卡片標題 (`.ui-section-title` / `.ui-item-title`)**：`18px` / 行高 `26px`，重點分明。
+    3. **內文、按鈕與輸入框 (`.ui-body` / `.ui-button` / `.ui-label`)**：`16px` / 行高 `24px`。特別是表單輸入框全面維持 `>= 16px`，徹底解決 iOS Safari 點擊聚焦時自動放大 (Viewport Auto-Zoom) 的致命體驗缺陷。
+    4. **輔助資訊與徽章標籤 (`.ui-meta` / `.ui-badge`)**：`14px` / 行高 `20px`，保持清晰舒適，絕無任何低於 14px 的內容文字。
+  - **地毯式肅清剩餘殘留 `text-xs` (12px) 與 `text-[11px]`**：
+    - 全面翻修 `StockSwitcher.tsx`、`StockSettingsModal.tsx`、`BatchPhotoModal.tsx` 與 `Navbar.tsx`，徹底消滅所有 `text-xs` 與 `text-[11px]`。
+    - 批次拍照建檔、多庫成員管理與設定彈窗中的所有按鈕、下拉選單與輸入框同步全面升級為 `>= 44×44pt` 舒適觸控熱區。
 - **全面套用 `ceorkm/mobile-app-ui-design` 頂級 App 設計原則進行深度優化與修復**：
   - **峰值體驗與情緒反饋循環 (Peak-End Rule & Emotional Feedback Loops)**：
     - 耗材更換（「今天已換」）與啟用（「開始使用」）核心動作完成後，注入即時成就微動效與慶祝文案（如「🎉 耗材已更換！生活煥然一新」），讓繁瑣生活打理轉化為掌控生活的正向成就感。

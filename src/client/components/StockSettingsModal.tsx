@@ -285,11 +285,11 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
               {isAdminOrOwner && (
                 <section className="p-4 rounded-2xl bg-[var(--app-accent-soft)] border border-[var(--app-border)] space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-bold text-[var(--app-text)] flex items-center gap-2">
+                    <h4 className="text-base font-bold text-[var(--app-text)] flex items-center gap-2">
                       <UserPlus className="w-4 h-4 text-[var(--app-accent-strong)]" />
                       <span>邀請家人或夥伴加入「{stock?.name}」</span>
                     </h4>
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-[var(--app-surface)] text-[var(--app-muted)] font-semibold border border-[var(--app-border)]">
+                    <span className="ui-badge px-2.5 py-1 rounded-full bg-[var(--app-surface)] text-[var(--app-muted)] font-semibold border border-[var(--app-border)]">
                       免記密碼 · 點擊秒加入
                     </span>
                   </div>
@@ -298,7 +298,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                     <div className="space-y-3">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[var(--app-surface)] border border-[var(--app-border)] p-4 rounded-xl shadow-sm">
                         <div>
-                          <div className="text-xs text-[var(--app-muted)] font-medium mb-1">
+                          <div className="ui-meta text-[var(--app-muted)] font-medium mb-1">
                             專屬 8 碼邀請代碼（有效期 7 天）
                           </div>
                           <div className="font-mono text-2xl font-black text-[var(--app-accent-strong)] tracking-widest">
@@ -308,14 +308,14 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                         <button
                           type="button"
                           onClick={() => handleCopyInviteLink(invites[0].code)}
-                          className="app-primary px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all shrink-0"
+                          className="app-primary px-5 py-2.5 rounded-xl ui-label font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all shrink-0 min-h-11"
                         >
                           {copiedInvite ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                           <span>{copiedInvite ? '已複製邀請連結！' : '一鍵複製專屬邀請連結'}</span>
                         </button>
                       </div>
 
-                      <p className="text-xs text-[var(--app-muted)] leading-relaxed">
+                      <p className="ui-meta text-[var(--app-muted)] leading-relaxed">
                         💡 <strong>分享方式</strong>：點擊上方按鈕複製連結，直接貼給家人（如 LINE / 微信 / 簡訊），對方點開連結即可自動加入共同管理！
                       </p>
                     </div>
@@ -324,7 +324,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                       type="button"
                       disabled={generatingInvite}
                       onClick={handleCreateInvite}
-                      className="app-primary w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all"
+                      className="app-primary w-full py-3 rounded-xl ui-button font-bold flex items-center justify-center gap-2 shadow-sm active:scale-95 transition-all min-h-11"
                     >
                       {generatingInvite ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                       <span>產生「{stock?.name}」專屬邀請代碼與分享連結</span>
@@ -335,7 +335,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
 
               {/* 2. Basic Info (Editable for Owner & Admin) */}
               <section className="space-y-3">
-                <h4 className="text-xs font-bold text-[var(--app-muted)] uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="ui-section-title font-bold text-[var(--app-muted)] uppercase tracking-wider flex items-center gap-1.5">
                   <Settings className="w-4 h-4 text-[var(--app-accent-strong)]" />
                   <span>基本資訊</span>
                 </h4>
@@ -412,7 +412,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
               {/* 3. Members Management */}
               <section className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-[var(--app-muted)] uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="ui-section-title font-bold text-[var(--app-muted)] uppercase tracking-wider flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     <span>{t('members')} ({(members || []).length})</span>
                   </h4>
@@ -429,19 +429,19 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                         className="flex items-center justify-between p-3.5 rounded-2xl app-surface-subtle border border-[var(--app-border)]"
                       >
                         <div className="flex items-center gap-3 min-w-0 pr-2">
-                          <div className="w-9 h-9 rounded-full bg-[var(--app-surface)] border border-[var(--app-border)] flex items-center justify-center text-sm font-bold text-[var(--app-text)] shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-[var(--app-surface)] border border-[var(--app-border)] flex items-center justify-center text-sm font-bold text-[var(--app-text)] shrink-0">
                             {member.nickname ? member.nickname.slice(0, 1) : member.email?.slice(0, 1).toUpperCase() || 'U'}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-bold text-sm text-[var(--app-text)] truncate flex items-center gap-1.5">
+                            <div className="font-bold text-base text-[var(--app-text)] truncate flex items-center gap-1.5">
                               <span>{member.nickname || member.email || '成員'}</span>
                               {isSelf && (
-                                <span className="text-xs font-semibold text-[var(--app-accent-strong)] bg-[var(--app-accent-soft)] px-2 py-0.2 rounded-full border border-[var(--app-border)]">
+                                <span className="ui-badge font-semibold text-[var(--app-accent-strong)] bg-[var(--app-accent-soft)] px-2.5 py-0.5 rounded-full border border-[var(--app-border)]">
                                   我
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-[var(--app-muted)]">
+                            <span className="ui-meta text-[var(--app-muted)]">
                               加入於 {new Date(member.createdAt).toLocaleDateString()}
                             </span>
                           </div>
@@ -453,7 +453,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                             <select
                               value={member.role}
                               onChange={(e) => handleChangeMemberRole(member.userId, e.target.value as StockRole)}
-                              className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg text-xs px-2 py-1 text-[var(--app-text)] focus:outline-none"
+                              className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl ui-meta px-3 py-2 text-[var(--app-text)] focus:outline-none min-h-10"
                             >
                               <option value="admin">管理員</option>
                               <option value="member">成員</option>
@@ -461,7 +461,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                             </select>
                           ) : (
                             <span
-                              className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                              className={`ui-badge font-semibold px-3 py-1 rounded-full border ${
                                 isMemberOwner
                                   ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30'
                                   : member.role === 'admin'
@@ -483,7 +483,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                             <button
                               type="button"
                               onClick={() => handleRemoveMember(member.userId, member.nickname || member.email)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--app-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
+                              className="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--app-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
                               title="移出備品庫"
                             >
                               <X className="w-4 h-4" />
@@ -499,14 +499,14 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                 {isAdminOrOwner && (invites || []).length > 1 && (
                   <div className="pt-2 p-3.5 rounded-2xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs font-bold text-[var(--app-text)] flex items-center gap-1.5">
-                        <Plus className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
+                      <div className="ui-body font-bold text-[var(--app-text)] flex items-center gap-1.5">
+                        <Plus className="w-4 h-4 text-[var(--app-accent-strong)]" />
                         <span>更多邀請代碼</span>
                       </div>
                       <select
                         value={inviteRole}
                         onChange={(e) => setInviteRole(e.target.value as StockRole)}
-                        className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg text-xs px-2 py-1 text-[var(--app-text)]"
+                        className="bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl ui-meta px-3 py-2 text-[var(--app-text)] min-h-10"
                       >
                         <option value="member">一般成員</option>
                         <option value="viewer">僅能檢視</option>
@@ -514,21 +514,21 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                       </select>
                     </div>
 
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       {(invites || []).slice(1).map((inv) => (
                         <div
                           key={inv.id}
-                          className="flex items-center justify-between p-2.5 rounded-xl bg-[var(--app-surface)] border border-[var(--app-border)] text-xs font-mono"
+                          className="flex items-center justify-between p-3 rounded-xl bg-[var(--app-surface)] border border-[var(--app-border)] ui-body font-mono"
                         >
                           <span className="font-bold text-[var(--app-accent-strong)] tracking-wider">{inv.code}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-[var(--app-muted)] font-sans">
+                            <span className="ui-meta text-[var(--app-muted)] font-sans">
                               可用 {inv.maxUses - inv.usedCount} 次
                             </span>
                             <button
                               type="button"
                               onClick={() => handleCopyInviteLink(inv.code)}
-                              className="app-control px-2.5 py-1 rounded-lg flex items-center gap-1 text-xs font-sans hover:border-[var(--app-accent)]"
+                              className="app-control px-3 py-1.5 rounded-xl flex items-center gap-1 ui-meta font-sans hover:border-[var(--app-accent)] min-h-10"
                             >
                               <Copy className="w-3.5 h-3.5" />
                               <span>複製</span>
@@ -545,8 +545,8 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
 
               {/* 3. Danger Zone (Ownership Transfer / Leave / Delete) */}
               <section className="space-y-3 pt-1">
-                <h4 className="text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5" />
+                <h4 className="ui-section-title font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4" />
                   <span>管理權限與危險區域</span>
                 </h4>
 
@@ -555,18 +555,18 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                   <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-bold text-xs text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
-                          <ArrowRightLeft className="w-3.5 h-3.5" />
+                        <div className="font-bold ui-body text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                          <ArrowRightLeft className="w-4 h-4" />
                           <span>{t('transferOwnership')}</span>
                         </div>
-                        <p className="text-xs text-[var(--app-muted)] mt-0.5">
+                        <p className="ui-meta text-[var(--app-muted)] mt-1">
                           將此備品庫的最高擁有權轉交給其他成員。轉移後，您將自動轉為管理員 (Admin)。
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setShowTransferConfirm(!showTransferConfirm)}
-                        className="px-3 py-1.5 rounded-xl border border-amber-500/40 text-amber-800 dark:text-amber-300 hover:bg-amber-500/20 text-xs font-bold shrink-0 transition-all"
+                        className="px-4 py-2 rounded-xl border border-amber-500/40 text-amber-800 dark:text-amber-300 hover:bg-amber-500/20 ui-label font-bold shrink-0 transition-all min-h-11"
                       >
                         {showTransferConfirm ? t('cancel') : t('transferOwnership')}
                       </button>
@@ -575,13 +575,13 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                     {showTransferConfirm && (
                       <div className="pt-2 border-t border-amber-500/20 space-y-3">
                         <div>
-                          <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">
+                          <label className="block ui-meta font-semibold text-[var(--app-text)] mb-1.5">
                             選擇接任的擁有者成員：
                           </label>
                           <select
                             value={transferTargetUserId}
                             onChange={(e) => setTransferTargetUserId(e.target.value)}
-                            className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-xs text-[var(--app-text)]"
+                            className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-2.5 ui-body text-[var(--app-text)] min-h-11"
                           >
                             <option value="">-- 請選擇成員 --</option>
                             {members
@@ -595,7 +595,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                         </div>
 
                         <div>
-                          <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">
+                          <label className="block ui-meta font-semibold text-[var(--app-text)] mb-1.5">
                             請輸入備品庫名稱「<span className="font-bold text-amber-700 dark:text-amber-400">{stock?.name}</span>」以確認：
                           </label>
                           <input
@@ -603,7 +603,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                             placeholder={stock?.name}
                             value={transferConfirmName}
                             onChange={(e) => setTransferConfirmName(e.target.value)}
-                            className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-xs text-[var(--app-text)] focus:outline-none focus:border-amber-500"
+                            className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-2.5 ui-body text-[var(--app-text)] focus:outline-none focus:border-amber-500"
                           />
                         </div>
 
@@ -611,9 +611,9 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                           type="button"
                           disabled={transferring || !transferTargetUserId || transferConfirmName.trim() !== stock?.name}
                           onClick={handleTransferOwnership}
-                          className="w-full py-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                          className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold ui-button rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm min-h-11"
                         >
-                          {transferring ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserCheck className="w-3.5 h-3.5" />}
+                          {transferring ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
                           <span>確認轉移擁有權</span>
                         </button>
                       </div>
@@ -625,15 +625,15 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                 {!isOwner && (
                   <div className="flex items-center justify-between p-3.5 rounded-2xl app-surface-subtle border border-[var(--app-border)]">
                     <div>
-                      <div className="font-semibold text-xs text-[var(--app-text)]">退出備品庫</div>
-                      <p className="text-xs text-[var(--app-muted)]">退出後將不再能查看與協作此備品庫。</p>
+                      <div className="font-semibold ui-body text-[var(--app-text)]">退出備品庫</div>
+                      <p className="ui-meta text-[var(--app-muted)] mt-0.5">退出後將不再能查看與協作此備品庫。</p>
                     </div>
                     <button
                       type="button"
                       onClick={handleLeaveStock}
-                      className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1"
+                      className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-xl ui-label font-bold transition-all flex items-center gap-1.5 min-h-11"
                     >
-                      <LogOut className="w-3.5 h-3.5" />
+                      <LogOut className="w-4 h-4" />
                       <span>{t('leaveStock')}</span>
                     </button>
                   </div>
@@ -643,15 +643,15 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                 {isOwner && (
                   <div className="flex items-center justify-between p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20">
                     <div>
-                      <div className="font-semibold text-xs text-rose-700 dark:text-rose-300">刪除備品庫</div>
-                      <p className="text-xs text-[var(--app-muted)]">永久刪除此備品庫與所有包含的物品。</p>
+                      <div className="font-semibold ui-body text-rose-700 dark:text-rose-300">刪除備品庫</div>
+                      <p className="ui-meta text-[var(--app-muted)] mt-0.5">永久刪除此備品庫與所有包含的物品。</p>
                     </div>
                     <button
                       type="button"
                       onClick={handleDeleteStock}
-                      className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-md shadow-rose-500/20"
+                      className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl ui-label font-bold transition-all flex items-center gap-1.5 shadow-md shadow-rose-500/20 min-h-11"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                       <span>{t('deleteStock')}</span>
                     </button>
                   </div>

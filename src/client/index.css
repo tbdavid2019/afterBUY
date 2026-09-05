@@ -84,13 +84,13 @@
 }
 
 @layer components {
-  .ui-page-title { font-size: 22px; line-height: 28px; font-weight: 500; }
-  .ui-section-title { font-size: 17px; line-height: 24px; font-weight: 600; }
-  .ui-item-title { font-size: 17px; line-height: 24px; font-weight: 600; }
-  .ui-body { font-size: 15px; line-height: 22px; font-weight: 400; }
-  .ui-label, .ui-button { font-size: 14px; line-height: 20px; font-weight: 500; }
-  .ui-meta { font-size: 13px; line-height: 18px; font-weight: 400; }
-  .ui-badge { font-size: 12px; line-height: 16px; font-weight: 500; }
+  .ui-page-title { font-size: 24px; line-height: 32px; font-weight: 600; }
+  .ui-section-title { font-size: 18px; line-height: 26px; font-weight: 600; }
+  .ui-item-title { font-size: 18px; line-height: 26px; font-weight: 600; }
+  .ui-body { font-size: 16px; line-height: 24px; font-weight: 400; }
+  .ui-label, .ui-button { font-size: 16px; line-height: 24px; font-weight: 500; }
+  .ui-meta { font-size: 14px; line-height: 20px; font-weight: 400; }
+  .ui-badge { font-size: 14px; line-height: 20px; font-weight: 500; }
   .tabular-nums { font-variant-numeric: tabular-nums; }
   .animate-bounce-gentle { animation: gentle-bounce 0.35s ease-in-out; }
 }

@@ -34,7 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="relative">
             <Layers className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
             {overdueCount > 0 && (
-              <span className="ui-badge absolute -top-1 -right-2 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-sm animate-pulse">
+              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold text-[13px] leading-none shadow-sm animate-pulse tabular-nums">
                 {overdueCount > 9 ? '9+' : overdueCount}
               </span>
             )}
@@ -67,7 +67,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="relative">
             <ShoppingBag className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
             {restockCount > 0 && (
-              <span className="ui-badge absolute -top-1 -right-2 w-4 h-4 bg-amber-500 text-slate-950 rounded-full flex items-center justify-center shadow-sm">
+              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-amber-500 text-slate-950 rounded-full flex items-center justify-center font-bold text-[13px] leading-none shadow-sm tabular-nums">
                 {restockCount > 9 ? '9+' : restockCount}
               </span>
             )}
