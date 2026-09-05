@@ -293,22 +293,24 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       <div className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--app-border)]">
-          <h2 className="text-base font-bold text-[var(--app-text)] tracking-tight">
+          <h2 className="ui-section-title text-[var(--app-text)] tracking-tight">
             {itemToEdit ? '編輯物品' : '新增追蹤物品'}
           </h2>
           <button
+            type="button"
             onClick={onClose}
-            className="text-[var(--app-muted)] hover:text-[var(--app-text)] p-1.5 rounded-lg hover:bg-[var(--app-surface-subtle)] transition-colors"
+            aria-label="關閉視窗"
+            className="app-control ui-button min-h-11 min-w-11 -mr-2 flex items-center justify-center rounded-xl border hover:border-[var(--app-accent)] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Scrollable Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4 text-sm">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
           {!user && (
-            <div className="bg-sky-500/10 border border-sky-500/20 text-sky-700 dark:text-sky-300 rounded-xl px-3.5 py-2.5 text-xs flex items-center gap-2">
-              <Sparkles className="w-4 h-4 shrink-0 text-sky-500" />
+            <div className="app-primary-soft border rounded-xl px-3.5 py-2.5 ui-meta flex items-center gap-2">
+              <Sparkles className="w-4 h-4 shrink-0 text-[var(--app-accent-strong)]" />
               <span>{t('guestModeModalHint')}</span>
             </div>
           )}
@@ -316,16 +318,16 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {/* Preset quick pills (Only when creating new item) */}
           {!itemToEdit && (
             <div>
-              <span className="text-xs font-semibold text-[var(--app-accent-strong)] flex items-center gap-1.5 mb-2">
+              <span className="ui-label font-semibold text-[var(--app-accent-strong)] flex items-center gap-1.5 mb-2">
                 <Sparkles className="w-3.5 h-3.5" /> 常用耗材範本（點擊快速帶入）
               </span>
-              <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                 {ITEM_PRESETS.map((p, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => handleApplyPreset(p)}
-                    className="flex-shrink-0 bg-[var(--app-surface-subtle)] hover:bg-[var(--app-control-hover)] border border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] text-xs px-2.5 py-1 rounded-full transition-all"
+                    className="flex-shrink-0 app-control ui-button min-h-9 px-3.5 rounded-full border hover:border-[var(--app-accent)] text-[var(--app-text)] transition-transform active:scale-95"
                   >
                     {p.name}
                   </button>
@@ -336,25 +338,25 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
           {/* Item Name */}
           <div>
-            <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">物品名稱 *</label>
+            <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">物品名稱 *</label>
             <input
               type="text"
               required
               placeholder="例如：電動牙刷刷頭、Brita 濾芯、防曬乳"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 py-2.5 text-[var(--app-text)] outline-none text-sm placeholder:text-[var(--app-muted-low)]"
+              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 ui-body text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted-low)]"
             />
           </div>
 
           {/* Stock Space Selector */}
           {user && stocks.length > 0 && !itemToEdit && (
             <div>
-              <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">所屬備品庫 (Stock)</label>
+              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">所屬備品庫 (Stock)</label>
               <select
                 value={selectedStockId}
                 onChange={(e) => setSelectedStockId(e.target.value)}
-                className="w-full bg-[var(--app-surface-subtle)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 py-2.5 text-[var(--app-text)] outline-none text-xs"
+                className="w-full bg-[var(--app-surface-subtle)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 ui-body text-[var(--app-text)] outline-none"
               >
                 {stocks.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -366,17 +368,17 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           )}
 
           {/* Photo & Image Upload/Camera Section */}
-          <div className="bg-[var(--app-surface-subtle)] border border-[var(--app-border)] p-3.5 rounded-2xl space-y-2.5">
+          <div className="app-surface-subtle border border-[var(--app-border)] p-3.5 rounded-2xl space-y-2.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-[var(--app-text)] flex items-center gap-1.5">
-                <Camera className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
+              <label className="ui-label font-semibold text-[var(--app-text)] flex items-center gap-1.5">
+                <Camera className="w-4 h-4 text-[var(--app-accent-strong)]" />
                 <span>物品實體照片 / 插圖</span>
               </label>
               {imageUrl && (
                 <button
                   type="button"
                   onClick={() => setImageUrl('')}
-                  className="text-[11px] text-rose-500 hover:text-rose-400 font-semibold transition-colors"
+                  className="ui-meta text-rose-500 hover:text-rose-400 font-semibold transition-colors"
                 >
                   移除照片
                 </button>
@@ -391,7 +393,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                 ) : (
                   <div className="text-[var(--app-muted)] flex flex-col items-center">
                     <Camera className="w-5 h-5 mb-0.5 text-[var(--app-muted-low)]" />
-                    <span className="text-[11px] font-medium">未設定</span>
+                    <span className="ui-badge font-medium">未設定</span>
                   </div>
                 )}
                 {uploading && (
@@ -415,9 +417,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                   type="button"
                   disabled={uploading}
                   onClick={() => cameraInputRef.current?.click()}
-                  className="app-control flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-semibold text-[var(--app-text)] hover:border-[var(--app-accent)] active:scale-95 transition-all border border-[var(--app-border)]"
+                  className="app-control ui-button min-h-11 flex items-center justify-center gap-1.5 px-2 rounded-xl text-[var(--app-text)] hover:border-[var(--app-accent)] active:scale-95 transition-transform border border-[var(--app-border)]"
                 >
-                  <Camera className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
+                  <Camera className="w-4 h-4 text-[var(--app-accent-strong)]" />
                   <span>拍照</span>
                 </button>
 
@@ -432,9 +434,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                   type="button"
                   disabled={uploading}
                   onClick={() => galleryInputRef.current?.click()}
-                  className="app-control flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs font-semibold text-[var(--app-text)] hover:border-[var(--app-accent)] active:scale-95 transition-all border border-[var(--app-border)]"
+                  className="app-control ui-button min-h-11 flex items-center justify-center gap-1.5 px-2 rounded-xl text-[var(--app-text)] hover:border-[var(--app-accent)] active:scale-95 transition-transform border border-[var(--app-border)]"
                 >
-                  <ImagePlus className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
+                  <ImagePlus className="w-4 h-4 text-[var(--app-accent-strong)]" />
                   <span>相簿選圖</span>
                 </button>
               </div>
@@ -443,17 +445,17 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
           {/* Category Picker */}
           <div>
-            <label className="block text-xs font-semibold text-[var(--app-text)] mb-1.5">類別</label>
-            <div className="grid grid-cols-4 gap-1.5">
+            <label className="block ui-label font-semibold text-[var(--app-text)] mb-1.5">類別</label>
+            <div className="grid grid-cols-4 gap-2">
               {Object.values(CATEGORIES).map((cat) => (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => setCategory(cat.id)}
-                  className={`text-xs py-2 px-1 rounded-xl border text-center font-medium transition-all ${
+                  className={`min-h-11 ui-button px-1 rounded-xl border text-center transition-all ${
                     category === cat.id
-                      ? 'border-[var(--app-accent)] bg-[var(--app-accent)]/15 text-[var(--app-accent-strong)] font-semibold'
-                      : 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                      ? 'app-primary font-semibold shadow-sm'
+                      : 'app-control hover:border-[var(--app-accent)]'
                   }`}
                 >
                   {cat.label}
@@ -464,10 +466,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
           {/* Tracking Mode */}
           <div>
-            <label className="block text-xs font-semibold text-[var(--app-text)] mb-1.5">追蹤模式</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <label className="block ui-label font-semibold text-[var(--app-text)] mb-1.5">追蹤模式</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
-                { id: 'cycle', label: '週期更換 (天數)' },
+                { id: 'cycle', label: '週期更換' },
                 { id: 'pao', label: '開封期 (PAO)' },
                 { id: 'expiry', label: '有效期限' },
                 { id: 'warranty', label: '保固倒數' },
@@ -476,10 +478,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                   key={m.id}
                   type="button"
                   onClick={() => setTrackingMode(m.id as TrackingMode)}
-                  className={`text-xs py-2 px-2 rounded-xl border text-center font-medium transition-all ${
+                  className={`min-h-11 ui-button px-2 rounded-xl border text-center transition-all ${
                     trackingMode === m.id
-                      ? 'app-primary-soft font-semibold'
-                      : 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                      ? 'app-primary-soft font-semibold border-[var(--app-accent)]'
+                      : 'app-control hover:border-[var(--app-accent)]'
                   }`}
                 >
                   {m.label}
@@ -492,23 +494,23 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           <div className="app-surface-subtle border border-[var(--app-border)] p-3.5 rounded-2xl space-y-3">
             {trackingMode === 'cycle' && (
               <div>
-                <label className="block text-xs font-medium text-[var(--app-text)] mb-1">更換週期 (天數)</label>
-                <div className="flex items-center gap-2">
+                <label className="block ui-label font-medium text-[var(--app-text)] mb-1">更換週期 (天數)</label>
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="number"
                     min="1"
                     value={cycleDays}
                     onChange={(e) => setCycleDays(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-28 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[var(--app-text)] outline-none font-bold text-sm"
+                    className="w-28 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
                   />
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5">
                     {[30, 90, 180, 365].map((d) => (
                       <button
                         key={d}
                         type="button"
                         onClick={() => setCycleDays(d)}
-                        className={`text-[11px] font-semibold px-2 py-1 rounded-lg border ${
-                          cycleDays === d ? 'app-primary-soft' : 'app-control'
+                        className={`min-h-9 px-3 ui-button rounded-lg border tabular-nums ${
+                          cycleDays === d ? 'app-primary font-bold shadow-sm' : 'app-control'
                         }`}
                       >
                         {d}天
@@ -521,23 +523,23 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
             {trackingMode === 'pao' && (
               <div>
-                <label className="block text-xs font-medium text-[var(--app-text)] mb-1">開封後使用壽命 (PAO 月數)</label>
-                <div className="flex items-center gap-2">
+                <label className="block ui-label font-medium text-[var(--app-text)] mb-1">開封後使用壽命 (PAO 月數)</label>
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="number"
                     min="1"
                     value={paoMonths}
                     onChange={(e) => setPaoMonths(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-28 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[var(--app-text)] outline-none font-bold text-sm"
+                    className="w-28 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
                   />
-                  <div className="flex gap-1">
+                  <div className="flex gap-1.5">
                     {[1, 3, 6, 12, 24].map((m) => (
                       <button
                         key={m}
                         type="button"
                         onClick={() => setPaoMonths(m)}
-                        className={`text-[11px] font-semibold px-2 py-1 rounded-lg border ${
-                          paoMonths === m ? 'app-primary-soft' : 'app-control'
+                        className={`min-h-9 px-3 ui-button rounded-lg border tabular-nums ${
+                          paoMonths === m ? 'app-primary font-bold shadow-sm' : 'app-control'
                         }`}
                       >
                         {m}個月
@@ -550,33 +552,33 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
             {trackingMode === 'expiry' && (
               <div>
-                <label className="block text-xs font-medium text-[var(--app-text)] mb-1">有效期限日期</label>
+                <label className="block ui-label font-medium text-[var(--app-text)] mb-1">有效期限日期</label>
                 <input
                   type="date"
                   required
                   value={expiryDate}
                   onChange={(e) => setExpiryDate(e.target.value)}
-                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[var(--app-text)] outline-none text-xs"
+                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums"
                 />
               </div>
             )}
 
             {trackingMode === 'warranty' && (
               <div>
-                <label className="block text-xs font-medium text-[var(--app-text)] mb-1">保固到期日期</label>
+                <label className="block ui-label font-medium text-[var(--app-text)] mb-1">保固到期日期</label>
                 <input
                   type="date"
                   required
                   value={warrantyDate}
                   onChange={(e) => setWarrantyDate(e.target.value)}
-                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[var(--app-text)] outline-none text-xs"
+                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums"
                 />
               </div>
             )}
 
             {/* Start Date */}
             <div>
-              <label className="block text-xs font-medium text-[var(--app-text)] mb-1">
+              <label className="block ui-label font-medium text-[var(--app-text)] mb-1">
                 {trackingMode === 'pao' ? '開封日期' : trackingMode === 'warranty' ? '購買日期' : '本次啟用 / 更換日期'}
               </label>
               <input
@@ -584,7 +586,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                 required
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2 text-[var(--app-text)] outline-none text-xs"
+                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums"
               />
             </div>
           </div>
@@ -592,23 +594,23 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {/* Backup Stock Settings */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">現有備品數量</label>
+              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">現有備品數量</label>
               <input
                 type="number"
                 min="0"
                 value={backupStock}
                 onChange={(e) => setBackupStock(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2.5 text-[var(--app-text)] outline-none font-bold text-sm"
+                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">補貨警示門檻 (低於)</label>
+              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">補貨警示門檻 (低於)</label>
               <input
                 type="number"
                 min="0"
                 value={minStockAlert}
                 onChange={(e) => setMinStockAlert(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2.5 text-[var(--app-text)] outline-none text-sm"
+                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums"
               />
             </div>
           </div>
@@ -616,24 +618,24 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {/* Price & Spec Model */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">購買金額 (NT$)</label>
+              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">購買金額 (NT$)</label>
               <input
                 type="number"
                 min="0"
                 placeholder="例如：450"
                 value={price}
                 onChange={(e) => setPrice(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2.5 text-[var(--app-text)] outline-none font-medium placeholder:text-[var(--app-muted-low)] text-xs"
+                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums placeholder:text-[var(--app-muted-low)]"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">規格 / 型號</label>
+              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">規格 / 型號</label>
               <input
                 type="text"
                 placeholder="例如：3號(AA) / 003黑色"
                 value={specModel}
                 onChange={(e) => setSpecModel(e.target.value)}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 py-2.5 text-[var(--app-text)] outline-none font-medium placeholder:text-[var(--app-muted-low)] text-xs"
+                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
               />
             </div>
           </div>
@@ -641,26 +643,26 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {/* Location */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-[var(--app-text)]">存放位置 (選填)</label>
-              <span className="text-xs text-[var(--app-muted)]">方便找備品與打掃</span>
+              <label className="ui-label font-semibold text-[var(--app-text)]">存放位置 (選填)</label>
+              <span className="ui-meta text-[var(--app-muted)]">方便找備品與打掃</span>
             </div>
             <input
               type="text"
               placeholder="例如：主臥衛浴、廚房水槽下、陽台、儲藏室..."
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 py-2 text-[var(--app-text)] outline-none text-xs placeholder:text-[var(--app-muted-low)]"
+              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
             />
-            <div className="flex gap-1.5 mt-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            <div className="flex gap-2 mt-2 overflow-x-auto no-scrollbar pb-0.5">
               {['衛浴', '廚房', '臥室', '客廳', '陽台', '儲藏室', '隨身包', '辦公室'].map((loc) => (
                 <button
                   key={loc}
                   type="button"
                   onClick={() => setLocation(loc)}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-all shrink-0 ${
+                  className={`ui-button min-h-9 px-3.5 rounded-full border transition-all shrink-0 ${
                     location === loc
-                      ? 'border-[var(--app-accent)] bg-[var(--app-accent)]/15 text-[var(--app-accent-strong)] font-semibold'
-                      : 'border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                      ? 'app-primary font-semibold shadow-sm'
+                      : 'app-control hover:border-[var(--app-accent)]'
                   }`}
                 >
                   {loc}
@@ -670,45 +672,42 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           </div>
 
           {/* Stored / Inactive Mode Toggle */}
-          <div className="bg-[var(--app-surface-subtle)] border border-[var(--app-border)] p-3.5 rounded-2xl flex items-center justify-between gap-3">
+          <div className="app-surface-subtle border border-[var(--app-border)] p-3.5 rounded-2xl flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0 pr-2">
-              <label className="text-xs font-bold text-[var(--app-text)] flex items-center gap-1.5 cursor-pointer">
-                <Package className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
+              <label className="ui-label font-semibold text-[var(--app-text)] flex items-center gap-1.5 cursor-pointer">
+                <Package className="w-4 h-4 text-[var(--app-accent-strong)]" />
                 <span>先存放，還沒有要開始使用</span>
               </label>
-              <p className="text-xs text-[var(--app-muted)] mt-0.5 leading-relaxed">
+              <p className="ui-meta text-[var(--app-muted)] mt-0.5 leading-relaxed">
                 囤貨備品專用。開啟後暫不啟動倒數，日後在物品卡片點擊「開始使用」才開始計時。
               </p>
             </div>
             <button
               type="button"
               onClick={() => setIsStored(!isStored)}
-              className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${
-                isStored ? 'bg-[var(--app-accent-strong)]' : 'bg-[var(--app-border)]'
+              aria-label={isStored ? '取消存放狀態' : '設定為先存放'}
+              className={`w-12 h-7 rounded-full transition-colors relative shrink-0 p-1 flex items-center ${
+                isStored ? 'app-primary justify-end' : 'bg-[var(--app-border)] justify-start'
               }`}
             >
-              <span
-                className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform ${
-                  isStored ? 'left-6' : 'left-1'
-                }`}
-              />
+              <span className="w-5 h-5 rounded-full bg-white shadow-sm" />
             </button>
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-semibold text-[var(--app-text)] mb-1">備註說明 (選填)</label>
+            <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">備註說明 (選填)</label>
             <input
               type="text"
               placeholder="例如：型號 P-3101、第二道活性碳"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 py-2 text-[var(--app-text)] outline-none text-xs placeholder:text-[var(--app-muted-low)]"
+              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
             />
           </div>
 
           {errorMessage && (
-            <div className="text-xs text-rose-500 bg-rose-500/10 border border-rose-500/25 rounded-xl p-3">
+            <div className="ui-meta text-rose-500 bg-rose-500/10 border border-rose-500/25 rounded-xl p-3">
               {errorMessage}
             </div>
           )}
@@ -718,7 +717,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             <button
               type="submit"
               disabled={saving}
-              className="app-primary w-full flex items-center justify-center gap-2 hover:brightness-105 font-bold py-3 rounded-xl text-sm shadow-lg shadow-sky-500/20 active:scale-[0.98] transition-all disabled:opacity-50"
+              className="app-primary ui-button w-full min-h-12 flex items-center justify-center gap-2 hover:brightness-105 font-bold rounded-xl shadow-lg shadow-[var(--app-accent)]/20 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>{itemToEdit ? '儲存變更' : '建立物品'}</span>}
             </button>

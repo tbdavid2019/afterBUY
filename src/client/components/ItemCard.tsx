@@ -141,7 +141,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <div className="ui-meta mt-0.5 flex flex-wrap items-center gap-2 text-[var(--app-muted)]">
             {item.stockName && <span className="truncate">{item.stockIcon || '🏠'} {item.stockName}</span>}
             {item.specModel && <span className="truncate">{item.specModel}</span>}
-            {item.price !== null && item.price !== undefined && <span>NT$ {item.price.toLocaleString()}</span>}
+            {item.price !== null && item.price !== undefined && <span className="tabular-nums">NT$ {item.price.toLocaleString()}</span>}
           </div>
         </div>
       </div>
@@ -157,8 +157,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       ) : (
         <div className="mt-4">
           <div className="ui-meta flex items-center justify-between gap-2 text-[var(--app-muted)]">
-            <span className="flex min-w-0 items-center gap-1.5 truncate"><Clock className="h-4 w-4 shrink-0" />{dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : '下次處理'} · {item.nextDueDate}</span>
-            {item.healthStatus === 'snoozed' && item.snoozeUntil && <span className="flex shrink-0 items-center gap-1 text-[var(--app-accent-strong)]"><Moon className="h-3.5 w-3.5" />{item.snoozeUntil}</span>}
+            <span className="flex min-w-0 items-center gap-1.5 truncate tabular-nums"><Clock className="h-4 w-4 shrink-0" />{dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : '下次處理'} · {item.nextDueDate}</span>
+            {item.healthStatus === 'snoozed' && item.snoozeUntil && <span className="flex shrink-0 items-center gap-1 text-[var(--app-accent-strong)] tabular-nums"><Moon className="h-3.5 w-3.5" />{item.snoozeUntil}</span>}
           </div>
           {!dateOnly && <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--app-surface-subtle)]" role="progressbar" aria-valuenow={item.percentageRemaining} aria-valuemin={0} aria-valuemax={100} aria-label={`${item.name} 週期剩餘比例`}><div className={`h-full rounded-full ${progressColor}`} style={{ width: `${item.percentageRemaining}%` }} /></div>}
         </div>
@@ -168,28 +168,33 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         <div className="app-surface-subtle flex min-h-11 items-center gap-1 rounded-xl border px-2">
           <Package className={`h-4 w-4 ${item.needsRestock ? 'text-amber-600' : 'text-[var(--app-muted)]'}`} />
           <span className="ui-meta text-[var(--app-muted)]">備品</span>
-          <span className={`ui-body min-w-5 text-center font-semibold ${item.backupStock === 0 ? 'text-rose-600' : 'text-[var(--app-text)]'}`}>{item.backupStock}</span>
-          <button type="button" disabled={busy || item.backupStock <= 0} aria-label={`減少 ${item.name} 備品庫存`} onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, -1)); }} className="min-h-11 min-w-9 rounded-lg text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-40"><Minus className="mx-auto h-4 w-4" /></button>
-          <button type="button" disabled={busy} aria-label={`增加 ${item.name} 備品庫存`} onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, 1)); }} className="min-h-11 min-w-9 rounded-lg text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-40"><Plus className="mx-auto h-4 w-4" /></button>
+          <span className={`ui-body min-w-5 text-center font-semibold tabular-nums ${item.backupStock === 0 ? 'text-rose-600' : 'text-[var(--app-text)]'}`}>{item.backupStock}</span>
+          <button type="button" disabled={busy || item.backupStock <= 0} aria-label={`減少 ${item.name} 備品庫存`} onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, -1)); }} className="min-h-11 min-w-9 rounded-lg text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-40 flex items-center justify-center transition-transform active:scale-90"><Minus className="mx-auto h-4 w-4" /></button>
+          <button type="button" disabled={busy} aria-label={`增加 ${item.name} 備品庫存`} onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, 1)); }} className="min-h-11 min-w-9 rounded-lg text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-40 flex items-center justify-center transition-transform active:scale-90"><Plus className="mx-auto h-4 w-4" /></button>
         </div>
 
         {isStored ? (
-          <button type="button" disabled={busy} onClick={(event) => { event.stopPropagation(); if (onStartUsing) void runAction(() => onStartUsing(item.id), '已開始使用'); }} className="app-primary ui-button flex min-h-11 items-center gap-1.5 rounded-xl px-4 shadow-sm disabled:opacity-60"><Sparkles className="h-4 w-4" />開始使用</button>
+          <button type="button" disabled={busy} onClick={(event) => { event.stopPropagation(); if (onStartUsing) void runAction(() => onStartUsing(item.id), '✨ 已開始使用！週期開始計時'); }} className="app-primary ui-button flex min-h-11 items-center gap-1.5 rounded-xl px-4 shadow-sm disabled:opacity-60 transition-transform active:scale-95"><Sparkles className="h-4 w-4" />開始使用</button>
         ) : dateOnly ? (
-          <button type="button" onClick={(event) => { event.stopPropagation(); onEdit(item); }} className="app-control ui-button flex min-h-11 items-center gap-1.5 rounded-xl border px-4 hover:border-[var(--app-accent)]"><Edit2 className="h-4 w-4 text-[var(--app-accent-strong)]" />編輯日期</button>
+          <button type="button" onClick={(event) => { event.stopPropagation(); onEdit(item); }} className="app-control ui-button flex min-h-11 items-center gap-1.5 rounded-xl border px-4 hover:border-[var(--app-accent)] transition-transform active:scale-95"><Edit2 className="h-4 w-4 text-[var(--app-accent-strong)]" />編輯日期</button>
         ) : (
           <div className="relative flex items-center gap-2">
             {(item.healthStatus === 'overdue' || item.healthStatus === 'due_soon') && onSnooze && (
               <div className="relative">
-                <button type="button" disabled={busy} onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu((open) => !open); }} className="app-control ui-button flex min-h-11 items-center gap-1 rounded-xl border px-3"><Moon className="h-4 w-4 text-[var(--app-accent-strong)]" />稍後</button>
-                {showSnoozeMenu && <div className="ui-meta absolute bottom-12 right-0 z-30 w-32 overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] py-1 shadow-xl"><button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 3), '提醒已延後'); }} className="min-h-11 w-full px-3 text-left hover:bg-[var(--app-surface-subtle)]">延後 3 天</button><button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 7), '提醒已延後'); }} className="min-h-11 w-full px-3 text-left hover:bg-[var(--app-surface-subtle)]">延後 7 天</button></div>}
+                <button type="button" disabled={busy} onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu((open) => !open); }} className="app-control ui-button flex min-h-11 items-center gap-1 rounded-xl border px-3 transition-transform active:scale-95"><Moon className="h-4 w-4 text-[var(--app-accent-strong)]" />稍後</button>
+                {showSnoozeMenu && <div className="ui-meta absolute bottom-12 right-0 z-30 w-32 overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] py-1 shadow-xl"><button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 3), '提醒已延後 3 天'); }} className="min-h-11 w-full px-3 text-left hover:bg-[var(--app-surface-subtle)]">延後 3 天</button><button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 7), '提醒已延後 7 天'); }} className="min-h-11 w-full px-3 text-left hover:bg-[var(--app-surface-subtle)]">延後 7 天</button></div>}
               </div>
             )}
-            <button type="button" disabled={busy} onClick={(event) => { event.stopPropagation(); void runAction(() => onReplace(item.id), '已更新'); }} className="app-primary ui-button flex min-h-11 items-center gap-1.5 rounded-xl px-3.5 shadow-sm disabled:opacity-60"><RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />今天已換</button>
+            <button type="button" disabled={busy} onClick={(event) => { event.stopPropagation(); void runAction(() => onReplace(item.id), '🎉 耗材已更換！生活煥然一新'); }} className="app-primary ui-button flex min-h-11 items-center gap-1.5 rounded-xl px-3.5 shadow-sm disabled:opacity-60 transition-transform active:scale-95"><RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />今天已換</button>
           </div>
         )}
       </div>
-      {feedback && <p role="status" className={`ui-meta mt-2 text-right ${feedback.includes('失敗') ? 'text-rose-600' : 'text-[var(--app-accent-strong)]'}`}>{feedback}</p>}
+      {feedback && (
+        <div role="status" className={`ui-meta mt-2.5 flex items-center justify-end gap-1.5 ${feedback.includes('失敗') ? 'text-rose-600' : 'text-emerald-600 dark:text-emerald-400 font-semibold animate-bounce-gentle'}`}>
+          {!feedback.includes('失敗') && <Sparkles className="h-3.5 w-3.5 shrink-0" />}
+          <span>{feedback}</span>
+        </div>
+      )}
     </article>
   );
 };

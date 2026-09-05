@@ -7,8 +7,12 @@ import './index.css';
 // Check for updates without forcibly reloading. The app prompts at a safe
 // boundary so a guest form or local photo edit is not interrupted.
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.dispatchEvent(new Event('afterbuy-sw-update'));
+    if (!refreshing) {
+      refreshing = true;
+      window.location.reload();
+    }
   });
 
   window.addEventListener('load', () => {

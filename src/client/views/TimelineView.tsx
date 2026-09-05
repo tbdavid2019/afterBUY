@@ -30,7 +30,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
       </header>
 
       {scheduledItems.length === 0 ? (
-        <div className="ui-body py-12 text-center text-[var(--app-muted)]">尚無需要排程的項目。</div>
+        <div className="app-surface rounded-2xl border p-6 text-center shadow-sm">
+          <Calendar className="mx-auto mb-2 h-8 w-8 text-[var(--app-accent-strong)]" />
+          <h3 className="ui-section-title text-[var(--app-text)]">目前沒有待排程項目</h3>
+          <p className="ui-body mx-auto mt-1 max-w-xs text-[var(--app-muted)]">
+            所有物品都在正常週期內，或存放中尚未啟用。
+          </p>
+        </div>
       ) : (
         <div className="relative space-y-3 pl-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-[var(--app-border)]">
           {scheduledItems.map((item) => {
@@ -45,11 +51,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                 <div className="app-surface flex items-center justify-between gap-3 rounded-2xl border p-4 shadow-sm">
                   <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left">
                     <div className="ui-meta flex flex-wrap items-center gap-2 text-[var(--app-muted)]">
-                      <span className="flex items-center gap-1 font-semibold text-[var(--app-accent-strong)]"><Clock className="h-4 w-4" />{dateLabel} · {displayDate}</span>
+                      <span className="flex items-center gap-1 font-semibold text-[var(--app-accent-strong)] tabular-nums"><Clock className="h-4 w-4" />{dateLabel} · {displayDate}</span>
                       <span className={`ui-badge rounded-full border px-2 py-0.5 ${statusInfo.badge}`}>{statusInfo.text}</span>
                     </div>
                     <h3 className="ui-item-title mt-1 truncate text-[var(--app-text)]">{item.name}</h3>
-                    <p className="ui-meta mt-0.5 text-[var(--app-muted)]">{category.label} · 備品 {item.backupStock}{item.healthStatus === 'snoozed' && <span className="ml-1 inline-flex items-center gap-1"><Moon className="h-3 w-3" />延後提醒</span>}</p>
+                    <p className="ui-meta mt-0.5 text-[var(--app-muted)]">{category.label} · 備品 <span className="tabular-nums font-medium">{item.backupStock}</span>{item.healthStatus === 'snoozed' && <span className="ml-1 inline-flex items-center gap-1"><Moon className="h-3 w-3" />延後提醒</span>}</p>
                   </button>
                   {dateOnly ? (
                     <button type="button" onClick={() => onEdit(item)} className="app-control ui-button flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border px-3"><Edit2 className="h-4 w-4 text-[var(--app-accent-strong)]" />編輯</button>

@@ -137,7 +137,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
           <div className="flex items-center gap-2.5">
             <span className="text-xl">📦</span>
-            <h3 className="font-bold text-[var(--app-text)] text-lg tracking-tight">
+            <h3 className="ui-section-title text-[var(--app-text)] tracking-tight">
               {mode === 'create'
                 ? t('createStock')
                 : mode === 'join'
@@ -149,7 +149,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
             type="button"
             onClick={() => setIsOpen(false)}
             aria-label="Close"
-            className="w-9 h-9 rounded-full flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
+            className="app-control ui-button min-h-11 min-w-11 -mr-2 rounded-xl border hover:border-[var(--app-accent)] flex items-center justify-center transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -177,13 +177,13 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                     🌟
                   </div>
                   <div>
-                    <div className="font-bold text-base text-[var(--app-text)] flex items-center gap-2">
+                    <div className="ui-item-title text-[var(--app-text)] flex items-center gap-2">
                       <span>{t('allStocks')}</span>
-                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full border border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-[var(--app-muted)]">
+                      <span className="ui-badge px-2 py-0.5 rounded-full border border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-[var(--app-muted)]">
                         {locale === 'zh-TW' ? '總覽' : 'All'}
                       </span>
                     </div>
-                    <p className="text-sm text-[var(--app-muted)] mt-0.5">{t('allStocksDesc')}</p>
+                    <p className="ui-meta text-[var(--app-muted)] mt-0.5">{t('allStocksDesc')}</p>
                   </div>
                 </div>
                 {currentStockId === 'all' && (

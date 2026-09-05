@@ -194,15 +194,7 @@ export const App: React.FC = () => {
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f2f0ea' : '#081f33');
   }, [theme]);
 
-  useEffect(() => {
-    const onServiceWorkerUpdate = async () => {
-      if (!window.confirm('afterBuy 有新版可用。現在更新會保留目前資料，是否立即套用？')) return;
-      const registrations = await navigator.serviceWorker?.getRegistrations();
-      registrations?.forEach((registration) => registration.waiting?.postMessage({ type: 'SKIP_WAITING' }));
-    };
-    window.addEventListener('afterbuy-sw-update', onServiceWorkerUpdate);
-    return () => window.removeEventListener('afterbuy-sw-update', onServiceWorkerUpdate);
-  }, []);
+
 
   const importGuestItems = async (availableStocks: StockResponse[]): Promise<number> => {
     const localItems = readGuestItems();

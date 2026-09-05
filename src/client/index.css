@@ -91,6 +91,13 @@
   .ui-label, .ui-button { font-size: 14px; line-height: 20px; font-weight: 500; }
   .ui-meta { font-size: 13px; line-height: 18px; font-weight: 400; }
   .ui-badge { font-size: 12px; line-height: 16px; font-weight: 500; }
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+  .animate-bounce-gentle { animation: gentle-bounce 0.35s ease-in-out; }
+}
+
+@keyframes gentle-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .app-shell {

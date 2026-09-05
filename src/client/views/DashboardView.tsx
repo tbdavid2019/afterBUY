@@ -102,8 +102,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       </section>
 
       {!user && (
-        <details className="app-surface rounded-xl border border-sky-500/30 p-3 shadow-sm">
-          <summary className="ui-button flex min-h-11 cursor-pointer list-none items-center gap-2 text-[var(--app-text)]"><Sparkles className="h-4 w-4 text-sky-600" />{t('guestModeBannerTitle')}<span className="ui-meta ml-auto text-[var(--app-muted)]">{t('guestModeBannerBadge')}</span></summary>
+        <details className="app-surface rounded-xl border border-[var(--app-accent)]/30 p-3 shadow-sm">
+          <summary className="ui-button flex min-h-11 cursor-pointer list-none items-center gap-2 text-[var(--app-text)]"><Sparkles className="h-4 w-4 text-[var(--app-accent-strong)]" />{t('guestModeBannerTitle')}<span className="ui-meta ml-auto text-[var(--app-muted)]">{t('guestModeBannerBadge')}</span></summary>
           <div className="ui-meta mt-2 border-t border-[var(--app-border-subtle)] pt-2 text-[var(--app-muted)]">
             <p>{t('guestModeBannerDesc')}</p>
             <div className="mt-3 flex flex-wrap gap-2">
@@ -115,6 +115,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </details>
       )}
 
+      {counts.due === 0 && items.length > 0 && !hasFilters && (
+        <div className="app-surface rounded-2xl border border-emerald-500/30 p-3.5 flex items-center gap-3 shadow-sm animate-bounce-gentle">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h4 className="ui-item-title text-[var(--app-text)]">{locale === 'zh-TW' ? '太棒了！所有耗材皆在最佳狀態' : 'All good! All items up to date'}</h4>
+            <p className="ui-meta text-[var(--app-muted)]">{locale === 'zh-TW' ? '目前沒有逾期或待更換項目，生活井井有條。' : 'No items due or overdue right now.'}</p>
+          </div>
+        </div>
+      )}
+
       <section aria-label={locale === 'zh-TW' ? '狀態篩選' : 'Status filters'} className="flex flex-wrap gap-2">
         {statusChips.map(({ id, label, count, icon: Icon, tone }) => <button key={id} type="button" onClick={() => setStatusFilter(statusFilter === id ? 'all' : id)} aria-pressed={statusFilter === id} className={`app-control ui-button flex min-h-11 items-center gap-1.5 rounded-full border px-3 ${statusFilter === id ? 'app-primary' : ''}`}><Icon className={`h-4 w-4 ${statusFilter === id ? '' : tone}`} />{label}<span className="tabular-nums">{count}</span></button>)}
       </section>
@@ -123,7 +135,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="relative">
           <label htmlFor="dashboard-search" className="sr-only">{locale === 'zh-TW' ? '搜尋物品' : 'Search items'}</label>
           <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-[var(--app-muted)]" />
-          <input id="dashboard-search" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={locale === 'zh-TW' ? '搜尋物品、備註或型號' : 'Search items, notes, or models'} className="app-surface ui-body min-h-11 w-full rounded-xl border pl-10 pr-3 text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted-low)] focus:border-[var(--app-accent)]" />
+          <input id="dashboard-search" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={locale === 'zh-TW' ? '搜尋物品、備註或型號' : 'Search items, notes, or models'} className="app-surface ui-body min-h-11 w-full rounded-xl border pl-10 pr-10 text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted-low)] focus:border-[var(--app-accent)]" />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="清除搜尋"
+              className="absolute right-1 top-1 min-h-9 min-w-9 flex items-center justify-center rounded-lg text-[var(--app-muted)] hover:text-[var(--app-text)]"
+            >
+              <span className="text-base font-bold">×</span>
+            </button>
+          )}
         </div>
         <button type="button" onClick={() => setShowFilters((open) => !open)} className="app-control ui-button flex min-h-11 w-full items-center justify-between rounded-xl border px-3 text-left"><span className="flex items-center gap-2"><SlidersHorizontal className="h-4 w-4 text-[var(--app-accent-strong)]" />{locale === 'zh-TW' ? '分類與位置' : 'Category and location'}{hasFilters && <span className="rounded-full bg-[var(--app-accent)] px-1.5 text-white">•</span>}</span><span className="text-[var(--app-muted)]">{showFilters ? '⌃' : '⌄'}</span></button>
         {showFilters && <div className="app-surface rounded-xl border p-3 space-y-3">
