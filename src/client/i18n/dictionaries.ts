@@ -2,7 +2,7 @@ export type Locale = 'zh-TW' | 'en';
 
 export const DICTIONARIES = {
   'zh-TW': {
-    appName: 'afterBuy 該換囉',
+    appName: '888 該換囉',
     appSubtitle: '生活耗材與週期更換管理',
     slogan: '買了之後，別再忘記換！及時更換生活耗材，保持居家衛生與最佳生活品質。',
     // Nav
@@ -88,7 +88,7 @@ export const DICTIONARIES = {
     // Presets
     quickPresets: '常見生活物品快速範本',
     // Auth & Settings
-    loginTitle: '登入 afterBuy 該換囉',
+    loginTitle: '登入 888 該換囉',
     loginSubtitle: '支援生物辨識 Passkey 秒登與免密碼 Email 驗證碼',
     passkeyLoginBtn: '以 Passkey 生物辨識登入',
     otpLoginBtn: '發送 6 位數驗證碼',
@@ -154,7 +154,7 @@ export const DICTIONARIES = {
     roleViewer: '檢視者',
   },
   'en': {
-    appName: 'afterBuy 該換囉',
+    appName: '888 該換囉',
     appSubtitle: 'Consumables & Lifecycle Tracking',
     slogan: 'Timely replacement of daily consumables for healthier, organized living.',
     // Nav
@@ -240,7 +240,7 @@ export const DICTIONARIES = {
     // Presets
     quickPresets: 'Everyday Consumables Presets',
     // Auth & Settings
-    loginTitle: 'Sign in to afterBuy 該換囉',
+    loginTitle: 'Sign in to 888 該換囉',
     loginSubtitle: 'Biometric Passkey login & Passwordless Email OTP',
     passkeyLoginBtn: 'Sign In with Passkey',
     otpLoginBtn: 'Send 6-digit Code',

@@ -296,7 +296,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
             </div>
             <h2 className="ui-section-title text-[var(--app-text)]">啟用 Face ID / 指紋秒登？</h2>
             <p className="ui-body text-[var(--app-muted)] mt-2 leading-relaxed">
-              為此裝置啟用 Passkey，下次打開 afterBUY 只要按一下指紋或人臉辨識即可直接登入，無須再收驗證碼！
+              為此裝置啟用 Passkey，下次打開 888 該換囉 只要按一下指紋或人臉辨識即可直接登入，無須再收驗證碼！
             </p>
 
             <div className="mt-6 space-y-2">

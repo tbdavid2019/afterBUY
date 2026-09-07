@@ -1,4 +1,4 @@
-# afterBuy 該換囉 🛒
+# 888 該換囉 🛒
 
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 ![GitHub Repository](https://img.shields.io/badge/GitHub-tbdavid2019%2FafterBUY-black.svg?logo=github)

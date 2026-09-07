@@ -3,6 +3,7 @@ import { Plus, Fingerprint, Languages } from 'lucide-react';
 import { UserSession, StockResponse } from '../../shared/types.ts';
 import { useTranslation } from '../i18n/index.tsx';
 import { StockSwitcher } from './StockSwitcher.tsx';
+import { BrandLogo } from './BrandLogo.tsx';
 
 interface HeaderProps {
   user: UserSession | null;
@@ -34,15 +35,18 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="app-header sticky top-0 z-30 backdrop-blur-md border-b pt-safe">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 min-h-14 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg app-primary flex items-center justify-center shrink-0">
-            <span className="font-black tracking-tight">aB</span>
-          </div>
+          <BrandLogo size="md" />
           <div className="min-w-0">
-            <h1 className="ui-section-title tracking-tight text-[var(--app-text)] truncate">
-              afterBuy
-            </h1>
+            <div className="flex items-baseline gap-1 leading-none">
+              <span className="font-black text-xl tracking-tight text-[var(--app-accent-strong)] font-sans">
+                888
+              </span>
+              <h1 className="ui-section-title tracking-tight text-[var(--app-text)] truncate font-black leading-none">
+                該換囉
+              </h1>
+            </div>
             {user && onSelectStock && onOpenStockSettings && onRefreshStocks ? (
-              <div className="mt-0.5 max-w-[11rem]">
+              <div className="mt-1 max-w-[11rem]">
                 <StockSwitcher
                   currentStockId={currentStockId}
                   stocks={stocks}
@@ -51,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onRefreshStocks={onRefreshStocks}
                 />
               </div>
-            ) : <p className="ui-meta leading-tight text-[var(--app-muted)] truncate">{t('appSubtitle')}</p>}
+            ) : <p className="ui-meta leading-tight text-[var(--app-muted)] truncate mt-0.5">{t('appSubtitle')}</p>}
           </div>
         </div>
 

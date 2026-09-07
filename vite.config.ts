@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'icons/*.png'],
       manifest: {
-        name: 'afterBUY - 買了之後別再忘記換',
-        short_name: 'afterBUY',
+        name: '888 該換囉 - 生活耗材週期與保固備品管理',
+        short_name: '888 該換囉',
         description: '手機優先的生活耗材週期、保固與備品管理工具',
         theme_color: '#0f172a',
         background_color: '#0f172a',
