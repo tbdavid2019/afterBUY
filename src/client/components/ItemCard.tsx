@@ -166,9 +166,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--app-border-subtle)] pt-3">
         <div className="app-surface-subtle flex min-h-11 items-center gap-1 rounded-xl border px-2">
-          <Package className={`h-4 w-4 ${item.needsRestock ? 'text-amber-600' : 'text-[var(--app-muted)]'}`} />
+          <Package className={`h-4 w-4 ${item.needsRestock ? 'text-amber-600 dark:text-amber-400' : 'text-[var(--app-muted)]'}`} />
           <span className="ui-meta text-[var(--app-muted)]">備品</span>
-          <span className={`ui-body min-w-5 text-center font-semibold tabular-nums ${item.backupStock === 0 ? 'text-rose-600' : 'text-[var(--app-text)]'}`}>{item.backupStock}</span>
+          <span className={`ui-body min-w-5 text-center font-semibold tabular-nums ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--app-text)]'}`}>{item.backupStock}</span>
           <button type="button" disabled={busy || item.backupStock <= 0} aria-label={`減少 ${item.name} 備品庫存`} onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, -1)); }} className="min-h-11 min-w-9 rounded-lg text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-40 flex items-center justify-center transition-transform active:scale-90"><Minus className="mx-auto h-4 w-4" /></button>
           <button type="button" disabled={busy} aria-label={`增加 ${item.name} 備品庫存`} onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, 1)); }} className="min-h-11 min-w-9 rounded-lg text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-40 flex items-center justify-center transition-transform active:scale-90"><Plus className="mx-auto h-4 w-4" /></button>
         </div>

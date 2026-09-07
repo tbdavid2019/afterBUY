@@ -90,7 +90,7 @@
   .ui-body { font-size: 16px; line-height: 24px; font-weight: 400; }
   .ui-label, .ui-button { font-size: 16px; line-height: 24px; font-weight: 500; }
   .ui-meta { font-size: 14px; line-height: 20px; font-weight: 400; }
-  .ui-badge { font-size: 14px; line-height: 20px; font-weight: 500; }
+  .ui-badge { font-size: 14px; line-height: 20px; font-weight: 600; }
   .tabular-nums { font-variant-numeric: tabular-nums; }
   .animate-bounce-gentle { animation: gentle-bounce 0.35s ease-in-out; }
 }

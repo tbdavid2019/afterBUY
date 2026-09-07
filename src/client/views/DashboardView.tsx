@@ -82,11 +82,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const statusChips = [
-    { id: 'due' as const, label: locale === 'zh-TW' ? '待處理' : 'Due', count: counts.due, icon: AlertTriangle, tone: 'text-rose-600' },
-    { id: 'healthy' as const, label: locale === 'zh-TW' ? '狀態良好' : 'Healthy', count: counts.healthy, icon: CheckCircle2, tone: 'text-emerald-600' },
-    { id: 'restock' as const, label: locale === 'zh-TW' ? '要補貨' : 'Restock', count: counts.restock, icon: ShoppingBag, tone: 'text-amber-600' },
-    ...(counts.snoozed ? [{ id: 'snoozed' as const, label: locale === 'zh-TW' ? '延後' : 'Snoozed', count: counts.snoozed, icon: Moon, tone: 'text-sky-600' }] : []),
-    ...(counts.stored ? [{ id: 'stored' as const, label: locale === 'zh-TW' ? '存放中' : 'Stored', count: counts.stored, icon: Package, tone: 'text-indigo-600' }] : []),
+    { id: 'due' as const, label: locale === 'zh-TW' ? '待處理' : 'Due', count: counts.due, icon: AlertTriangle, tone: 'text-rose-600 dark:text-rose-400' },
+    { id: 'healthy' as const, label: locale === 'zh-TW' ? '狀態良好' : 'Healthy', count: counts.healthy, icon: CheckCircle2, tone: 'text-emerald-600 dark:text-emerald-400' },
+    { id: 'restock' as const, label: locale === 'zh-TW' ? '要補貨' : 'Restock', count: counts.restock, icon: ShoppingBag, tone: 'text-amber-600 dark:text-amber-400' },
+    ...(counts.snoozed ? [{ id: 'snoozed' as const, label: locale === 'zh-TW' ? '延後' : 'Snoozed', count: counts.snoozed, icon: Moon, tone: 'text-sky-600 dark:text-sky-400' }] : []),
+    ...(counts.stored ? [{ id: 'stored' as const, label: locale === 'zh-TW' ? '存放中' : 'Stored', count: counts.stored, icon: Package, tone: 'text-indigo-600 dark:text-indigo-400' }] : []),
   ];
 
   return (

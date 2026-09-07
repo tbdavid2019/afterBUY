@@ -378,7 +378,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setImageUrl('')}
-                  className="ui-meta text-rose-500 hover:text-rose-400 font-semibold transition-colors"
+                  className="ui-meta text-rose-600 dark:text-rose-400 hover:text-rose-500 font-semibold transition-colors"
                 >
                   移除照片
                 </button>

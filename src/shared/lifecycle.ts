@@ -110,42 +110,42 @@ export function formatRemainingDaysText(
   if (healthStatus === 'stored') {
     return {
       text: '存放中（未拆封）',
-      color: 'text-indigo-400',
-      badge: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+      color: 'text-indigo-700 dark:text-indigo-400',
+      badge: 'bg-indigo-500/15 text-indigo-800 dark:text-indigo-200 border-indigo-500/30',
     };
   }
   if (healthStatus === 'snoozed') {
     return {
       text: '延後提醒中',
-      color: 'text-sky-400',
-      badge: 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+      color: 'text-sky-700 dark:text-sky-400',
+      badge: 'bg-sky-500/15 text-sky-800 dark:text-sky-200 border-sky-500/30',
     };
   }
   if (remainingDays < 0) {
     const days = Math.abs(remainingDays);
     return {
       text: `已過期 ${days} 天`,
-      color: 'text-rose-400',
-      badge: 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+      color: 'text-rose-700 dark:text-rose-400',
+      badge: 'bg-rose-500/15 text-rose-800 dark:text-rose-200 border-rose-500/30',
     };
   }
   if (remainingDays === 0) {
     return {
       text: '今天該換！',
-      color: 'text-amber-400 font-bold',
-      badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30 animate-pulse'
+      color: 'text-amber-800 dark:text-amber-300 font-bold',
+      badge: 'bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/30 animate-pulse',
     };
   }
   if (remainingDays <= 7) {
     return {
       text: `剩餘 ${remainingDays} 天`,
-      color: 'text-amber-400',
-      badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+      color: 'text-amber-800 dark:text-amber-300',
+      badge: 'bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/30',
     };
   }
   return {
     text: `剩餘 ${remainingDays} 天`,
-    color: 'text-emerald-400',
-    badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+    color: 'text-emerald-700 dark:text-emerald-400',
+    badge: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-500/30',
   };
 }
