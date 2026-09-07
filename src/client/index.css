@@ -8,7 +8,8 @@
 }
 
 @layer base {
-  :root {
+  :root,
+  :root[data-theme-palette="coral"] {
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --font-app: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
@@ -26,7 +27,68 @@
     color-scheme: light;
   }
 
-  :root[data-theme="dark"] {
+  :root[data-theme-palette="mint"] {
+    --app-bg: #f2f7f4;
+    --app-text: #1a2420;
+    --app-muted: #5c6b63;
+    --app-muted-low: #7e8f86;
+    --app-surface: #ffffff;
+    --app-surface-subtle: #e6f0eb;
+    --app-border: #cee0d6;
+    --app-border-subtle: #e2ece6;
+    --app-accent: #059669;
+    --app-accent-strong: #047857;
+    --app-accent-soft: #ecfdf5;
+    color-scheme: light;
+  }
+
+  :root[data-theme-palette="peach"] {
+    --app-bg: #fbf4f2;
+    --app-text: #261b1d;
+    --app-muted: #735e62;
+    --app-muted-low: #947e83;
+    --app-surface: #ffffff;
+    --app-surface-subtle: #f8e9e6;
+    --app-border: #edd4d0;
+    --app-border-subtle: #f6e6e4;
+    --app-accent: #e14d66;
+    --app-accent-strong: #be123c;
+    --app-accent-soft: #ffe4e8;
+    color-scheme: light;
+  }
+
+  :root[data-theme-palette="sky"] {
+    --app-bg: #f0f6fa;
+    --app-text: #17222b;
+    --app-muted: #5b6b77;
+    --app-muted-low: #7d8e9b;
+    --app-surface: #ffffff;
+    --app-surface-subtle: #e3eef6;
+    --app-border: #cbdde9;
+    --app-border-subtle: #e2edf5;
+    --app-accent: #0284c7;
+    --app-accent-strong: #0369a1;
+    --app-accent-soft: #e0f2fe;
+    color-scheme: light;
+  }
+
+  :root[data-theme-palette="lilac"] {
+    --app-bg: #f6f4fa;
+    --app-text: #201a29;
+    --app-muted: #6b6078;
+    --app-muted-low: #8d819c;
+    --app-surface: #ffffff;
+    --app-surface-subtle: #ece7f4;
+    --app-border: #dcd3e7;
+    --app-border-subtle: #eae4f2;
+    --app-accent: #7c3aed;
+    --app-accent-strong: #5b21b6;
+    --app-accent-soft: #f3e8ff;
+    color-scheme: light;
+  }
+
+  :root[data-theme="dark"],
+  :root[data-theme="dark"][data-theme-palette="coral"] {
     --app-bg: #111417;
     --app-text: #f1f1ee;
     --app-muted: #b3b1aa;
@@ -38,6 +100,66 @@
     --app-accent: #e18b72;
     --app-accent-strong: #ffb19a;
     --app-accent-soft: #3a2521;
+    color-scheme: dark;
+  }
+
+  :root[data-theme="dark"][data-theme-palette="mint"] {
+    --app-bg: #0d1713;
+    --app-text: #eff7f3;
+    --app-muted: #9ab3a6;
+    --app-muted-low: #758e81;
+    --app-surface: #14221c;
+    --app-surface-subtle: #1c2f27;
+    --app-border: #2c4237;
+    --app-border-subtle: #21332a;
+    --app-accent: #34d399;
+    --app-accent-strong: #6ee7b7;
+    --app-accent-soft: #143528;
+    color-scheme: dark;
+  }
+
+  :root[data-theme="dark"][data-theme-palette="peach"] {
+    --app-bg: #181013;
+    --app-text: #f9eef0;
+    --app-muted: #b99ba2;
+    --app-muted-low: #94787f;
+    --app-surface: #22151a;
+    --app-surface-subtle: #2f1d24;
+    --app-border: #442731;
+    --app-border-subtle: #331e26;
+    --app-accent: #fb7185;
+    --app-accent-strong: #fda4af;
+    --app-accent-soft: #3d1a24;
+    color-scheme: dark;
+  }
+
+  :root[data-theme="dark"][data-theme-palette="sky"] {
+    --app-bg: #0c151d;
+    --app-text: #edf5fa;
+    --app-muted: #95acbe;
+    --app-muted-low: #718899;
+    --app-surface: #131e29;
+    --app-surface-subtle: #1a2938;
+    --app-border: #293d50;
+    --app-border-subtle: #1f2f3d;
+    --app-accent: #38bdf8;
+    --app-accent-strong: #7dd3fc;
+    --app-accent-soft: #153246;
+    color-scheme: dark;
+  }
+
+  :root[data-theme="dark"][data-theme-palette="lilac"] {
+    --app-bg: #14101d;
+    --app-text: #f4eff9;
+    --app-muted: #a69bb8;
+    --app-muted-low: #817694;
+    --app-surface: #1c1629;
+    --app-surface-subtle: #261e38;
+    --app-border: #3c2f55;
+    --app-border-subtle: #2e2342;
+    --app-accent: #a78bfa;
+    --app-accent-strong: #c4b5fd;
+    --app-accent-soft: #2c1e45;
     color-scheme: dark;
   }
 

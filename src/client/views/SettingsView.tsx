@@ -16,10 +16,14 @@ import {
   Loader2,
   AlertTriangle,
   Languages,
+  Palette,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { UserSession, UserNotificationSettings } from '../../shared/types.ts';
 import { api } from '../api.ts';
 import { useTranslation } from '../i18n/index.tsx';
+import { THEME_PALETTES, type ThemeMode, type ThemePalette } from '../utils/theme.ts';
 
 interface SettingsViewProps {
   user: UserSession | null;
@@ -27,6 +31,10 @@ interface SettingsViewProps {
   onOpenAuth: () => void;
   onLogout: () => void;
   onRefreshUser: () => void;
+  themeMode?: ThemeMode;
+  onToggleThemeMode?: () => void;
+  currentPalette?: ThemePalette;
+  onSelectPalette?: (palette: ThemePalette) => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -35,6 +43,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onOpenAuth,
   onLogout,
   onRefreshUser,
+  themeMode = 'light',
+  onToggleThemeMode,
+  currentPalette = 'coral',
+  onSelectPalette,
 }) => {
   const [copied, setCopied] = useState(false);
   const [rotating, setRotating] = useState(false);
@@ -62,26 +74,157 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   }, [user]);
 
-  if (!user) {
-    return (
-      <div className="py-16 text-center space-y-4">
-        <div className="w-14 h-14 rounded-2xl app-primary-soft border mx-auto flex items-center justify-center">
-          <Fingerprint className="w-7 h-7" />
+  const renderAppearanceCard = () => (
+    <div className="app-surface border p-4 rounded-2xl space-y-3.5 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl app-primary-soft border flex items-center justify-center shrink-0">
+            <Palette className="w-4 h-4 text-[var(--app-accent-strong)]" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="ui-item-title text-[var(--app-text)]">{t('appearanceTitle')}</h3>
+            <p className="ui-meta text-[var(--app-muted)]">
+              {t('chooseThemeColor')}
+            </p>
+          </div>
         </div>
-        <h2 className="ui-section-title text-[var(--app-text)]">{locale === 'zh-TW' ? '請先登入帳戶' : 'Sign in required'}</h2>
-        <p className="ui-body text-[var(--app-muted)] max-w-xs mx-auto">
-          {locale === 'zh-TW'
-            ? '登入後即可啟用 WebCal 行事曆訂閱、Web Push 網頁推播與生物辨識 Passkey。'
-            : 'Sign in to enable WebCal calendar subscriptions, Web Push, and Passkeys.'}
-        </p>
+
+        {/* Light / Dark Mode Toggle */}
+        <div className="flex bg-[var(--app-surface-subtle)] border rounded-xl p-1 gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => onToggleThemeMode && themeMode !== 'light' && onToggleThemeMode()}
+            className={`min-h-9 px-2.5 sm:px-3 ui-button rounded-lg flex items-center gap-1.5 transition-all ${
+              themeMode === 'light' ? 'app-primary shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+            }`}
+            aria-label={t('themeModeLight')}
+          >
+            <Sun className="w-4 h-4" />
+            <span className="text-sm font-semibold">{t('themeModeLight')}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleThemeMode && themeMode !== 'dark' && onToggleThemeMode()}
+            className={`min-h-9 px-2.5 sm:px-3 ui-button rounded-lg flex items-center gap-1.5 transition-all ${
+              themeMode === 'dark' ? 'app-primary shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+            }`}
+            aria-label={t('themeModeDark')}
+          >
+            <Moon className="w-4 h-4" />
+            <span className="text-sm font-semibold">{t('themeModeDark')}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 5-Color Theme Palette Selector */}
+      <div className="bg-[var(--app-surface-subtle)] border border-[var(--app-border)] rounded-2xl p-3 sm:p-4">
+        <div className="grid grid-cols-5 gap-2 sm:gap-3">
+          {THEME_PALETTES.map((p) => {
+            const isSelected = currentPalette === p.id;
+            const paletteLabel = locale === 'zh-TW' ? p.label : p.labelEn;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => onSelectPalette?.(p.id)}
+                className="flex flex-col items-center gap-2 group focus:outline-none"
+                aria-pressed={isSelected}
+                aria-label={`${paletteLabel} 主題`}
+              >
+                <div
+                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                    isSelected
+                      ? 'ring-2 ring-offset-2 ring-offset-[var(--app-surface)] shadow-md scale-105'
+                      : 'hover:scale-105 opacity-85 hover:opacity-100'
+                  }`}
+                  style={{
+                    backgroundColor: `${p.dotColor}22`,
+                    boxShadow: isSelected ? `0 0 0 2px ${p.dotColor}` : undefined,
+                  }}
+                >
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
+                    style={{ backgroundColor: p.dotColor }}
+                  >
+                    {isSelected && <Check className="w-4 h-4 text-white stroke-[3]" />}
+                  </div>
+                </div>
+                <span
+                  className={`ui-meta text-xs sm:text-sm font-semibold transition-colors ${
+                    isSelected ? 'text-[var(--app-text)] font-bold' : 'text-[var(--app-muted)] group-hover:text-[var(--app-text)]'
+                  }`}
+                >
+                  {paletteLabel}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderLanguageCard = () => (
+    <div className="app-surface border p-4 rounded-2xl flex items-center justify-between shadow-sm">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl app-primary-soft border flex items-center justify-center shrink-0">
+          <Languages className="w-4 h-4 text-[var(--app-accent-strong)]" />
+        </div>
+        <div>
+          <h3 className="ui-item-title text-[var(--app-text)]">{t('languageToggle')}</h3>
+          <p className="ui-meta text-[var(--app-muted)]">
+            {locale === 'zh-TW' ? '繁體中文 (Traditional Chinese)' : 'English (英文)'}
+          </p>
+        </div>
+      </div>
+      <div className="flex bg-[var(--app-surface-subtle)] border rounded-xl p-1 gap-1">
         <button
           type="button"
-          onClick={onOpenAuth}
-          className="app-primary ui-button min-h-11 inline-flex items-center gap-2 px-5 rounded-xl shadow-sm transition-transform active:scale-95"
+          onClick={() => setLocale('zh-TW')}
+          className={`min-h-9 px-3.5 ui-button rounded-lg transition-all ${
+            locale === 'zh-TW' ? 'app-primary shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+          }`}
         >
-          <Fingerprint className="w-4 h-4" />
-          <span>{locale === 'zh-TW' ? '立即無密碼登入' : 'Sign in with Passkey / OTP'}</span>
+          繁中
         </button>
+        <button
+          type="button"
+          onClick={() => setLocale('en')}
+          className={`min-h-9 px-3.5 ui-button rounded-lg transition-all ${
+            locale === 'en' ? 'app-primary shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+          }`}
+        >
+          EN
+        </button>
+      </div>
+    </div>
+  );
+
+  if (!user) {
+    return (
+      <div className="space-y-4 pb-32 pt-1">
+        {renderAppearanceCard()}
+        {renderLanguageCard()}
+
+        <div className="app-surface border p-6 rounded-2xl text-center space-y-4 shadow-sm">
+          <div className="w-14 h-14 rounded-2xl app-primary-soft border mx-auto flex items-center justify-center">
+            <Fingerprint className="w-7 h-7 text-[var(--app-accent-strong)]" />
+          </div>
+          <h2 className="ui-section-title text-[var(--app-text)]">{locale === 'zh-TW' ? '請先登入帳戶' : 'Sign in required'}</h2>
+          <p className="ui-body text-[var(--app-muted)] max-w-xs mx-auto">
+            {locale === 'zh-TW'
+              ? '登入後即可啟用 WebCal 行事曆訂閱、Web Push 網頁推播與生物辨識 Passkey。'
+              : 'Sign in to enable WebCal calendar subscriptions, Web Push, and Passkeys.'}
+          </p>
+          <button
+            type="button"
+            onClick={onOpenAuth}
+            className="app-primary ui-button min-h-11 inline-flex items-center gap-2 px-5 rounded-xl shadow-sm transition-transform active:scale-95"
+          >
+            <Fingerprint className="w-4 h-4" />
+            <span>{locale === 'zh-TW' ? '立即無密碼登入' : 'Sign in with Passkey / OTP'}</span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -196,40 +339,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="space-y-4 pb-32 pt-1">
-      {/* 0. Language Selector Card */}
-      <div className="app-surface border p-4 rounded-2xl flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl app-primary-soft border flex items-center justify-center shrink-0">
-            <Languages className="w-4 h-4 text-[var(--app-accent-strong)]" />
-          </div>
-          <div>
-            <h3 className="ui-item-title text-[var(--app-text)]">{t('languageToggle')}</h3>
-            <p className="ui-meta text-[var(--app-muted)]">
-              {locale === 'zh-TW' ? '繁體中文 (Traditional Chinese)' : 'English (英文)'}
-            </p>
-          </div>
-        </div>
-        <div className="flex bg-[var(--app-surface-subtle)] border rounded-xl p-1 gap-1">
-          <button
-            type="button"
-            onClick={() => setLocale('zh-TW')}
-            className={`min-h-9 px-3.5 ui-button rounded-lg transition-all ${
-              locale === 'zh-TW' ? 'app-primary shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
-            }`}
-          >
-            繁中
-          </button>
-          <button
-            type="button"
-            onClick={() => setLocale('en')}
-            className={`min-h-9 px-3.5 ui-button rounded-lg transition-all ${
-              locale === 'en' ? 'app-primary shadow-sm' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
-            }`}
-          >
-            EN
-          </button>
-        </div>
-      </div>
+      {/* 0. Appearance & Color Palette Card */}
+      {renderAppearanceCard()}
+
+      {/* 1. Language Selector Card */}
+      {renderLanguageCard()}
 
       {/* 1. Account Info Card */}
       <div className="app-surface border p-4 rounded-2xl flex items-center justify-between gap-3 shadow-sm">

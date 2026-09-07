@@ -13,7 +13,7 @@ import { api } from './api.ts';
 import { UserSession, ItemResponse, StockResponse } from '../shared/types.ts';
 import { computeItemStatus } from '../shared/lifecycle.ts';
 import { addBusinessDays, businessDate } from '../shared/date.ts';
-import { getInitialTheme, type ThemeMode } from './utils/theme.ts';
+import { getInitialTheme, getInitialPalette, type ThemeMode, type ThemePalette, THEME_PALETTES } from './utils/theme.ts';
 import { DEMO_ITEM_IDS, mergeGuestItems, readGuestItems, writeGuestItems } from './utils/guestStorage.ts';
 
 // Initial demo items for guest preview
@@ -171,6 +171,9 @@ export const App: React.FC = () => {
   const [theme, setTheme] = useState<ThemeMode>(() =>
     getInitialTheme(typeof window === 'undefined' ? null : window.localStorage.getItem('afterbuy-theme'))
   );
+  const [palette, setPalette] = useState<ThemePalette>(() =>
+    getInitialPalette(typeof window === 'undefined' ? null : window.localStorage.getItem('afterbuy-theme-palette'))
+  );
   const [isLoading, setIsLoading] = useState(() => typeof window !== 'undefined' && Boolean(localStorage.getItem('afterbuy_user')));
   const [loadError, setLoadError] = useState<string | null>(null);
   const stockRequestId = useRef(0);
@@ -190,9 +193,13 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.themePalette = palette;
     window.localStorage.setItem('afterbuy-theme', theme);
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#f2f0ea' : '#081f33');
-  }, [theme]);
+    window.localStorage.setItem('afterbuy-theme-palette', palette);
+    const activePaletteConfig = THEME_PALETTES.find((p) => p.id === palette);
+    const themeColor = theme === 'dark' ? '#111417' : (activePaletteConfig?.lightBg || '#f7f5f0');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor);
+  }, [theme, palette]);
 
 
 
@@ -660,6 +667,10 @@ export const App: React.FC = () => {
             onOpenAuth={() => setIsAuthOpen(true)}
             onLogout={handleLogout}
             onRefreshUser={loadUserAndItems}
+            themeMode={theme}
+            onToggleThemeMode={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
+            currentPalette={palette}
+            onSelectPalette={(newPalette) => setPalette(newPalette)}
           />
         )}
       </main>

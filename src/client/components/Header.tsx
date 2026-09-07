@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Fingerprint } from 'lucide-react';
+import { Plus, Fingerprint, Languages } from 'lucide-react';
 import { UserSession, StockResponse } from '../../shared/types.ts';
 import { useTranslation } from '../i18n/index.tsx';
 import { StockSwitcher } from './StockSwitcher.tsx';
@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
   onOpenNewItem,
 }) => {
-  const { locale, t } = useTranslation();
+  const { locale, toggleLocale, t } = useTranslation();
 
   return (
     <header className="app-header sticky top-0 z-30 backdrop-blur-md border-b pt-safe">
@@ -55,7 +55,18 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={toggleLocale}
+            aria-label={locale === 'zh-TW' ? '切換為英文 (English)' : 'Switch to Traditional Chinese (繁體中文)'}
+            className="app-control ui-button min-h-11 px-2 sm:px-2.5 flex items-center justify-center gap-1 rounded-xl border hover:border-[var(--app-accent)] active:scale-[0.96] text-[var(--app-text)] transition-all"
+            title={locale === 'zh-TW' ? 'Switch to English' : '切換為繁體中文'}
+          >
+            <Languages className="w-4 h-4 text-[var(--app-accent-strong)]" />
+            <span className="ui-meta font-bold tabular-nums">{locale === 'zh-TW' ? 'EN' : '中'}</span>
+          </button>
+
           <button
             onClick={onOpenNewItem}
             aria-label={t('addItem')}
