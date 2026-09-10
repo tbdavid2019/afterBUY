@@ -77,7 +77,7 @@ export function computeItemStatus(
     percentageRemaining = 100;
   } else if (item.snoozeUntil && item.snoozeUntil > refDateStr) {
     healthStatus = 'snoozed';
-  } else if (remainingDays <= 0) {
+  } else if (remainingDays < 0) {
     healthStatus = 'overdue';
     percentageRemaining = 0;
   } else if (remainingDays <= 7 || percentageRemaining <= 15) {

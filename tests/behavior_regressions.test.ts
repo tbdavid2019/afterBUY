@@ -7,6 +7,27 @@ import { DEMO_ITEM_IDS, readGuestItems, writeGuestItems } from '../src/client/ut
 test('business dates use Taiwan time and are timezone stable', () => {
   assert.equal(businessDate(new Date('2026-09-05T16:30:00.000Z')), '2026-09-06');
   assert.equal(addBusinessDays('2026-09-06', 7), '2026-09-13');
+  assert.equal(addBusinessDays('2026-09-09', 1), '2026-09-10');
+});
+
+test('business dates switch only at Taiwan midnight', () => {
+  assert.equal(businessDate(new Date('2026-09-08T15:59:59.000Z')), '2026-09-08');
+  assert.equal(businessDate(new Date('2026-09-08T16:00:00.000Z')), '2026-09-09');
+});
+
+test('a due date remains due through the end of its Taiwan business day', () => {
+  const item = {
+    startDate: '2026-09-01', trackingMode: 'cycle' as const, cycleDays: 8,
+    backupStock: 1,
+  };
+
+  const dueDay = computeItemStatus(item, new Date('2026-09-09T15:59:59.000Z'));
+  assert.equal(dueDay.remainingDays, 0);
+  assert.equal(dueDay.healthStatus, 'due_soon');
+
+  const nextBusinessDay = computeItemStatus(item, new Date('2026-09-09T16:00:00.000Z'));
+  assert.equal(nextBusinessDay.remainingDays, -1);
+  assert.equal(nextBusinessDay.healthStatus, 'overdue');
 });
 
 test('stored fixed-date items still expire while stored cycle items stay stored', () => {

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { StockResponse, StockMemberResponse, StockInviteResponse, StockRole, UserSession } from '../../shared/types.ts';
 import { useTranslation } from '../i18n/index.tsx';
+import { businessDate } from '../../shared/date.ts';
 import { api } from '../api.ts';
 
 const STOCK_ICONS = ['🏠', '⚡', '🧴', '🍳', '🚗', '💼', '🌿', '🛠️', '👶', '🐾'];
@@ -442,7 +443,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                               )}
                             </div>
                             <span className="ui-meta text-[var(--app-muted)]">
-                              加入於 {new Date(member.createdAt).toLocaleDateString()}
+                              加入於 {businessDate(new Date(member.createdAt))}
                             </span>
                           </div>
                         </div>

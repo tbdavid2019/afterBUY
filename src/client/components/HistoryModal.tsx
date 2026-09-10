@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, History, RotateCcw, Loader2 } from 'lucide-react';
 import { ItemResponse, ItemHistoryRecord } from '../../shared/types.ts';
 import { api } from '../api.ts';
+import { businessDate } from '../../shared/date.ts';
 
 interface HistoryModalProps {
   item: ItemResponse | null;
@@ -71,7 +72,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ item, onClose }) => 
                   <div className="flex items-baseline justify-between gap-2 mb-1">
                     <span className="ui-item-title text-[var(--app-text)]">已完成更換</span>
                     <span className="ui-meta text-[var(--app-muted)] tabular-nums">
-                      {record.replacedAt.split('T')[0]}
+                      {businessDate(new Date(record.replacedAt))}
                     </span>
                   </div>
                   <div className="ui-meta text-[var(--app-muted)] space-y-0.5">

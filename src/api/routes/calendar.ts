@@ -6,7 +6,7 @@ import { getDb, users, items, stocks, stockMembers } from '../db/index.ts';
 import { computeNextDueDate } from '../../shared/lifecycle.ts';
 import { TrackingMode } from '../../shared/types.ts';
 import { generateRandomToken } from '../utils/auth.ts';
-import { businessDate } from '../../shared/date.ts';
+import { addBusinessDays, businessDate } from '../../shared/date.ts';
 
 export const calendarRouter = new Hono<HonoEnv>();
 
@@ -102,6 +102,9 @@ calendarRouter.get('/:token.ics', async (c) => {
     const isSnoozed = Boolean(item.snoozeUntil && item.snoozeUntil > todayStr);
     const scheduledDate: string = isSnoozed && item.snoozeUntil ? item.snoozeUntil : nextDue;
     const dueDateFormatted = scheduledDate.replace(/-/g, '');
+    // VALUE=DATE DTEND is exclusive. Keep a one-day event inclusive of its
+    // scheduled Taiwan business date by ending at the following date.
+    const endDateFormatted = addBusinessDays(scheduledDate, 1).replace(/-/g, '');
     const isCancelled = Boolean(item.deletedAt) || isStoredInactive;
     const sequence = isCancelled ? item.calendarSequence + 1 : item.calendarSequence;
 
@@ -116,7 +119,7 @@ calendarRouter.get('/:token.ics', async (c) => {
         `UID:item-${item.id}@afterbuy.app`,
         `DTSTAMP:${nowIsoCompact}`,
         `DTSTART;VALUE=DATE:${dueDateFormatted}`,
-        `DTEND;VALUE=DATE:${dueDateFormatted}`,
+        `DTEND;VALUE=DATE:${endDateFormatted}`,
         `SUMMARY:已取消：${stockPrefix}${safeName}`,
         `SEQUENCE:${sequence}`,
         'STATUS:CANCELLED',
@@ -129,7 +132,7 @@ calendarRouter.get('/:token.ics', async (c) => {
       `UID:item-${item.id}@afterbuy.app`,
       `DTSTAMP:${nowIsoCompact}`,
       `DTSTART;VALUE=DATE:${dueDateFormatted}`,
-      `DTEND;VALUE=DATE:${dueDateFormatted}`,
+      `DTEND;VALUE=DATE:${endDateFormatted}`,
       `SUMMARY:${isSnoozed ? '💤 延後提醒：' : '🔄 該換了：'}${stockPrefix}${safeName} (${actionText})`,
       `DESCRIPTION:空間: ${stockPrefix.replace(/[\[\]\s]/g, '') || '家庭'}\\n類別: ${safeCategory}\\n目前備品庫存: ${item.backupStock}\\n前往 afterBuy 該換囉 查看: ${appOrigin}`,
       `SEQUENCE:${sequence}`,

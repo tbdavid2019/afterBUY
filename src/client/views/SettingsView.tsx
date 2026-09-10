@@ -24,6 +24,7 @@ import { UserSession, UserNotificationSettings } from '../../shared/types.ts';
 import { api } from '../api.ts';
 import { useTranslation } from '../i18n/index.tsx';
 import { THEME_PALETTES, type ThemeMode, type ThemePalette } from '../utils/theme.ts';
+import { businessDate } from '../../shared/date.ts';
 
 interface SettingsViewProps {
   user: UserSession | null;
@@ -454,7 +455,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <div className="min-w-0">
                     <span className="ui-item-title text-[var(--app-text)] truncate block">{d.deviceName}</span>
                     <span className="ui-meta text-[var(--app-muted-low)] tabular-nums block">
-                      建立於: {d.createdAt.split('T')[0]}
+                      建立於: {businessDate(new Date(d.createdAt))}
                     </span>
                   </div>
                 </div>

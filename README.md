@@ -65,7 +65,8 @@
 - **後端 API**：**Hono** 運行於 **Cloudflare Workers**（冷啟動 0ms，體積 &lt;15KB）。
 - **前端 PWA**：**Vite + React 19 + TypeScript + Tailwind CSS**（`vite-plugin-pwa` 離線快取）。
   - 導覽頁採 NetworkFirst，`index.html` 與必要資源可離線使用；新版更新會先提示，避免強制重整中斷表單或訪客照片編輯。
-  - 生命週期日期以 `Asia/Taipei` 業務日計算，跨日或回到前景時會重新計算訪客狀態。
+  - 生命週期日期以 `Asia/Taipei` 業務日計算，跨日或回到前景時會重新計算訪客狀態；到期日當天維持「今天到期」，下一個業務日才標記逾期。
+  - 所有日期範圍遵守包含結束日規則（例如 `9/1 ~ 9/9` 涵蓋至 `9/9 23:59:59`）；WebCal 全天事件使用下一個業務日作為 exclusive `DTEND`。
 - **儲存與邊緣服務**：
   - **Cloudflare D1**：關聯式資料庫（SQLite 核心資料）。
   - **Cloudflare KV**：OTP 暫存與防刷 Rate Limiter、Passkey Challenge、Session 快取。
@@ -199,4 +200,3 @@ pnpm db:migrate:david
 - 重大改進必須同步修訂本 [`README.md`](./README.md)。
 
 ![](orca-paste-1788606547295-e1ba0bd0-214e-464b-88d7-f8fe451f0136.png)
-

@@ -45,3 +45,11 @@
 2. **程式碼風格與架構**：
    - Next.js (App Router) + TypeScript + Tailwind CSS。
    - 保留清晰的文件與型別定義。
+
+3. **日期與午夜邊界（Midnight Boundary）**：
+   - 業務日期固定使用 `Asia/Taipei`；`YYYY-MM-DD` 是日期值，不可直接用主機時區解析成帶時間的 `Date`。
+   - 日期範圍採「包含結束日」語意：`9/1 ~ 9/9` 必須涵蓋至 `9/9 23:59:59`；timestamp 查詢使用 `[startOfDay, startOfNextDay)`，禁止把結束日設為當日 `00:00:00`，也不要用 `23:59:59` 當作主要邊界修補。
+   - 所有日期計算統一使用 `src/shared/date.ts` 的 `businessDate`、`parseBusinessDate`、`addBusinessDays`、`businessDateDiff`；到期日當天維持「今天到期」，下一個台灣業務日才標記 `overdue`。
+   - ISO timestamp 是時間瞬間。顯示給使用者時必須以 `businessDate(new Date(timestamp))` 轉為台灣業務日；禁止 `split('T')[0]` 或未指定時區的 `toLocaleDateString()`。
+   - WebCal `DTSTART;VALUE=DATE` 的 `DTEND` 是 exclusive end；單日事件應省略 `DTEND` 或填入下一個業務日，且 active 與 `STATUS:CANCELLED` 事件都要遵守。
+   - 測試必須涵蓋台灣午夜前一秒與當秒（`15:59:59Z` / `16:00:00Z`），並在至少 UTC 與另一個非台灣主機時區執行。

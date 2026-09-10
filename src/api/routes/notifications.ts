@@ -21,6 +21,12 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
+function formatNotificationDays(daysRemaining: number): string {
+  if (daysRemaining === 0) return '今日到期';
+  if (daysRemaining < 0) return `已過期 ${Math.abs(daysRemaining)} 天`;
+  return `剩餘 ${daysRemaining} 天`;
+}
+
 // 1. Get Notification Settings
 notificationsRouter.get('/settings', requireAuth, async (c) => {
   const user = c.get('user')!;
@@ -233,8 +239,8 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
             ? `【afterBuy 該換囉】[${first.stockName}] ${first.item.name} 該換了！`
             : `【afterBuy 該換囉】您有 ${urgentItems.length} 項耗材即將到期`;
           const body = urgentItems.length === 1
-            ? `${first.item.name} (${first.daysRemaining <= 0 ? '今日已到期' : `剩餘 ${first.daysRemaining} 天`})`
-            : urgentItems.map(i => `[${i.stockName}] ${i.item.name} (${i.daysRemaining}天)`).join('、');
+            ? `${first.item.name} (${formatNotificationDays(first.daysRemaining)})`
+            : urgentItems.map(i => `[${i.stockName}] ${i.item.name} (${formatNotificationDays(i.daysRemaining)})`).join('、');
 
           await webpush.sendNotification(
             {
@@ -268,7 +274,7 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
                 ${escapeHtml(i.item.name)}
               </td>
               <td style="padding: 12px 8px; color: ${i.daysRemaining <= 0 ? '#f43f5e' : '#f59e0b'};">
-                ${i.daysRemaining <= 0 ? '🔥 今日已到期' : `⏳ 剩餘 ${i.daysRemaining} 天`}
+                ${i.daysRemaining === 0 ? '🔥 今日到期' : i.daysRemaining < 0 ? `🔥 已過期 ${Math.abs(i.daysRemaining)} 天` : `⏳ 剩餘 ${i.daysRemaining} 天`}
               </td>
               <td style="padding: 12px 8px; color: #94a3b8;">備品庫存: ${i.item.backupStock}</td>
             </tr>
