@@ -614,7 +614,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 pt-3 md:pt-5">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 pt-3 md:pt-5 main-content-pb">
         {(isLoading || loadError) && (
           <div className="mb-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-subtle)] px-3 py-2 text-sm text-[var(--app-muted)]" role={loadError ? 'alert' : 'status'}>
             {loadError || '正在載入最新資料…'}

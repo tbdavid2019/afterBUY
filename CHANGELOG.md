@@ -4,6 +4,65 @@
 
 ---
 
+## 2026-09-22
+
+### Changed
+- **全面遵循 Apple iOS Human Interface Guidelines (HIG) 字級與易讀性規範重構**：
+  - **解決首頁字體過小與視覺侷促問題**：
+    - 依據 iOS HIG 官方字級階層標準，系統最低極限尺寸為 11pt（Caption 2，僅供極微次要註記），標準內文/操作按鈕為 17pt (Body) 與 15~16pt (Callout/Subheadline)，輔助資訊與中繼資料為 13~14pt (Footnote)。
+    - 徹底修正首頁 `ItemCard` 與 `DashboardView` 中過度縮小的 `text-xs` (12px / 9pt)。
+    - 卡片標題升級至 iOS 標準 17pt（`text-[17px] font-semibold`），與其他分頁標題節奏一致。
+    - 分類、健康狀態標籤與地點資訊升級為 13pt（`text-[13px] font-medium` 搭配 `px-2.5 py-1` 呼吸空間）。
+    - 物品規格型號、未拆封說明與週期到期時間升級為 14pt（`text-[14px]`），清晰易讀免瞇眼。
+    - 核心操作按鈕（「開始使用」、「今天已換」、「編輯日期」）字級由 12px 擴大至 14~15pt，高度提升至 40px（`min-h-10 text-[14px] font-semibold`），符合手指人體工學。
+    - 狀態分段篩選列提升為 `text-[13.5px] py-2 px-3.5`，搜尋欄升級至 `text-[15px] py-2.5`。
+- **Pantone 潘通色系與 Pinterest 2026 莫蘭迪調色全面升級（徹底汰換制式高彩度死板純色）**：
+  - **導入潘通色彩體系**：
+    - **Peach Fuzz（柔和桃，Pantone 2024 年度代表色）**：以 `#FFF5EE`（溫潤杏白）為畫布底色，`#C86F58` 與 `#D97757` 為核心操作與標題色，`#6B4A41` 為深暖褐內文，柔和且極富生活溫度。
+    - **Plum Noir（暮色黑李，Pinterest 2026 moody maximalism）**：採用 `#F8F5F4` 為底色，以優雅醇厚的莫蘭迪李紫 `#8B5A73` 作為操作主色，搭配 `#5D3A4D` 深紫標題與 `#3D2832` 內文，徹底消滅過往刺眼的死板紫色（`#4f46e5`）。
+    - **Terracotta（暖陶土）**：以溫潤陶土紅 `#C86F58` 與 `#A8543E` 為軸心，營造大地陶器手感。
+    - **Sage Mist（鼠尾草綠）**：以低飽和灰綠 `#5E8271` 與草本灰綠調和，散發自然清新的寧靜氛圍。
+    - **Nordic Slate（岩霧藍）**：捨棄高飽和制式寶藍與靛藍，改採北歐岩霧灰藍 `#4E6E82`，沉著內斂。
+- **全站圖標全面升級為 Lucide 向量圖標（徹底消除手機 Emoji 表情符號）**：
+  - 新增 `<StockIcon />` 向量元件，支援將歷史資料與各備品庫標籤映射為 Lucide 專業圖標（`Home`、`Zap`、`Droplets`、`Utensils`、`Car`、`Briefcase`、`Leaf`、`Wrench`、`Baby`、`PawPrint`、`Boxes`、`Package`）。
+  - `StockSwitcher` 與 `StockSettingsModal` 的備品庫圖標選擇器全面改為 Lucide 向量圖標，切換選單頂部、全部備品與各操作項目徹底消除 `📦`、`🌟`、`🏠` 等系統 emoji。
+  - 提示文字與狀態標籤全面淨化（例如推播狀態移除 `✅` / `❌`，引導提示移除 `💡` 改為專屬 Lucide 元件）。
+- **Cloudflare UI Elements 風格與工程導向介面徹底重構（消弭 AI Slop / 泡泡膠囊公式感）**：
+  - **色彩與材質體系全面翻新**：
+    - 捨棄低彩度髒粉、薰衣草紫與混濁米色底色，全站底色升級為純淨 Slate-50 (`#f8fafc`)，卡片為標準純白 (`#ffffff`)，搭配細緻高對比 1px Slate-200 (`#e2e8f0`) 邊框。
+    - 引入 Cloudflare 招牌橙 (`#f6821f` / `#ea580c`) 與 Cloudflare 藍 (`#0051c3`) 作為核心功能強調色。
+    - 深色模式調校至 Cloudflare Docs 沉浸式冷灰 (`#0b0f19`) 與高對比邊框。
+  - **消滅巢狀卡片 (Box-in-Box Syndrome)**：
+    - 移除 `ItemCard` 內部突兀的紫色次級區塊，將價格、型號、地點等次要資訊平鋪為乾淨的單層 Slate 標籤與中繼資料列，視覺層級清晰不壓迫。
+  - **移除 AI 感裝飾字元與過度慶祝橫幅**：
+    - 依據 Cloudflare Style Guide UI Elements 規範，將按鈕與狀態中的表情符號與裝飾符號移除（例如「✨ 開始使用」、「🎉 正常運作中」巨型橫幅徹底刪除），精簡為工程俐落的操作動詞「開始使用」、「今天已換」。
+  - **狀態徽章與篩選欄改為 Cloudflare Segmented Controls**：
+    - 首頁篩選器由原先膨脹的泡泡膠囊改為極簡分段控制列（`全部`、`待處理`、`良好`、`要補貨`、`存放中`）。
+    - 狀態標籤統一為 Cloudflare 規格：細邊框搭配 6px 狀態圓點（Dot Indicator），資訊密度與掃讀效率大幅提升。
+  - **整合式庫存微調步進器 (Stock Stepper)**：
+    - 在卡片底部右側直接整合緊湊的 `-` / `數字` / `+` 步進控制，兼顧 44px 觸控友善與高密度視覺排版。
+  - **時程與採購清單同步風格收斂**：
+    - `ShoppingView` 與 `TimelineView` 全面套用 Cloudflare 標籤、邊角半徑 (`rounded-xl` / `rounded-lg`) 與極簡通知反饋。
+- **Emil Kowalski 設計工程與 Mobile-Native 體驗全面打磨**：
+  - **手機原生感基石修正**：
+    - 修正 `index.html` viewport 宣告，移除 `maximum-scale=1.0, user-scalable=no` 違規屬性，改由 `input/textarea/select` 強制保持至少 16px 防止 iOS Safari 自動聚焦縮放。
+    - 全域注入 `-webkit-tap-highlight-color: transparent` 消除觸控時的藍灰底色閃爍。
+    - 所有按鈕與可觸控元素設定 `touch-action: manipulation` 消除 300ms 雙擊延遲。
+    - 引入 Emil Kowalski 核心物理曲線變數（`--ease-out: cubic-bezier(0.23, 1, 0.32, 1)`、`--ease-drawer`）。
+  - **觸控反饋與動效精緻化**：
+    - 統一按鈕與互動元件為 `tactile-press`（`active:scale-[0.97]` 搭配 160ms ease-out），杜絕卡通感的 `scale-90`。
+    - `Navbar` 消除 `transition-all`，改為指定屬性過渡，並對 hover 加上能力查詢避免手機 Sticky Hover。
+    - 移除所有突兀且會造成視覺疲勞的 `animate-bounce-gentle` 放大彈跳，改為沉穩靜態或微淡入。
+    - `ItemCard` 進度條加入平滑寬度過渡動畫（`transition-[width] 300ms ease-out`）。
+  - **彈窗與抽屜動畫補齊**：
+    - 替換 `ItemModal`、`AuthModal`、`HistoryModal`、`StockSettingsModal`、`BatchPhotoModal`、`StockSwitcher` 的無效假 Tailwind class，補齊硬體加速的 `modal-backdrop-animate`、`modal-content-animate` 與 `sheet-content-animate`。
+    - 將彈窗高度上限由 `90vh` 改為 `90dvh` / `85dvh`，徹底解決手機虛擬鍵盤展開時的裁切與溢出問題。
+    - `ItemCard` 更多選單與稍後提醒選單補齊 `transform-origin` 與縮放淡入動畫。
+  - **版面安全區與底部導覽避讓架構化**：
+    - 將各頁面散落寫死的 `pb-32` 收斂至 App `<main>` 容器層統一處理（`main-content-pb: calc(4.5rem + env(safe-area-inset-bottom) + 1.25rem)`），確保所有螢幕尺寸的卡片均可完整捲動與操作。
+  - **無障礙 A11y 支援**：
+    - 全域注入 `@media (prefers-reduced-motion: reduce)` 守衛。
+
 ## 2026-09-10
 
 ### Fixed

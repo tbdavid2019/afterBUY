@@ -27,19 +27,21 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onSelectTab('dashboard')}
           aria-label={t('navDashboard')}
           aria-current={currentTab === 'dashboard' ? 'page' : undefined}
-            className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-2xl transition-all duration-200 active:scale-[0.97] ${
-            currentTab === 'dashboard' ? 'app-nav-item-active font-bold' : 'text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] hover:text-[var(--app-text)] font-semibold'
+          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-lg py-1 tactile-press ${
+            currentTab === 'dashboard'
+              ? 'app-nav-item-active font-semibold'
+              : 'text-[var(--app-muted)] [@media(hover:hover)]:hover:bg-[var(--app-surface-subtle)] [@media(hover:hover)]:hover:text-[var(--app-text)] font-medium'
           }`}
         >
           <div className="relative">
-            <Layers className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
+            <Layers className="w-5 h-5 mb-0.5" />
             {overdueCount > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold text-[13px] leading-none shadow-sm animate-pulse tabular-nums">
+              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold text-[11px] leading-none shadow-sm tabular-nums">
                 {overdueCount > 9 ? '9+' : overdueCount}
               </span>
             )}
           </div>
-          <span className="ui-meta tracking-tight font-semibold">{t('navDashboard')}</span>
+          <span className="text-xs tracking-tight">{t('navDashboard')}</span>
         </button>
 
         {/* 2. Timeline Tab */}
@@ -47,12 +49,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onSelectTab('timeline')}
           aria-label={t('navCalendar')}
           aria-current={currentTab === 'timeline' ? 'page' : undefined}
-            className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-2xl transition-all duration-200 active:scale-[0.97] ${
-            currentTab === 'timeline' ? 'app-nav-item-active font-bold' : 'text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] hover:text-[var(--app-text)] font-semibold'
+          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-lg py-1 tactile-press ${
+            currentTab === 'timeline'
+              ? 'app-nav-item-active font-semibold'
+              : 'text-[var(--app-muted)] [@media(hover:hover)]:hover:bg-[var(--app-surface-subtle)] [@media(hover:hover)]:hover:text-[var(--app-text)] font-medium'
           }`}
         >
-          <CalendarDays className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
-          <span className="ui-meta tracking-tight font-semibold">{t('navCalendar')}</span>
+          <CalendarDays className="w-5 h-5 mb-0.5" />
+          <span className="text-xs tracking-tight">{t('navCalendar')}</span>
         </button>
 
         {/* 3. Shopping / Stock Tab */}
@@ -60,19 +64,21 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onSelectTab('shopping')}
           aria-label={t('navShopping')}
           aria-current={currentTab === 'shopping' ? 'page' : undefined}
-            className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-2xl transition-all duration-200 active:scale-[0.97] ${
-            currentTab === 'shopping' ? 'app-nav-item-active font-bold' : 'text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] hover:text-[var(--app-text)] font-semibold'
+          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-lg py-1 tactile-press ${
+            currentTab === 'shopping'
+              ? 'app-nav-item-active font-semibold'
+              : 'text-[var(--app-muted)] [@media(hover:hover)]:hover:bg-[var(--app-surface-subtle)] [@media(hover:hover)]:hover:text-[var(--app-text)] font-medium'
           }`}
         >
           <div className="relative">
-            <ShoppingBag className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
+            <ShoppingBag className="w-5 h-5 mb-0.5" />
             {restockCount > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-amber-500 text-slate-950 rounded-full flex items-center justify-center font-bold text-[13px] leading-none shadow-sm tabular-nums">
+              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-amber-500 text-slate-950 rounded-full flex items-center justify-center font-bold text-[11px] leading-none shadow-sm tabular-nums">
                 {restockCount > 9 ? '9+' : restockCount}
               </span>
             )}
           </div>
-          <span className="ui-meta tracking-tight font-semibold">{t('navShopping')}</span>
+          <span className="text-xs tracking-tight">{t('navShopping')}</span>
         </button>
 
         {/* 4. Settings Tab */}
@@ -80,12 +86,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onSelectTab('settings')}
           aria-label={t('navSettings')}
           aria-current={currentTab === 'settings' ? 'page' : undefined}
-            className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-2xl transition-all duration-200 active:scale-[0.97] ${
-            currentTab === 'settings' ? 'app-nav-item-active font-bold' : 'text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] hover:text-[var(--app-text)] font-semibold'
+          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-lg py-1 tactile-press ${
+            currentTab === 'settings'
+              ? 'app-nav-item-active font-semibold'
+              : 'text-[var(--app-muted)] [@media(hover:hover)]:hover:bg-[var(--app-surface-subtle)] [@media(hover:hover)]:hover:text-[var(--app-text)] font-medium'
           }`}
         >
-          <Settings2 className="w-5 h-5 mb-0.5 transition-transform active:scale-90" />
-          <span className="ui-meta tracking-tight font-semibold">{t('navSettings')}</span>
+          <Settings2 className="w-5 h-5 mb-0.5" />
+          <span className="text-xs tracking-tight">{t('navSettings')}</span>
         </button>
       </div>
     </nav>

@@ -82,84 +82,292 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   };
 
   const statusChips = [
-    { id: 'due' as const, label: locale === 'zh-TW' ? '待處理' : 'Due', count: counts.due, icon: AlertTriangle, tone: 'text-rose-600 dark:text-rose-400' },
-    { id: 'healthy' as const, label: locale === 'zh-TW' ? '狀態良好' : 'Healthy', count: counts.healthy, icon: CheckCircle2, tone: 'text-emerald-600 dark:text-emerald-400' },
-    { id: 'restock' as const, label: locale === 'zh-TW' ? '要補貨' : 'Restock', count: counts.restock, icon: ShoppingBag, tone: 'text-amber-600 dark:text-amber-400' },
-    ...(counts.snoozed ? [{ id: 'snoozed' as const, label: locale === 'zh-TW' ? '延後' : 'Snoozed', count: counts.snoozed, icon: Moon, tone: 'text-sky-600 dark:text-sky-400' }] : []),
-    ...(counts.stored ? [{ id: 'stored' as const, label: locale === 'zh-TW' ? '存放中' : 'Stored', count: counts.stored, icon: Package, tone: 'text-indigo-600 dark:text-indigo-400' }] : []),
+    { id: 'due' as const, label: locale === 'zh-TW' ? '待處理' : 'Due', count: counts.due, dotClass: 'bg-rose-500' },
+    { id: 'healthy' as const, label: locale === 'zh-TW' ? '狀態良好' : 'Healthy', count: counts.healthy, dotClass: 'bg-emerald-500' },
+    { id: 'restock' as const, label: locale === 'zh-TW' ? '要補貨' : 'Restock', count: counts.restock, dotClass: 'bg-amber-500' },
+    ...(counts.snoozed ? [{ id: 'snoozed' as const, label: locale === 'zh-TW' ? '延後' : 'Snoozed', count: counts.snoozed, dotClass: 'bg-sky-500' }] : []),
+    ...(counts.stored ? [{ id: 'stored' as const, label: locale === 'zh-TW' ? '存放中' : 'Stored', count: counts.stored, dotClass: 'bg-slate-400' }] : []),
   ];
 
   return (
-    <div className="space-y-4 pb-32">
-      <section className="pt-1">
-        <div className="min-w-0">
-          <h2 className="ui-page-title tracking-tight text-[var(--app-text)]">{locale === 'zh-TW' ? '物品' : 'Items'}</h2>
-          <p className="ui-body mt-1 text-[var(--app-muted)]">{locale === 'zh-TW' ? `${items.length} 件物品 · 快速掌握下一步` : `${items.length} tracked · see what needs attention`}</p>
+    <div className="space-y-3.5">
+      {/* Header section */}
+      <section className="flex items-center justify-between gap-3 pt-1">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            {locale === 'zh-TW' ? '耗材總覽' : 'Consumables'}
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {locale === 'zh-TW'
+              ? `共追蹤 ${items.length} 項生活物品`
+              : `${items.length} items tracked`}
+          </p>
         </div>
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline tactile-press"
+          >
+            {locale === 'zh-TW' ? '清除篩選' : 'Reset filters'}
+          </button>
+        )}
       </section>
 
+      {/* Guest Mode Banner */}
       {!user && (
-        <details className="app-surface rounded-xl border border-[var(--app-accent)]/30 p-3 shadow-sm">
-          <summary className="ui-button flex min-h-11 cursor-pointer list-none items-center gap-2 text-[var(--app-text)]"><Sparkles className="h-4 w-4 text-[var(--app-accent-strong)]" />{t('guestModeBannerTitle')}<span className="ui-meta ml-auto text-[var(--app-muted)]">{t('guestModeBannerBadge')}</span></summary>
-          <div className="ui-meta mt-2 border-t border-[var(--app-border-subtle)] pt-2 text-[var(--app-muted)]">
+        <details className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-xs text-sm">
+          <summary className="font-semibold cursor-pointer list-none flex items-center justify-between text-slate-700 dark:text-slate-200 tactile-press">
+            <span className="flex items-center gap-1.5">
+              <Fingerprint className="h-4 w-4 text-[var(--app-accent)]" />
+              {t('guestModeBannerTitle')}
+            </span>
+            <span className="text-slate-400 font-normal">{t('guestModeBannerBadge')} ▾</span>
+          </summary>
+          <div className="mt-2.5 border-t border-slate-100 dark:border-slate-800 pt-2 text-slate-600 dark:text-slate-400 leading-relaxed">
             <p>{t('guestModeBannerDesc')}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {items.length > 0 && onClearDemoItems && <button type="button" onClick={onClearDemoItems} className="app-control ui-button min-h-11 rounded-xl border px-3">{t('guestModeClearDemoBtn')}</button>}
-              {items.length === 0 && onRestoreDemoItems && <button type="button" onClick={onRestoreDemoItems} className="app-control ui-button min-h-11 rounded-xl border px-3"><RotateCcw className="mr-1 inline h-4 w-4" />{t('guestModeRestoreDemoBtn')}</button>}
-              {onOpenAuth && <button type="button" onClick={onOpenAuth} className="app-primary ui-button min-h-11 rounded-xl px-3"><Fingerprint className="mr-1 inline h-4 w-4" />{t('guestModeLoginBtn')}</button>}
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {items.length > 0 && onClearDemoItems && (
+                <button type="button" onClick={onClearDemoItems} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press">
+                  {t('guestModeClearDemoBtn')}
+                </button>
+              )}
+              {items.length === 0 && onRestoreDemoItems && (
+                <button type="button" onClick={onRestoreDemoItems} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press flex items-center gap-1.5">
+                  <RotateCcw className="h-4 w-4" />{t('guestModeRestoreDemoBtn')}
+                </button>
+              )}
+              {onOpenAuth && (
+                <button type="button" onClick={onOpenAuth} className="app-primary px-3.5 py-2 rounded-lg text-sm font-semibold tactile-press flex items-center gap-1.5">
+                  <Fingerprint className="h-4 w-4" />{t('guestModeLoginBtn')}
+                </button>
+              )}
             </div>
           </div>
         </details>
       )}
 
-      {counts.due === 0 && items.length > 0 && !hasFilters && (
-        <div className="app-surface rounded-2xl border border-emerald-500/30 p-3.5 flex items-center gap-3 shadow-sm animate-bounce-gentle">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="h-4 w-4" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h4 className="ui-item-title text-[var(--app-text)]">{locale === 'zh-TW' ? '太棒了！所有耗材皆在最佳狀態' : 'All good! All items up to date'}</h4>
-            <p className="ui-meta text-[var(--app-muted)]">{locale === 'zh-TW' ? '目前沒有逾期或待更換項目，生活井井有條。' : 'No items due or overdue right now.'}</p>
-          </div>
-        </div>
-      )}
+      {/* Cloudflare Segmented Status Filter Bar */}
+      <section aria-label={locale === 'zh-TW' ? '狀態篩選' : 'Status filters'} className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
+        <button
+          type="button"
+          onClick={() => setStatusFilter('all')}
+          className={`px-3.5 py-2 text-[13.5px] sm:text-sm font-medium rounded-lg border transition-all shrink-0 tactile-press ${
+            statusFilter === 'all'
+              ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs'
+              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
+          }`}
+        >
+          {locale === 'zh-TW' ? '全部' : 'All'}
+          <span className="tabular-nums ml-1 opacity-75">{items.length}</span>
+        </button>
 
-      <section aria-label={locale === 'zh-TW' ? '狀態篩選' : 'Status filters'} className="flex flex-wrap gap-2">
-        {statusChips.map(({ id, label, count, icon: Icon, tone }) => <button key={id} type="button" onClick={() => setStatusFilter(statusFilter === id ? 'all' : id)} aria-pressed={statusFilter === id} className={`app-control ui-button flex min-h-11 items-center gap-1.5 rounded-full border px-3 ${statusFilter === id ? 'app-primary' : ''}`}><Icon className={`h-4 w-4 ${statusFilter === id ? '' : tone}`} />{label}<span className="tabular-nums">{count}</span></button>)}
+        {statusChips.map(({ id, label, count, dotClass }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === id ? 'all' : id)}
+            aria-pressed={statusFilter === id}
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-[13.5px] sm:text-sm font-medium rounded-lg border transition-all shrink-0 tactile-press ${
+              statusFilter === id
+                ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+            <span>{label}</span>
+            <span className="tabular-nums font-semibold ml-0.5">{count}</span>
+          </button>
+        ))}
       </section>
 
-      <section className="space-y-2">
-        <div className="relative">
-          <label htmlFor="dashboard-search" className="sr-only">{locale === 'zh-TW' ? '搜尋物品' : 'Search items'}</label>
-          <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-[var(--app-muted)]" />
-          <input id="dashboard-search" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder={locale === 'zh-TW' ? '搜尋物品、備註或型號' : 'Search items, notes, or models'} className="app-surface ui-body min-h-11 w-full rounded-xl border pl-10 pr-10 text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted-low)] focus:border-[var(--app-accent)]" />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              aria-label="清除搜尋"
-              className="absolute right-1 top-1 min-h-9 min-w-9 flex items-center justify-center rounded-lg text-[var(--app-muted)] hover:text-[var(--app-text)]"
-            >
-              <span className="text-base font-bold">×</span>
-            </button>
-          )}
-        </div>
-        <button type="button" onClick={() => setShowFilters((open) => !open)} className="app-control ui-button flex min-h-11 w-full items-center justify-between rounded-xl border px-3 text-left"><span className="flex items-center gap-2"><SlidersHorizontal className="h-4 w-4 text-[var(--app-accent-strong)]" />{locale === 'zh-TW' ? '分類與位置' : 'Category and location'}{hasFilters && <span className="rounded-full bg-[var(--app-accent)] px-1.5 text-white">•</span>}</span><span className="text-[var(--app-muted)]">{showFilters ? '⌃' : '⌄'}</span></button>
-        {showFilters && <div className="app-surface rounded-xl border p-3 space-y-3">
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setSelectedCategory('all')} className={`ui-button min-h-11 rounded-full border px-3 ${selectedCategory === 'all' ? 'app-primary' : 'app-control'}`}>{locale === 'zh-TW' ? '全部類別' : 'All categories'}</button>
-            {Object.values(CATEGORIES).map((category) => <button key={category.id} type="button" onClick={() => setSelectedCategory(selectedCategory === category.id ? 'all' : category.id)} className={`ui-button min-h-11 rounded-full border px-3 ${selectedCategory === category.id ? 'app-primary' : 'app-control'}`}>{category.label}</button>)}
+      {/* Unified Search, Filter and Actions Toolbar */}
+      <section className="space-y-2.5">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              id="dashboard-search"
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={locale === 'zh-TW' ? '搜尋物品、型號或備註...' : 'Search items, models, or notes...'}
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-8 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition-colors"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="清除搜尋"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold"
+              >
+                ×
+              </button>
+            )}
           </div>
-          {uniqueLocations.length > 0 && <div className="flex flex-wrap gap-2 border-t border-[var(--app-border-subtle)] pt-3"><span className="ui-meta flex items-center text-[var(--app-muted)]"><MapPin className="mr-1 h-4 w-4" />位置</span><button type="button" onClick={() => setSelectedLocation('all')} className={`ui-button min-h-11 rounded-full border px-3 ${selectedLocation === 'all' ? 'app-primary' : 'app-control'}`}>全部</button>{uniqueLocations.map((location) => <button key={location} type="button" onClick={() => setSelectedLocation(selectedLocation === location ? 'all' : location)} className={`ui-button min-h-11 rounded-full border px-3 ${selectedLocation === location ? 'app-primary' : 'app-control'}`}>{location}</button>)}</div>}
-        </div>}
+
+          <button
+            type="button"
+            onClick={() => setShowFilters((open) => !open)}
+            aria-label={locale === 'zh-TW' ? '分類與位置篩選' : 'Filter by category and location'}
+            className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium rounded-lg border transition-colors tactile-press shrink-0 ${
+              showFilters || selectedCategory !== 'all' || selectedLocation !== 'all'
+                ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+            }`}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span className="hidden sm:inline">{locale === 'zh-TW' ? '篩選' : 'Filter'}</span>
+            {(selectedCategory !== 'all' || selectedLocation !== 'all') && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--app-accent)]" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsPhotoModalOpen(true)}
+            aria-label={t('batchIntake')}
+            title={t('batchIntake')}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors tactile-press shrink-0"
+          >
+            <Camera className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('batchIntake')}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setIsSelecting((value) => !value); setSelectedIds(new Set()); }}
+            aria-label={isSelecting ? t('cancelSelect') : t('batchMode')}
+            title={isSelecting ? t('cancelSelect') : t('batchMode')}
+            className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium rounded-lg border transition-colors tactile-press shrink-0 ${
+              isSelecting
+                ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] text-[var(--app-accent-strong)] font-semibold'
+                : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+            }`}
+          >
+            <CheckSquare className="h-4 w-4" />
+            <span className="hidden sm:inline">{isSelecting ? t('cancelSelect') : t('batchMode')}</span>
+          </button>
+        </div>
+
+        {/* Filter Drawer */}
+        {showFilters && (
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 space-y-3 sheet-content-animate shadow-xs text-xs">
+            <div>
+              <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-2">
+                {locale === 'zh-TW' ? '耗材分類' : 'Category'}
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-2.5 py-1 rounded-md border font-medium transition-colors tactile-press ${
+                    selectedCategory === 'all'
+                      ? 'app-primary border-transparent'
+                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                  }`}
+                >
+                  {locale === 'zh-TW' ? '全部類別' : 'All categories'}
+                </button>
+                {Object.values(CATEGORIES).map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(selectedCategory === category.id ? 'all' : category.id)}
+                    className={`px-2.5 py-1 rounded-md border font-medium transition-colors tactile-press ${
+                      selectedCategory === category.id
+                        ? 'app-primary border-transparent'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {uniqueLocations.length > 0 && (
+              <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
+                <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-2">
+                  {locale === 'zh-TW' ? '放置位置' : 'Location'}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLocation('all')}
+                    className={`px-2.5 py-1 rounded-md border font-medium transition-colors tactile-press ${
+                      selectedLocation === 'all'
+                        ? 'app-primary border-transparent'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                    }`}
+                  >
+                    {locale === 'zh-TW' ? '全部位置' : 'All locations'}
+                  </button>
+                  {uniqueLocations.map((loc) => (
+                    <button
+                      key={loc}
+                      type="button"
+                      onClick={() => setSelectedLocation(selectedLocation === loc ? 'all' : loc)}
+                      className={`px-2.5 py-1 rounded-md border font-medium transition-colors tactile-press ${
+                        selectedLocation === loc
+                          ? 'app-primary border-transparent'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                      }`}
+                    >
+                      {loc}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
+      {/* Items Section */}
       <section>
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2"><h3 className="ui-section-title truncate text-[var(--app-text)]">{locale === 'zh-TW' ? '追蹤中的物品' : 'Tracked items'} <span className="font-normal text-[var(--app-muted)]">{filteredItems.length}</span></h3>{hasFilters && <button type="button" onClick={clearFilters} className="ui-button shrink-0 text-[var(--app-accent-strong)]">清除</button>}</div>
-          <div className="flex shrink-0 gap-1.5"><button type="button" onClick={() => setIsPhotoModalOpen(true)} className="app-control ui-button flex min-h-11 items-center gap-1 rounded-xl border px-2.5"><Camera className="h-4 w-4" /><span className="hidden sm:inline">{t('batchIntake')}</span></button><button type="button" onClick={() => { setIsSelecting((value) => !value); setSelectedIds(new Set()); }} className={`ui-button flex min-h-11 items-center gap-1 rounded-xl border px-2.5 ${isSelecting ? 'app-primary' : 'app-control'}`}><CheckSquare className="h-4 w-4" /><span className="hidden sm:inline">{isSelecting ? t('cancelSelect') : t('batchMode')}</span></button></div>
-        </div>
-        {filteredItems.length === 0 ? <div className="app-surface rounded-2xl border p-6 text-center shadow-sm"><Sparkles className="mx-auto mb-2 h-8 w-8 text-[var(--app-accent-strong)]" /><h3 className="ui-section-title text-[var(--app-text)]">{items.length === 0 ? (!user ? t('guestModeClearedTitle') : t('emptyItemsTitle')) : (locale === 'zh-TW' ? '沒有符合條件的物品' : 'No matching items')}</h3><p className="ui-body mx-auto mt-1 max-w-xs text-[var(--app-muted)]">{items.length === 0 ? (!user ? t('guestModeClearedDesc') : t('emptyItemsDesc')) : (locale === 'zh-TW' ? '試著清除篩選條件。' : 'Try clearing filters.')}</p>{items.length === 0 && <div className="mt-4 flex flex-wrap justify-center gap-2"><button type="button" onClick={onOpenNewItem} className="app-primary ui-button min-h-11 rounded-xl px-4"><Plus className="mr-1 inline h-4 w-4" />{locale === 'zh-TW' ? '新增第一個物品' : 'Add first item'}</button>{!user && onRestoreDemoItems && <button type="button" onClick={onRestoreDemoItems} className="app-control ui-button min-h-11 rounded-xl border px-3">{t('guestModeRestoreDemoBtn')}</button>}</div>}</div> : <div className="grid grid-cols-1 gap-3">{filteredItems.map((item) => <ItemCard key={item.id} item={item} onReplace={onReplace} onAdjustStock={onAdjustStock} onEdit={onEdit} onDelete={onDelete} onViewHistory={onViewHistory} onStartUsing={onStartUsing} onSnooze={onSnooze} selectable={isSelecting} isSelected={selectedIds.has(item.id)} onToggleSelect={toggleSelected} />)}</div>}
+        {filteredItems.length === 0 ? (
+          <div className="app-surface rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow-xs">
+            <Package className="mx-auto mb-2 h-8 w-8 text-slate-400" />
+            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              {items.length === 0 ? (!user ? t('guestModeClearedTitle') : t('emptyItemsTitle')) : (locale === 'zh-TW' ? '沒有符合條件的耗材' : 'No matching items')}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mx-auto mt-1 max-w-xs">
+              {items.length === 0 ? (!user ? t('guestModeClearedDesc') : t('emptyItemsDesc')) : (locale === 'zh-TW' ? '請嘗試清除篩選或調整搜尋關鍵字。' : 'Try clearing filters.')}
+            </p>
+            {items.length === 0 && (
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <button type="button" onClick={onOpenNewItem} className="app-primary px-4 py-2 text-xs font-semibold rounded-lg shadow-xs tactile-press flex items-center gap-1.5">
+                  <Plus className="h-4 w-4" />{locale === 'zh-TW' ? '新增第一個耗材' : 'Add first item'}
+                </button>
+                {!user && onRestoreDemoItems && (
+                  <button type="button" onClick={onRestoreDemoItems} className="px-3 py-2 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press">
+                    {t('guestModeRestoreDemoBtn')}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {filteredItems.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                onReplace={onReplace}
+                onAdjustStock={onAdjustStock}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onViewHistory={onViewHistory}
+                onStartUsing={onStartUsing}
+                onSnooze={onSnooze}
+                selectable={isSelecting}
+                isSelected={selectedIds.has(item.id)}
+                onToggleSelect={toggleSelected}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {isSelecting && selectedIds.size > 0 && <div className="fixed bottom-20 left-3 right-3 z-40 mx-auto max-w-xl"><div className="app-surface flex items-center justify-between gap-2 rounded-2xl border p-2.5 shadow-xl"><div className="flex min-w-0 items-center gap-2"><span className="ui-button truncate">{t('selectedItems', { n: selectedIds.size })}</span><button type="button" onClick={selectAll} className="ui-button shrink-0 text-[var(--app-accent-strong)]">{selectedIds.size === filteredItems.length ? '取消全選' : '全選'}</button></div><div className="flex shrink-0 gap-1"><button type="button" disabled={batchActionLoading} onClick={batchReplace} className="app-primary ui-button min-h-11 rounded-xl px-2.5"><RotateCcw className="inline h-4 w-4" /></button><button type="button" disabled={batchActionLoading} onClick={() => batchStock(1)} className="app-control ui-button min-h-11 rounded-xl border px-2.5">+1</button><button type="button" disabled={batchActionLoading} onClick={batchDelete} className="app-control min-h-11 rounded-xl border px-2.5 text-rose-600"><Trash2 className="h-4 w-4" /></button></div></div></div>}

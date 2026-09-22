@@ -11,11 +11,11 @@ export interface ThemePaletteConfig {
 }
 
 export const THEME_PALETTES: ThemePaletteConfig[] = [
-  { id: 'coral', label: '珊瑚', labelEn: 'Coral', dotColor: '#d85a42', ringColor: '#b45140', lightBg: '#f7f5f0' },
-  { id: 'mint', label: '薄荷', labelEn: 'Mint', dotColor: '#10b981', ringColor: '#059669', lightBg: '#f2f7f4' },
-  { id: 'peach', label: '蜜桃', labelEn: 'Peach', dotColor: '#f43f5e', ringColor: '#e14d66', lightBg: '#fbf4f2' },
-  { id: 'sky', label: '天空', labelEn: 'Sky', dotColor: '#0284c7', ringColor: '#0284c7', lightBg: '#f0f6fa' },
-  { id: 'lilac', label: '丁香', labelEn: 'Lilac', dotColor: '#8b5cf6', ringColor: '#7c3aed', lightBg: '#f6f4fa' },
+  { id: 'coral', label: '暖陶土', labelEn: 'Terracotta', dotColor: '#C86F58', ringColor: '#A8543E', lightBg: '#F9F6F4' },
+  { id: 'peach', label: '柔和桃', labelEn: 'Peach Fuzz', dotColor: '#D97757', ringColor: '#C86F58', lightBg: '#FFF5EE' },
+  { id: 'lilac', label: '暮色黑李', labelEn: 'Plum Noir', dotColor: '#8B5A73', ringColor: '#5D3A4D', lightBg: '#F8F5F4' },
+  { id: 'mint', label: '鼠尾草綠', labelEn: 'Sage Mist', dotColor: '#5E8271', ringColor: '#456354', lightBg: '#F5F7F6' },
+  { id: 'sky', label: '岩霧藍', labelEn: 'Nordic Slate', dotColor: '#4E6E82', ringColor: '#3A5465', lightBg: '#F4F6F8' },
 ];
 
 export function getInitialTheme(storedTheme: string | null, fallback: ThemeMode = 'light'): ThemeMode {

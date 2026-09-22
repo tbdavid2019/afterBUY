@@ -137,8 +137,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="app-surface border border-[var(--app-border)] rounded-2xl w-full max-w-sm p-6 shadow-2xl relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm modal-backdrop-animate">
+      <div className="app-surface border border-[var(--app-border)] rounded-2xl w-full max-w-sm p-6 shadow-2xl relative overflow-hidden modal-content-animate">
         {/* Close Button */}
         <button
           type="button"
@@ -167,7 +167,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               type="button"
               onClick={handlePasskeyLogin}
               disabled={loading}
-              className="app-primary ui-button w-full min-h-11 flex items-center justify-center gap-2 hover:brightness-105 font-bold rounded-xl shadow-sm transition-transform active:scale-95 disabled:opacity-50 mb-4"
+              className="app-primary ui-button w-full min-h-11 flex items-center justify-center gap-2 hover:brightness-105 font-bold rounded-xl shadow-sm tactile-press disabled:opacity-50 mb-4"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -211,7 +211,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               <button
                 type="submit"
                 disabled={loading || !email}
-                className="w-full min-h-11 flex items-center justify-center gap-2 app-control ui-button hover:border-[var(--app-accent)] font-semibold rounded-xl border transition-transform active:scale-95 disabled:opacity-50"
+                className="w-full min-h-11 flex items-center justify-center gap-2 app-control ui-button hover:border-[var(--app-accent)] font-semibold rounded-xl border tactile-press disabled:opacity-50"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <>發送 6 位數驗證碼 <ArrowRight className="w-3.5 h-3.5" /></>}
               </button>
@@ -243,6 +243,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               <div>
                 <input
                   type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
                   maxLength={6}
                   required
                   autoFocus
@@ -262,7 +265,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               <button
                 type="submit"
                 disabled={loading || otpCode.length !== 6}
-                className="app-primary ui-button w-full min-h-11 flex items-center justify-center gap-2 hover:brightness-105 font-bold rounded-xl transition-transform active:scale-95 disabled:opacity-50 shadow-sm"
+                className="app-primary ui-button w-full min-h-11 flex items-center justify-center gap-2 hover:brightness-105 font-bold rounded-xl tactile-press disabled:opacity-50 shadow-sm"
               >
                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>驗證並登入</span>}
               </button>

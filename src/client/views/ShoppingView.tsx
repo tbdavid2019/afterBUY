@@ -46,7 +46,7 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
   };
 
   return (
-    <div className="space-y-6 pb-32 pt-1">
+    <div className="space-y-6 pt-1">
       {/* Banner */}
       <div className="border-b border-[var(--app-border)] pb-4 flex items-end justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -65,9 +65,9 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
               type="button"
               disabled={batchLoading}
               onClick={handleBatchReplenishAll}
-              className="app-primary ui-button flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3.5 shadow-sm transition-transform active:scale-95 disabled:opacity-50"
+              className="app-primary ui-button flex min-h-10 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm font-medium shadow-sm tactile-press disabled:opacity-50"
             >
-              <RotateCw className={`h-4 w-4 ${batchLoading ? 'animate-spin' : ''}`} />
+              <RotateCw className={`h-3.5 w-3.5 ${batchLoading ? 'animate-spin' : ''}`} />
               <span>{locale === 'zh-TW' ? '全部 +1' : 'All +1'}</span>
             </button>
           )}
@@ -77,9 +77,9 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
               type="button"
               onClick={handleCopyList}
               aria-label="複製待採購清單"
-              className="app-control ui-button flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border px-3 transition-transform active:scale-95 hover:border-[var(--app-accent)]"
+              className="app-control ui-button flex min-h-10 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm font-medium tactile-press hover:border-[var(--app-accent)]"
             >
-              {copied ? <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-4 w-4 text-[var(--app-accent-strong)]" />}
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="h-3.5 w-3.5 text-[var(--app-accent-strong)]" />}
               <span>{copied ? (locale === 'zh-TW' ? '已複製' : 'Copied!') : (locale === 'zh-TW' ? '複製清單' : 'Copy')}</span>
             </button>
           )}
@@ -87,7 +87,7 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
       </div>
 
       {feedback && (
-        <div className="app-surface-subtle border border-emerald-500/30 rounded-2xl p-3 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 ui-meta font-medium animate-bounce-gentle">
+        <div className="app-surface-subtle border border-emerald-500/30 rounded-lg p-3 flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-sm font-medium transition-opacity duration-150">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>{feedback}</span>
         </div>
@@ -98,17 +98,17 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
         <h3 className="ui-section-title text-[var(--app-text)] mb-3 flex items-center gap-2">
           <Package className="h-4 w-4 text-[var(--app-accent-strong)]" />
           <span>{locale === 'zh-TW' ? '急需採購補貨' : 'Restock Needed'}</span>
-          <span className="ui-badge rounded-full border px-2 py-0.5 bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30 tabular-nums font-semibold">
+          <span className="inline-flex items-center rounded border px-1.5 py-0.2 bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30 tabular-nums text-xs font-semibold">
             {restockItems.length}
           </span>
         </h3>
 
         {restockItems.length === 0 ? (
-          <div className="app-surface rounded-2xl border p-6 text-center shadow-sm">
+          <div className="app-surface rounded-xl border p-6 text-center shadow-sm">
             <CheckCircle2 className="mx-auto mb-2 h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-            <h4 className="ui-item-title text-[var(--app-text)]">{locale === 'zh-TW' ? '備品庫存充足！' : 'Inventory Healthy!'}</h4>
+            <h4 className="ui-item-title text-[var(--app-text)]">{locale === 'zh-TW' ? '備品庫存充足' : 'Inventory Healthy'}</h4>
             <p className="ui-body mt-1 text-[var(--app-muted)]">
-              {locale === 'zh-TW' ? '目前所有耗材備品均在安全數量以上，生活井井有條。' : 'All items have sufficient backup stock.'}
+              {locale === 'zh-TW' ? '目前所有耗材備品均在安全數量以上。' : 'All items have sufficient backup stock.'}
             </p>
           </div>
         ) : (
@@ -119,14 +119,14 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
               return (
                 <article
                   key={item.id}
-                  className="app-surface rounded-2xl border border-amber-500/40 p-4 flex items-center justify-between gap-3 shadow-sm"
+                  className="app-surface rounded-xl border border-amber-500/40 p-3.5 flex items-center justify-between gap-3 shadow-sm"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                      <span className="ui-badge rounded-full border px-2 py-0.5 bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30 font-semibold tabular-nums">
+                      <span className="inline-flex items-center rounded border px-1.5 py-0.5 bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30 text-xs font-medium tabular-nums">
                         庫存: {item.backupStock} (門檻: {item.minStockAlert})
                       </span>
-                      <span className={`ui-badge rounded-full border px-2 py-0.5 ${cat.bg} ${cat.color}`}>
+                      <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-medium ${cat.bg} ${cat.color}`}>
                         {cat.label}
                       </span>
                     </div>
@@ -135,26 +135,26 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
                   </div>
 
                   {/* Stock Quick Adjustment with 44px touch targets */}
-                  <div className="app-surface-subtle flex min-h-11 items-center gap-1 rounded-xl border px-2 shrink-0">
+                  <div className="app-surface-subtle flex min-h-10 items-center gap-1 rounded-lg border px-1.5 shrink-0">
                     <button
                       type="button"
                       onClick={() => onAdjustStock(item.id, -1)}
                       disabled={item.backupStock <= 0}
                       aria-label={`減少 ${item.name} 備品庫存`}
-                      className="min-h-11 min-w-9 rounded-lg text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-30 flex items-center justify-center transition-transform active:scale-90"
+                      className="min-h-10 min-w-8 rounded text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-30 flex items-center justify-center tactile-press"
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3.5 w-3.5" />
                     </button>
-                    <span className="ui-body min-w-6 text-center font-semibold tabular-nums text-[var(--app-text)]">
+                    <span className="min-w-6 text-center text-sm font-semibold tabular-nums text-[var(--app-text)]">
                       {item.backupStock}
                     </span>
                     <button
                       type="button"
                       onClick={() => onAdjustStock(item.id, 1)}
                       aria-label={`增加 ${item.name} 備品庫存`}
-                      className="min-h-11 min-w-9 rounded-lg text-[var(--app-accent-strong)] hover:bg-[var(--app-surface)] flex items-center justify-center transition-transform active:scale-90"
+                      className="min-h-10 min-w-8 rounded text-[var(--app-accent-strong)] hover:bg-[var(--app-surface)] flex items-center justify-center tactile-press"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </article>
@@ -169,7 +169,7 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
         <h3 className="ui-section-title text-[var(--app-text)] mb-3">
           {locale === 'zh-TW' ? '全部物品備品概況' : 'All Items Overview'}
         </h3>
-        <div className="app-surface border rounded-2xl divide-y divide-[var(--app-border)] overflow-hidden shadow-sm">
+        <div className="app-surface border rounded-xl divide-y divide-[var(--app-border)] overflow-hidden shadow-sm">
           {items.map((item) => (
             <div key={item.id} className="min-h-12 px-4 py-2 flex items-center justify-between gap-3">
               <span className="ui-body text-[var(--app-text)] font-medium truncate flex-1 pr-2">{item.name}</span>
@@ -181,9 +181,9 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
                   type="button"
                   onClick={() => onAdjustStock(item.id, 1)}
                   aria-label={`為 ${item.name} 補充一份備品`}
-                  className="app-control ui-button min-h-11 min-w-11 flex items-center justify-center rounded-xl border hover:border-[var(--app-accent)] text-[var(--app-accent-strong)] transition-transform active:scale-95"
+                  className="app-control min-h-9 min-w-9 flex items-center justify-center rounded-md border hover:border-[var(--app-accent)] text-[var(--app-accent-strong)] tactile-press"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>

@@ -20,7 +20,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
     }), [items]);
 
   return (
-    <div className="space-y-4 pb-32 pt-1">
+    <div className="space-y-4 pt-1">
       <header className="border-b border-[var(--app-border)] pb-4">
         <h2 className="ui-page-title flex items-center gap-2 text-[var(--app-text)]">
           <Calendar className="h-5 w-5 text-[var(--app-accent-strong)]" />
@@ -30,7 +30,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
       </header>
 
       {scheduledItems.length === 0 ? (
-        <div className="app-surface rounded-2xl border p-6 text-center shadow-sm">
+        <div className="app-surface rounded-xl border p-6 text-center shadow-sm">
           <Calendar className="mx-auto mb-2 h-8 w-8 text-[var(--app-accent-strong)]" />
           <h3 className="ui-section-title text-[var(--app-text)]">目前沒有待排程項目</h3>
           <p className="ui-body mx-auto mt-1 max-w-xs text-[var(--app-muted)]">
@@ -48,19 +48,22 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
             return (
               <article key={item.id} className="relative">
                 <div className={`absolute -left-6 top-4 h-3 w-3 rounded-full border-2 border-[var(--app-bg)] ${item.healthStatus === 'overdue' ? 'bg-rose-500' : item.healthStatus === 'due_soon' ? 'bg-amber-500' : item.healthStatus === 'snoozed' ? 'bg-sky-500' : 'bg-emerald-500'}`} />
-                <div className="app-surface flex items-center justify-between gap-3 rounded-2xl border p-4 shadow-sm">
-                  <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left">
+                <div className="app-surface flex items-center justify-between gap-3 rounded-xl border p-3.5 shadow-sm">
+                  <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left tactile-press">
                     <div className="ui-meta flex flex-wrap items-center gap-2 text-[var(--app-muted)]">
-                      <span className="flex items-center gap-1 font-semibold text-[var(--app-accent-strong)] tabular-nums"><Clock className="h-4 w-4" />{dateLabel} · {displayDate}</span>
-                      <span className={`ui-badge rounded-full border px-2 py-0.5 ${statusInfo.badge}`}>{statusInfo.text}</span>
+                      <span className="flex items-center gap-1 font-semibold text-[var(--app-accent-strong)] tabular-nums"><Clock className="h-3.5 w-3.5" />{dateLabel} · {displayDate}</span>
+                      <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs font-semibold ${statusInfo.badge}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
+                        {statusInfo.text}
+                      </span>
                     </div>
                     <h3 className="ui-item-title mt-1 truncate text-[var(--app-text)]">{item.name}</h3>
                     <p className="ui-meta mt-0.5 text-[var(--app-muted)]">{category.label} · 備品 <span className="tabular-nums font-medium">{item.backupStock}</span>{item.healthStatus === 'snoozed' && <span className="ml-1 inline-flex items-center gap-1"><Moon className="h-3 w-3" />延後提醒</span>}</p>
                   </button>
                   {dateOnly ? (
-                    <button type="button" onClick={() => onEdit(item)} className="app-control ui-button flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl border px-3"><Edit2 className="h-4 w-4 text-[var(--app-accent-strong)]" />編輯</button>
+                    <button type="button" onClick={() => onEdit(item)} className="app-control ui-button flex min-h-10 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm font-medium tactile-press"><Edit2 className="h-3.5 w-3.5 text-[var(--app-accent-strong)]" />編輯</button>
                   ) : (
-                    <button type="button" onClick={() => onReplace(item.id)} className="app-primary ui-button flex min-h-11 shrink-0 items-center gap-1.5 rounded-xl px-3"><RotateCcw className="h-4 w-4" />已換</button>
+                    <button type="button" onClick={() => onReplace(item.id)} className="app-primary ui-button flex min-h-10 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm font-medium tactile-press"><RotateCcw className="h-3.5 w-3.5" />已換</button>
                   )}
                 </div>
               </article>

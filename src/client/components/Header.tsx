@@ -64,28 +64,28 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={toggleLocale}
             aria-label={locale === 'zh-TW' ? '切換為英文 (English)' : 'Switch to Traditional Chinese (繁體中文)'}
-            className="app-control ui-button min-h-11 px-2 sm:px-2.5 flex items-center justify-center gap-1 rounded-xl border hover:border-[var(--app-accent)] active:scale-[0.96] text-[var(--app-text)] transition-all"
+            className="h-9 px-2 sm:px-2.5 flex items-center justify-center gap-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 tactile-press text-slate-700 dark:text-slate-300 text-xs font-semibold"
             title={locale === 'zh-TW' ? 'Switch to English' : '切換為繁體中文'}
           >
-            <Languages className="w-4 h-4 text-[var(--app-accent-strong)]" />
-            <span className="ui-meta font-bold tabular-nums">{locale === 'zh-TW' ? 'EN' : '中'}</span>
+            <Languages className="w-3.5 h-3.5 text-slate-500" />
+            <span className="tabular-nums font-bold">{locale === 'zh-TW' ? 'EN' : '中'}</span>
           </button>
 
           <button
             onClick={onOpenNewItem}
             aria-label={t('addItem')}
-            className="app-primary ui-button min-h-11 flex items-center gap-1.5 hover:brightness-105 active:scale-[0.96] px-3 rounded-xl shadow-sm transition-all"
+            className="app-primary h-9 flex items-center gap-1.5 hover:brightness-105 tactile-press px-3.5 rounded-lg shadow-xs text-xs font-semibold"
           >
-            <Plus className="w-4 h-4" />
-            <span>{locale === 'zh-TW' ? '新增' : 'Add'}</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>{locale === 'zh-TW' ? '新增耗材' : 'Add Item'}</span>
           </button>
           {!user && (
             <button
               onClick={onOpenAuth}
               aria-label={locale === 'zh-TW' ? '登入' : 'Sign in'}
-              className="app-control min-h-11 w-11 flex items-center justify-center rounded-xl border hover:border-[var(--app-accent)] active:scale-[0.96]"
+              className="h-9 w-9 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-300 tactile-press"
             >
-              <Fingerprint className="w-4 h-4 text-[var(--app-accent-strong)]" />
+              <Fingerprint className="w-4 h-4 text-slate-600 dark:text-slate-400" />
             </button>
           )}
         </div>

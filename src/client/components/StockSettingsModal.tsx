@@ -15,13 +15,13 @@ import {
   Settings,
   UserCheck,
   UserPlus,
+  Lightbulb,
 } from 'lucide-react';
 import { StockResponse, StockMemberResponse, StockInviteResponse, StockRole, UserSession } from '../../shared/types.ts';
 import { useTranslation } from '../i18n/index.tsx';
 import { businessDate } from '../../shared/date.ts';
 import { api } from '../api.ts';
-
-const STOCK_ICONS = ['🏠', '⚡', '🧴', '🍳', '🚗', '💼', '🌿', '🛠️', '👶', '🐾'];
+import { StockIcon, STOCK_ICON_LIST } from './StockIcon.tsx';
 
 interface StockSettingsModalProps {
   isOpen: boolean;
@@ -237,12 +237,12 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
 
   const modalNode = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm modal-backdrop-animate"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="app-surface border border-[var(--app-border)] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] w-full max-w-lg animate-in zoom-in-95 duration-200"
+        className="app-surface border border-[var(--app-border)] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] w-full max-w-lg modal-content-animate"
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
@@ -282,7 +282,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                 </div>
               )}
 
-              {/* 🌟 1. 邀請成員專屬卡片 (最顯眼位置) */}
+              {/* 1. 邀請成員專屬卡片 (最顯眼位置) */}
               {isAdminOrOwner && (
                 <section className="p-4 rounded-2xl bg-[var(--app-accent-soft)] border border-[var(--app-border)] space-y-3">
                   <div className="flex items-center justify-between">
@@ -316,8 +316,9 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                         </button>
                       </div>
 
-                      <p className="ui-meta text-[var(--app-muted)] leading-relaxed">
-                        💡 <strong>分享方式</strong>：點擊上方按鈕複製連結，直接貼給家人（如 LINE / 微信 / 簡訊），對方點開連結即可自動加入共同管理！
+                      <p className="ui-meta text-[var(--app-muted)] leading-relaxed flex items-center gap-1.5">
+                        <Lightbulb className="w-4 h-4 text-[var(--app-accent-strong)] shrink-0" />
+                        <span><strong>分享方式</strong>：點擊上方按鈕複製連結，直接貼給家人（如 LINE / 微信 / 簡訊），對方點開連結即可自動加入共同管理！</span>
                       </p>
                     </div>
                   ) : (
@@ -347,19 +348,20 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                       {t('stockIcon')}
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      {STOCK_ICONS.map((i) => (
+                      {STOCK_ICON_LIST.map((item) => (
                         <button
-                          key={i}
+                          key={item.key}
                           type="button"
                           disabled={!isAdminOrOwner}
-                          onClick={() => setIcon(i)}
-                          className={`w-10 h-10 rounded-xl text-xl flex items-center justify-center border transition-all ${
-                            icon === i
-                              ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] scale-105 shadow-sm'
-                              : 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] hover:bg-[var(--app-surface)]'
+                          onClick={() => setIcon(item.key)}
+                          title={item.label}
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${
+                            icon === item.key
+                              ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] text-[var(--app-accent-strong)] scale-105 shadow-sm'
+                              : 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface)]'
                           } ${!isAdminOrOwner ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
-                          {i}
+                          <StockIcon icon={item.key} className="w-5 h-5" />
                         </button>
                       ))}
                     </div>

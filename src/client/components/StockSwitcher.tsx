@@ -10,12 +10,13 @@ import {
   X,
   Users,
   Loader2,
+  Boxes,
+  Package,
 } from 'lucide-react';
 import { StockResponse } from '../../shared/types.ts';
 import { useTranslation } from '../i18n/index.tsx';
 import { api } from '../api.ts';
-
-const STOCK_ICONS = ['🏠', '⚡', '🧴', '🍳', '🚗', '💼', '🌿', '🛠️', '👶', '🐾'];
+import { StockIcon, STOCK_ICON_LIST } from './StockIcon.tsx';
 
 interface StockSwitcherProps {
   currentStockId: string;
@@ -121,12 +122,12 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
 
   const modalContent = isOpen && (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop-animate"
       onClick={() => setIsOpen(false)}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full sm:max-w-md max-h-[85vh] animate-in slide-in-from-bottom duration-250 pb-safe"
+        className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col w-full sm:max-w-md max-h-[85dvh] sheet-content-animate sm:modal-content-animate pb-safe"
       >
         {/* Mobile handle pull bar */}
         <div className="sm:hidden pt-3 flex justify-center">
@@ -136,7 +137,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
           <div className="flex items-center gap-2.5">
-            <span className="text-xl">📦</span>
+            <Boxes className="w-5 h-5 text-[var(--app-accent-strong)]" />
             <h3 className="ui-section-title text-[var(--app-text)] tracking-tight">
               {mode === 'create'
                 ? t('createStock')
@@ -166,20 +167,20 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                   onSelectStock('all');
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${
+                className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all text-left ${
                   currentStockId === 'all'
                     ? 'border-[var(--app-accent)] bg-[var(--app-accent-soft)] shadow-sm'
                     : 'border-[var(--app-border)] bg-[var(--app-surface)] hover:bg-[var(--app-surface-subtle)]'
                 }`}
               >
                 <div className="flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] flex items-center justify-center text-xl shrink-0">
-                    🌟
+                  <div className="w-10 h-10 rounded-lg bg-[var(--app-surface-subtle)] border border-[var(--app-border)] flex items-center justify-center text-[var(--app-accent-strong)] shrink-0">
+                    <Boxes className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="ui-item-title text-[var(--app-text)] flex items-center gap-2">
                       <span>{t('allStocks')}</span>
-                      <span className="ui-badge px-2 py-0.5 rounded-full border border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-[var(--app-muted)]">
+                      <span className="ui-badge px-2 py-0.5 rounded border border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-[var(--app-muted)] text-xs font-semibold">
                         {locale === 'zh-TW' ? '總覽' : 'All'}
                       </span>
                     </div>
@@ -206,7 +207,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                   return (
                     <div
                       key={stock.id}
-                      className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
+                      className={`flex items-center justify-between p-3.5 rounded-xl border transition-all ${
                         isSelected
                           ? 'border-[var(--app-accent)] bg-[var(--app-accent-soft)] shadow-sm'
                           : 'border-[var(--app-border)] bg-[var(--app-surface)] hover:bg-[var(--app-surface-subtle)]'
@@ -220,14 +221,14 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                         }}
                         className="flex-1 flex items-center gap-3.5 text-left min-w-0 pr-2"
                       >
-                        <div className="w-11 h-11 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] flex items-center justify-center text-xl shrink-0">
-                          {stock.icon}
+                        <div className="w-10 h-10 rounded-lg bg-[var(--app-surface-subtle)] border border-[var(--app-border)] flex items-center justify-center text-[var(--app-accent-strong)] shrink-0">
+                          <StockIcon icon={stock.icon} className="w-5 h-5" />
                         </div>
                         <div className="min-w-0">
                           <div className="font-bold text-base text-[var(--app-text)] truncate flex items-center gap-2">
                             <span className="truncate">{stock.name}</span>
                             <span
-                              className={`ui-badge font-semibold px-2 py-0.5 rounded-md border shrink-0 ${roleMeta.cls}`}
+                              className={`ui-badge font-semibold px-1.5 py-0.5 rounded border text-xs shrink-0 ${roleMeta.cls}`}
                             >
                               {roleMeta.label}
                             </span>
@@ -292,7 +293,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                     setCreateError('');
                     setMode('create');
                   }}
-                  className="app-primary flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-[0.98]"
+                  className="app-primary flex items-center justify-center gap-2 p-3 rounded-lg text-sm font-semibold transition-all shadow-sm active:scale-[0.98]"
                 >
                   <Plus className="w-4 h-4" />
                   <span>{t('createStock')}</span>
@@ -304,7 +305,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                     setJoinCode('');
                     setMode('join');
                   }}
-                  className="app-control flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold transition-all active:scale-[0.98]"
+                  className="app-control flex items-center justify-center gap-2 p-3 rounded-lg text-sm font-semibold transition-all active:scale-[0.98]"
                 >
                   <UserPlus className="w-4 h-4 text-[var(--app-accent-strong)]" />
                   <span>{t('joinStock')}</span>
@@ -321,18 +322,19 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                   {t('stockIcon')}
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {STOCK_ICONS.map((icon) => (
+                  {STOCK_ICON_LIST.map((item) => (
                     <button
-                      key={icon}
+                      key={item.key}
                       type="button"
-                      onClick={() => setNewIcon(icon)}
-                      className={`w-11 h-11 rounded-xl text-lg flex items-center justify-center border transition-all ${
-                        newIcon === icon
-                          ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] scale-105 shadow-sm'
-                          : 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] hover:bg-[var(--app-surface)]'
+                      onClick={() => setNewIcon(item.key)}
+                      title={item.label}
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center border transition-all ${
+                        newIcon === item.key
+                          ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] text-[var(--app-accent-strong)] scale-105 shadow-sm'
+                          : 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface)]'
                       }`}
                     >
-                      {icon}
+                      <StockIcon icon={item.key} className="w-5 h-5" />
                     </button>
                   ))}
                 </div>
@@ -446,7 +448,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
 
   return (
     <>
-      {/* Trigger Capsule Button in Header */}
+      {/* Trigger Button in Header */}
       <button
         type="button"
         onClick={() => {
@@ -454,13 +456,13 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
           setIsOpen(true);
         }}
         aria-label={t('switchStock')}
-        className="app-control inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border ui-badge font-semibold hover:border-[var(--app-accent)] transition-all active:scale-[0.97]"
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-[0.98]"
       >
-        <span className="text-sm">{activeStock ? activeStock.icon : '🌟'}</span>
-        <span className="max-w-[110px] sm:max-w-[150px] truncate text-[var(--app-text)]">
+        <StockIcon icon={activeStock ? activeStock.icon : 'all'} className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
+        <span className="max-w-[110px] sm:max-w-[150px] truncate">
           {activeStock ? activeStock.name : t('allStocks')}
         </span>
-        <ChevronDown className="w-3.5 h-3.5 text-[var(--app-muted)] shrink-0 opacity-80" />
+        <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
       </button>
 
       {/* Render via Portal to document.body so it NEVER gets trapped in header's backdrop-filter */}

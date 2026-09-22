@@ -289,8 +289,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-bottom-5 duration-200">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm modal-backdrop-animate">
+      <div className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[90dvh] flex flex-col shadow-2xl overflow-hidden sheet-content-animate sm:modal-content-animate">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--app-border)]">
           <h2 className="ui-section-title text-[var(--app-text)] tracking-tight">
@@ -327,7 +327,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                     key={idx}
                     type="button"
                     onClick={() => handleApplyPreset(p)}
-                    className="flex-shrink-0 app-control ui-button min-h-9 px-3.5 rounded-full border hover:border-[var(--app-accent)] text-[var(--app-text)] transition-transform active:scale-95"
+                    className="flex-shrink-0 app-control ui-button min-h-9 px-3.5 rounded-full border hover:border-[var(--app-accent)] text-[var(--app-text)] tactile-press"
                   >
                     {p.name}
                   </button>

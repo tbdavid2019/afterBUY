@@ -203,7 +203,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   if (!user) {
     return (
-      <div className="space-y-4 pb-32 pt-1">
+      <div className="space-y-4 pt-1">
         {renderAppearanceCard()}
         {renderLanguageCard()}
 
@@ -220,7 +220,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <button
             type="button"
             onClick={onOpenAuth}
-            className="app-primary ui-button min-h-11 inline-flex items-center gap-2 px-5 rounded-xl shadow-sm transition-transform active:scale-95"
+            className="app-primary ui-button min-h-11 inline-flex items-center gap-2 px-5 rounded-xl shadow-sm tactile-press"
           >
             <Fingerprint className="w-4 h-4" />
             <span>{locale === 'zh-TW' ? '立即無密碼登入' : 'Sign in with Passkey / OTP'}</span>
@@ -339,7 +339,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <div className="space-y-4 pb-32 pt-1">
+    <div className="space-y-4 pt-1">
       {/* 0. Appearance & Color Palette Card */}
       {renderAppearanceCard()}
 
@@ -355,7 +355,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <button
           type="button"
           onClick={onLogout}
-          className="app-control ui-button min-h-11 flex items-center gap-1.5 border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 px-3.5 rounded-xl transition-transform active:scale-95 shrink-0"
+          className="app-control ui-button min-h-11 flex items-center gap-1.5 border border-rose-500/20 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 px-3.5 rounded-xl tactile-press shrink-0"
         >
           <LogOut className="w-4 h-4" />
           <span>{t('logoutBtn')}</span>
@@ -491,7 +491,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <div>
               <span className="ui-button text-[var(--app-text)] block">PWA 系統推播通知</span>
               <span className="ui-meta text-[var(--app-muted)]">
-                狀態: {pushStatus === 'granted' ? '已允許 ✅' : pushStatus === 'denied' ? '已封鎖 ❌' : '尚未啟用'}
+                狀態: {pushStatus === 'granted' ? '已允許' : pushStatus === 'denied' ? '已封鎖' : '尚未啟用'}
               </span>
             </div>
             {pushStatus !== 'granted' ? (

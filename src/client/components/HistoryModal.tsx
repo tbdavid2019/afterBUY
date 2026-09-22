@@ -25,8 +25,8 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ item, onClose }) => 
   if (!item) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
-      <div className="app-surface border border-[var(--app-border)] rounded-2xl w-full max-w-md p-5 shadow-2xl flex flex-col max-h-[80vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm modal-backdrop-animate">
+      <div className="app-surface border border-[var(--app-border)] rounded-2xl w-full max-w-md p-5 shadow-2xl flex flex-col max-h-[80dvh] overflow-hidden modal-content-animate">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-[var(--app-border)]">
           <div className="flex items-center gap-2.5 min-w-0">
