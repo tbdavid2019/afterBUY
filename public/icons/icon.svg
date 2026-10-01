@@ -7,8 +7,28 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="112" fill="url(#orangeGrad)" />
+
   <g fill="#FFFFFF" text-anchor="middle">
-    <text x="256" y="254" font-size="172" font-weight="900" letter-spacing="-4" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, 'Segoe UI', Roboto, sans-serif">888</text>
-    <text x="256" y="382" font-size="76" font-weight="900" letter-spacing="1" font-family="'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Heiti TC', -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, 'Segoe UI', Roboto, sans-serif" stroke="#FFFFFF" stroke-width="2.5" stroke-linejoin="round">買了後？</text>
+    <text x="256" y="160" font-size="142" font-weight="900" letter-spacing="-4" font-family="-apple-system, BlinkMacSystemFont, Arial, sans-serif">888</text>
+  </g>
+  
+  <g transform="translate(256, 266)">
+    <!-- Outer bold circular refresh arrows -->
+    <g fill="#FFFFFF">
+      <path d="M 0 -84 A 84 84 0 0 1 84 0 H 104 L 70 40 L 36 0 H 60 A 60 60 0 0 0 0 -60 A 60 60 0 0 0 -56 -14 L -78 -28 A 84 84 0 0 1 0 -84 Z"/>
+      <path d="M 0 84 A 84 84 0 0 1 -84 0 H -104 L -70 -40 L -36 0 H -60 A 60 60 0 0 0 0 60 A 60 60 0 0 0 56 14 L 78 28 A 84 84 0 0 1 0 84 Z"/>
+    </g>
+    <!-- Center Shopping Cart -->
+    <g transform="translate(0, -2) scale(0.68) translate(-100, -102)">
+      <path d="M 34 50 H 58 L 74 118 H 154 L 166 64 H 64" fill="none" stroke="#FFFFFF" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="86" cy="144" r="13" fill="#FFFFFF"/>
+      <circle cx="144" cy="144" r="13" fill="#FFFFFF"/>
+    </g>
+  </g>
+
+  <g fill="#FFFFFF" text-anchor="middle">
+    <text x="256" y="426" font-size="76" font-weight="900" font-family="PingFang TC, Noto Sans TC, Microsoft JhengHei, sans-serif" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round">
+      <tspan dx="-8">買</tspan><tspan dx="4">了</tspan><tspan dx="4">後</tspan><tspan dx="-6" font-size="68">？</tspan>
+    </text>
   </g>
 </svg>
