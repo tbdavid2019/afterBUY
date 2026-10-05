@@ -614,7 +614,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                           type="button"
                           disabled={transferring || !transferTargetUserId || transferConfirmName.trim() !== stock?.name}
                           onClick={handleTransferOwnership}
-                          className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold ui-button rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm min-h-11"
+                          className="w-full py-3 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-amber-950 font-bold ui-button rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm min-h-11"
                         >
                           {transferring ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
                           <span>確認轉移擁有權</span>

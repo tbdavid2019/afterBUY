@@ -546,6 +546,70 @@ itemsRouter.post('/:id/replace', async (c) => {
   });
 });
 
+// 10. Undo replace operation (rollback startDate, backupStock, snooze, and delete history entry)
+itemsRouter.post('/:id/undo-replace', async (c) => {
+  const user = c.get('user')!;
+  const itemId = c.req.param('id');
+  const body = await c.req.json<{
+    previousStartDate?: string;
+    previousBackupStock?: number;
+    previousSnoozeUntil?: string | null;
+  }>().catch(() => ({}));
+  const db = getDb(c.env.DB);
+
+  const access = await checkItemAccess(db, itemId, user.id, 'edit');
+  if (access === null) return c.json({ error: '找不到該物品' }, 404);
+  if (access === false) return c.json({ error: '權限不足' }, 403);
+
+  const existing = access.item;
+  const nowIso = new Date().toISOString();
+
+  // Find latest history entry to clean up
+  const latestHistory = await db
+    .select()
+    .from(itemHistory)
+    .where(eq(itemHistory.itemId, itemId))
+    .orderBy(desc(itemHistory.replacedAt))
+    .limit(1)
+    .get();
+
+  const restoredStartDate = body.previousStartDate || (latestHistory ? latestHistory.previousStartDate : existing.startDate);
+  let restoredStock = existing.backupStock;
+  if (typeof body.previousBackupStock === 'number') {
+    restoredStock = body.previousBackupStock;
+  } else if (latestHistory && latestHistory.notes?.includes('已扣減 1 個備品庫存')) {
+    restoredStock = existing.backupStock + 1;
+  }
+
+  const restoredSnooze = body.previousSnoozeUntil !== undefined ? body.previousSnoozeUntil : existing.snoozeUntil;
+
+  await db
+    .update(items)
+    .set({
+      startDate: restoredStartDate,
+      backupStock: restoredStock,
+      snoozeUntil: restoredSnooze,
+      calendarSequence: existing.calendarSequence + 1,
+      updatedAt: nowIso,
+    })
+    .where(eq(items.id, itemId));
+
+  if (latestHistory) {
+    await db.delete(itemHistory).where(eq(itemHistory.id, latestHistory.id));
+  }
+
+  return c.json({
+    success: true,
+    message: '已成功復原更換狀態',
+    item: {
+      ...existing,
+      startDate: restoredStartDate,
+      backupStock: restoredStock,
+      snoozeUntil: restoredSnooze,
+    },
+  });
+});
+
 // 11. Adjust backup stock count directly
 itemsRouter.post('/:id/stock', async (c) => {
   const user = c.get('user')!;

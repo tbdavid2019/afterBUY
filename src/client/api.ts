@@ -158,6 +158,16 @@ export const api = {
     return request(`/items/${id}/replace`, { method: 'POST' });
   },
 
+  async undoReplace(
+    id: string,
+    snapshot?: { previousStartDate?: string; previousBackupStock?: number; previousSnoozeUntil?: string | null }
+  ): Promise<{ success: boolean; message: string; item?: any }> {
+    return request(`/items/${id}/undo-replace`, {
+      method: 'POST',
+      body: JSON.stringify(snapshot || {}),
+    });
+  },
+
   async startUsingItem(id: string): Promise<{ success: boolean; startDate: string; isStored: boolean }> {
     return request(`/items/${id}/start-using`, { method: 'POST' });
   },

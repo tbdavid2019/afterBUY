@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Sparkles, Calendar, Package, AlertCircle, Camera, ImagePlus, Loader2, Check } from 'lucide-react';
+import { X, Sparkles, Calendar, Package, AlertCircle, Camera, ImagePlus, Loader2, Check, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import { ItemResponse, ItemCategory, TrackingMode, UserSession, StockResponse } from '../../shared/types.ts';
 import { computeItemStatus } from '../../shared/lifecycle.ts';
 import { businessDate } from '../../shared/date.ts';
@@ -51,6 +51,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -74,6 +75,18 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setNotes(itemToEdit.notes || '');
       setImageUrl(itemToEdit.imageUrl || '');
       setSelectedStockId(itemToEdit.stockId || (stocks[0]?.id ?? ''));
+
+      // Auto-expand advanced drawer if any optional/advanced field has custom data
+      const hasAdvancedValues = Boolean(
+        itemToEdit.imageUrl ||
+        (itemToEdit.price !== null && itemToEdit.price !== undefined && itemToEdit.price !== '') ||
+        itemToEdit.specModel ||
+        itemToEdit.location ||
+        itemToEdit.isStored ||
+        itemToEdit.notes ||
+        (itemToEdit.minStockAlert !== undefined && itemToEdit.minStockAlert !== 1)
+      );
+      setShowAdvanced(hasAdvancedValues);
     } else {
       // Reset form
       setName('');
@@ -92,6 +105,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setIsStored(false);
       setNotes('');
       setImageUrl('');
+      setShowAdvanced(false);
       if (currentStockId && currentStockId !== 'all') {
         setSelectedStockId(currentStockId);
       } else if (stocks.length > 0) {
@@ -288,6 +302,16 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     }
   };
 
+  const filledOptionalCount = [
+    Boolean(imageUrl),
+    Boolean(price !== '' && price !== null && price !== undefined),
+    Boolean(specModel.trim()),
+    Boolean(location.trim()),
+    Boolean(isStored),
+    Boolean(notes.trim()),
+    minStockAlert !== 1,
+  ].filter(Boolean).length;
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm modal-backdrop-animate">
       <div className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[90dvh] flex flex-col shadow-2xl overflow-hidden sheet-content-animate sm:modal-content-animate">
@@ -366,82 +390,6 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               </select>
             </div>
           )}
-
-          {/* Photo & Image Upload/Camera Section */}
-          <div className="app-surface-subtle border border-[var(--app-border)] p-3.5 rounded-2xl space-y-2.5">
-            <div className="flex items-center justify-between">
-              <label className="ui-label font-semibold text-[var(--app-text)] flex items-center gap-1.5">
-                <Camera className="w-4 h-4 text-[var(--app-accent-strong)]" />
-                <span>物品實體照片 / 插圖</span>
-              </label>
-              {imageUrl && (
-                <button
-                  type="button"
-                  onClick={() => setImageUrl('')}
-                  className="ui-meta text-rose-600 dark:text-rose-400 hover:text-rose-500 font-semibold transition-colors"
-                >
-                  移除照片
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* Preview Thumbnail */}
-              <div className="w-16 h-16 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] flex items-center justify-center shrink-0 overflow-hidden relative shadow-inner">
-                {imageUrl ? (
-                  <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="text-[var(--app-muted)] flex flex-col items-center">
-                    <Camera className="w-5 h-5 mb-0.5 text-[var(--app-muted-low)]" />
-                    <span className="ui-badge font-medium">未設定</span>
-                  </div>
-                )}
-                {uploading && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <Loader2 className="w-4 h-4 text-[var(--app-accent-strong)] animate-spin" />
-                  </div>
-                )}
-              </div>
-
-              {/* Camera & Gallery Action Buttons */}
-              <div className="flex-1 grid grid-cols-2 gap-2">
-                <input
-                  type="file"
-                  ref={cameraInputRef}
-                  accept="image/*"
-                  capture="environment"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                <button
-                  type="button"
-                  disabled={uploading}
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="app-control ui-button min-h-11 flex items-center justify-center gap-1.5 px-2 rounded-xl text-[var(--app-text)] hover:border-[var(--app-accent)] active:scale-95 transition-transform border border-[var(--app-border)]"
-                >
-                  <Camera className="w-4 h-4 text-[var(--app-accent-strong)]" />
-                  <span>拍照</span>
-                </button>
-
-                <input
-                  type="file"
-                  ref={galleryInputRef}
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-                <button
-                  type="button"
-                  disabled={uploading}
-                  onClick={() => galleryInputRef.current?.click()}
-                  className="app-control ui-button min-h-11 flex items-center justify-center gap-1.5 px-2 rounded-xl text-[var(--app-text)] hover:border-[var(--app-accent)] active:scale-95 transition-transform border border-[var(--app-border)]"
-                >
-                  <ImagePlus className="w-4 h-4 text-[var(--app-accent-strong)]" />
-                  <span>相簿選圖</span>
-                </button>
-              </div>
-            </div>
-          </div>
 
           {/* Category Picker */}
           <div>
@@ -591,119 +539,239 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             </div>
           </div>
 
-          {/* Backup Stock Settings */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">現有備品數量</label>
-              <input
-                type="number"
-                min="0"
-                value={backupStock}
-                onChange={(e) => setBackupStock(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
-              />
-            </div>
-            <div>
-              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">補貨警示門檻 (低於)</label>
-              <input
-                type="number"
-                min="0"
-                value={minStockAlert}
-                onChange={(e) => setMinStockAlert(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums"
-              />
-            </div>
-          </div>
-
-          {/* Price & Spec Model */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">購買金額 (NT$)</label>
-              <input
-                type="number"
-                min="0"
-                placeholder="例如：450"
-                value={price}
-                onChange={(e) => setPrice(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums placeholder:text-[var(--app-muted-low)]"
-              />
-            </div>
-            <div>
-              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">規格 / 型號</label>
-              <input
-                type="text"
-                placeholder="例如：3號(AA) / 003黑色"
-                value={specModel}
-                onChange={(e) => setSpecModel(e.target.value)}
-                className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
-              />
-            </div>
-          </div>
-
-          {/* Location */}
+          {/* Backup Stock (Essential) */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="ui-label font-semibold text-[var(--app-text)]">存放位置 (選填)</label>
-              <span className="ui-meta text-[var(--app-muted)]">方便找備品與打掃</span>
-            </div>
+            <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">現有備品數量</label>
             <input
-              type="text"
-              placeholder="例如：主臥衛浴、廚房水槽下、陽台、儲藏室..."
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
+              type="number"
+              min="0"
+              value={backupStock}
+              onChange={(e) => setBackupStock(Math.max(0, parseInt(e.target.value) || 0))}
+              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
             />
-            <div className="flex gap-2 mt-2 overflow-x-auto no-scrollbar pb-0.5">
-              {['衛浴', '廚房', '臥室', '客廳', '陽台', '儲藏室', '隨身包', '辦公室'].map((loc) => (
-                <button
-                  key={loc}
-                  type="button"
-                  onClick={() => setLocation(loc)}
-                  className={`ui-button min-h-9 px-3.5 rounded-full border transition-all shrink-0 ${
-                    location === loc
-                      ? 'app-primary font-semibold shadow-sm'
-                      : 'app-control hover:border-[var(--app-accent)]'
-                  }`}
-                >
-                  {loc}
-                </button>
-              ))}
-            </div>
           </div>
 
-          {/* Stored / Inactive Mode Toggle */}
-          <div className="app-surface-subtle border border-[var(--app-border)] p-3.5 rounded-2xl flex items-center justify-between gap-3">
-            <div className="flex-1 min-w-0 pr-2">
-              <label className="ui-label font-semibold text-[var(--app-text)] flex items-center gap-1.5 cursor-pointer">
-                <Package className="w-4 h-4 text-[var(--app-accent-strong)]" />
-                <span>先存放，還沒有要開始使用</span>
-              </label>
-              <p className="ui-meta text-[var(--app-muted)] mt-0.5 leading-relaxed">
-                囤貨備品專用。開啟後暫不啟動倒數，日後在物品卡片點擊「開始使用」才開始計時。
-              </p>
-            </div>
+          {/* Progressive Disclosure: Advanced / Optional Fields Accordion */}
+          <div className="border border-[var(--app-border)] rounded-2xl overflow-hidden bg-[var(--app-surface-subtle)]/40 transition-colors">
             <button
               type="button"
-              onClick={() => setIsStored(!isStored)}
-              aria-label={isStored ? '取消存放狀態' : '設定為先存放'}
-              className={`w-12 h-7 rounded-full transition-colors relative shrink-0 p-1 flex items-center ${
-                isStored ? 'app-primary justify-end' : 'bg-[var(--app-border)] justify-start'
-              }`}
+              onClick={() => setShowAdvanced((prev) => !prev)}
+              aria-expanded={showAdvanced}
+              className="w-full px-4 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-[var(--app-surface-subtle)] transition-colors tactile-press"
             >
-              <span className="w-5 h-5 rounded-full bg-white shadow-sm" />
-            </button>
-          </div>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-[var(--app-bg)] border border-[var(--app-border)] flex items-center justify-center shrink-0 text-[var(--app-accent-strong)]">
+                  <SlidersHorizontal className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="ui-label font-semibold text-[var(--app-text)] flex items-center gap-1.5">
+                    更多詳細資料 (選填)
+                  </span>
+                  <span className="ui-meta text-[var(--app-muted)] block truncate text-xs">
+                    照片、規格型號、金額、存放位置、備忘
+                  </span>
+                </div>
+              </div>
 
-          {/* Notes */}
-          <div>
-            <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">備註說明 (選填)</label>
-            <input
-              type="text"
-              placeholder="例如：型號 P-3101、第二道活性碳"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
-            />
+              <div className="flex items-center gap-2 shrink-0">
+                {filledOptionalCount > 0 && (
+                  <span className="app-primary-soft ui-badge font-bold px-2 py-0.5 rounded-full text-xs">
+                    已填 {filledOptionalCount} 項
+                  </span>
+                )}
+                {showAdvanced ? (
+                  <ChevronUp className="w-5 h-5 text-[var(--app-muted)]" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-[var(--app-muted)]" />
+                )}
+              </div>
+            </button>
+
+            {showAdvanced && (
+              <div className="p-4 pt-2 space-y-4 border-t border-[var(--app-border)]/70">
+                {/* Photo & Image Upload/Camera Section */}
+                <div className="app-surface-subtle border border-[var(--app-border)] p-3.5 rounded-2xl space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="ui-label font-semibold text-[var(--app-text)] flex items-center gap-1.5">
+                      <Camera className="w-4 h-4 text-[var(--app-accent-strong)]" />
+                      <span>物品實體照片 / 插圖</span>
+                    </label>
+                    {imageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setImageUrl('')}
+                        className="ui-meta text-rose-600 dark:text-rose-400 hover:text-rose-500 font-semibold transition-colors"
+                      >
+                        移除照片
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {/* Preview Thumbnail */}
+                    <div className="w-16 h-16 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] flex items-center justify-center shrink-0 overflow-hidden relative shadow-inner">
+                      {imageUrl ? (
+                        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="text-[var(--app-muted)] flex flex-col items-center">
+                          <Camera className="w-5 h-5 mb-0.5 text-[var(--app-muted-low)]" />
+                          <span className="ui-badge font-medium">未設定</span>
+                        </div>
+                      )}
+                      {uploading && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <Loader2 className="w-4 h-4 text-[var(--app-accent-strong)] animate-spin" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Camera & Gallery Action Buttons */}
+                    <div className="flex-1 grid grid-cols-2 gap-2">
+                      <input
+                        type="file"
+                        ref={cameraInputRef}
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
+                      <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={() => cameraInputRef.current?.click()}
+                        className="app-control ui-button min-h-11 flex items-center justify-center gap-1.5 px-2 rounded-xl text-[var(--app-text)] hover:border-[var(--app-accent)] active:scale-95 transition-transform border border-[var(--app-border)]"
+                      >
+                        <Camera className="w-4 h-4 text-[var(--app-accent-strong)]" />
+                        <span>拍照</span>
+                      </button>
+
+                      <input
+                        type="file"
+                        ref={galleryInputRef}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                      />
+                      <button
+                        type="button"
+                        disabled={uploading}
+                        onClick={() => galleryInputRef.current?.click()}
+                        className="app-control ui-button min-h-11 flex items-center justify-center gap-1.5 px-2 rounded-xl text-[var(--app-text)] hover:border-[var(--app-accent)] active:scale-95 transition-transform border border-[var(--app-border)]"
+                      >
+                        <ImagePlus className="w-4 h-4 text-[var(--app-accent-strong)]" />
+                        <span>相簿選圖</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Price & Spec Model */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">購買金額 (NT$)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="例如：450"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
+                      className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums placeholder:text-[var(--app-muted-low)]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">規格 / 型號</label>
+                    <input
+                      type="text"
+                      placeholder="例如：3號(AA) / 003黑色"
+                      value={specModel}
+                      onChange={(e) => setSpecModel(e.target.value)}
+                      className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
+                    />
+                  </div>
+                </div>
+
+                {/* Min Stock Alert */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="ui-label font-semibold text-[var(--app-text)]">補貨警示門檻 (低於此數觸發補貨)</label>
+                    <span className="ui-meta text-[var(--app-muted)]">預設為 1</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    value={minStockAlert}
+                    onChange={(e) => setMinStockAlert(Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums"
+                  />
+                </div>
+
+                {/* Location */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="ui-label font-semibold text-[var(--app-text)]">存放位置 (選填)</label>
+                    <span className="ui-meta text-[var(--app-muted)]">方便找備品與打掃</span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="例如：主臥衛浴、廚房水槽下、陽台、儲藏室..."
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
+                  />
+                  <div className="flex gap-2 mt-2 overflow-x-auto no-scrollbar pb-0.5">
+                    {['衛浴', '廚房', '臥室', '客廳', '陽台', '儲藏室', '隨身包', '辦公室'].map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        onClick={() => setLocation(loc)}
+                        className={`ui-button min-h-9 px-3.5 rounded-full border transition-all shrink-0 ${
+                          location === loc
+                            ? 'app-primary font-semibold shadow-sm'
+                            : 'app-control hover:border-[var(--app-accent)]'
+                        }`}
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Stored / Inactive Mode Toggle */}
+                <div className="app-surface-subtle border border-[var(--app-border)] p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0 pr-2">
+                    <label className="ui-label font-semibold text-[var(--app-text)] flex items-center gap-1.5 cursor-pointer">
+                      <Package className="w-4 h-4 text-[var(--app-accent-strong)]" />
+                      <span>先存放，還沒有要開始使用</span>
+                    </label>
+                    <p className="ui-meta text-[var(--app-muted)] mt-0.5 leading-relaxed">
+                      囤貨備品專用。開啟後暫不啟動倒數，日後在物品卡片點擊「開始使用」才開始計時。
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsStored(!isStored)}
+                    aria-label={isStored ? '取消存放狀態' : '設定為先存放'}
+                    className={`w-12 h-7 rounded-full transition-colors relative shrink-0 p-1 flex items-center ${
+                      isStored ? 'app-primary justify-end' : 'bg-[var(--app-border)] justify-start'
+                    }`}
+                  >
+                    <span className="w-5 h-5 rounded-full bg-white shadow-sm" />
+                  </button>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">備註說明 (選填)</label>
+                  <input
+                    type="text"
+                    placeholder="例如：型號 P-3101、第二道活性碳"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none ui-body placeholder:text-[var(--app-muted-low)]"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {errorMessage && (

@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-10-05
+
+### Added
+- **「今天已換」5 秒樂觀復原防護機制 (Reversible Replace & Undo Toast)**：
+  - 在手機單手滑動與操作情境下，若誤觸「今天已換」，立即於畫面底部安全區域（`bottom-20 sm:bottom-6`）彈出 5 秒觸感復原條（Undo Toast），提供可逆回滾防護。
+  - 採用樂觀更新（Optimistic UI），點擊「今天已換」即時更新畫面，同時保存上一狀態快照 `{ startDate, backupStock, snoozeUntil }`。
+  - 後端新增 `POST /items/:id/undo-replace` API 端點，支援完整原子回滾 `startDate`、`backupStock`、`snoozeUntil` 並自動清理關聯的最近歷史更換紀錄；訪客模式亦同步支援本地快照復原。
+  - 復原條底層配備 5 秒進度倒數條（`.animate-undo-shrink`）、明確品名提示與即時關閉按鈕，並符合 ARIA 無障礙標準（`role="status"`、`aria-live="polite"`）。
+
+### Changed
+- **耗材新增/編輯彈窗之「漸進式揭露」認知負擔精簡 (Progressive Disclosure in ItemModal)**：
+  - 依據 Impeccable `/distill` 準則重構 `ItemModal.tsx`，徹底解決首屏同時展示 14+ 欄位造成的表單認知疲勞。
+  - 首屏聚焦核心決策：物品名稱、所屬備品庫、常用範本、分類選擇、追蹤模式（更換週期/PAO/到期日/保固），以及現有備品數量。
+  - 將次要選填欄位（照片上傳/相機拍照、購買價格、規格型號、補貨警示門檻、存放位置與 8 大快速地點標籤、先存放囤貨開關、備註說明）收攏於「`更多詳細資料 (選填)`」摺疊抽屜中。
+  - 配備智慧狀態感知：若編輯之舊物品已有填寫進階資訊，自動展開抽屜；若為新增物品則預設收合並顯示「已填 X 項」徽章，大幅提升日常記錄流暢度。
+- **手機備品庫存步進器觸控邊界優化**：
+  - 將 `ItemCard.tsx` 底部備品增減按鈕尺寸從 `w-8 h-8`（32px）擴充為 `w-9 h-9 sm:w-8 sm:h-8` 並加入 `touch-manipulation`，顯著改善手機單手點擊精確度。
+
+### Fixed
+- **消除 Impeccable 靜態檢測之 `gray-on-color` 警示**：
+  - 將 `Navbar.tsx` 採購補貨紅點標籤及 `StockSettingsModal.tsx` 擁有權轉移確認按鈕的 `text-slate-950 on bg-amber-500` 冷灰色文字調校為溫暖高對比深琥珀墨色 `text-amber-950`（`#451a03`），消除視覺雜色並使 `impeccable detect` 檢查維持 0 違規。
+
+---
+
 ## 2026-09-22
 
 ### Changed

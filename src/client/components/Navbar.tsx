@@ -73,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="relative">
             <ShoppingBag className="w-5 h-5 mb-0.5" />
             {restockCount > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-amber-500 text-slate-950 rounded-full flex items-center justify-center font-bold text-[11px] leading-none shadow-sm tabular-nums">
+              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-amber-500 text-amber-950 rounded-full flex items-center justify-center font-bold text-[11px] leading-none shadow-sm tabular-nums">
                 {restockCount > 9 ? '9+' : restockCount}
               </span>
             )}

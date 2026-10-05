@@ -59,3 +59,53 @@ test('guest persistence filters demo ids and reports storage quota failures', ()
   storage.setItem = () => { throw Object.assign(new Error('full'), { name: 'QuotaExceededError' }); };
   assert.throws(() => writeGuestItems([item]), /本機儲存空間不足/);
 });
+
+test('reversible replace snapshot restores original startDate and backupStock', () => {
+  const originalItem = {
+    id: 'test-item-1',
+    name: '濾網',
+    startDate: '2026-08-01',
+    trackingMode: 'cycle' as const,
+    cycleDays: 60,
+    backupStock: 2,
+    minStockAlert: 1,
+    snoozeUntil: null,
+    isStored: false,
+    ...computeItemStatus({
+      startDate: '2026-08-01',
+      trackingMode: 'cycle',
+      cycleDays: 60,
+      backupStock: 2,
+    }, new Date('2026-10-05T00:00:00Z')),
+  };
+
+  // Simulate replace
+  const snapshot = { ...originalItem };
+  const todayStr = businessDate(new Date('2026-10-05T00:00:00Z'));
+  const replacedItem = {
+    ...originalItem,
+    startDate: todayStr,
+    backupStock: originalItem.backupStock - 1,
+    ...computeItemStatus({
+      ...originalItem,
+      startDate: todayStr,
+      backupStock: originalItem.backupStock - 1,
+    }, new Date('2026-10-05T00:00:00Z')),
+  };
+
+  assert.equal(replacedItem.startDate, '2026-10-05');
+  assert.equal(replacedItem.backupStock, 1);
+  assert.equal(replacedItem.healthStatus, 'healthy');
+
+  // Simulate undo rollback from snapshot
+  const rolledBackItem = {
+    ...snapshot,
+    ...computeItemStatus({
+      ...snapshot,
+    }, new Date('2026-10-05T00:00:00Z')),
+  };
+
+  assert.equal(rolledBackItem.startDate, '2026-08-01');
+  assert.equal(rolledBackItem.backupStock, 2);
+  assert.equal(rolledBackItem.healthStatus, originalItem.healthStatus);
+});

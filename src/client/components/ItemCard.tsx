@@ -192,9 +192,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             disabled={busy || item.backupStock <= 0}
             aria-label={`減少 ${item.name} 備品庫存`}
             onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, -1)); }}
-            className="w-8 h-8 rounded flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 active:scale-95 transition-all tactile-press"
+            className="w-9 h-9 sm:w-8 sm:h-8 rounded-md flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 active:scale-95 transition-all tactile-press touch-manipulation"
           >
-            <Minus className="h-3.5 w-3.5" />
+            <Minus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           </button>
           <span className={`text-[15px] font-semibold tabular-nums min-w-6 text-center px-1 ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
             {item.backupStock}
@@ -204,9 +204,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             disabled={busy}
             aria-label={`增加 ${item.name} 備品庫存`}
             onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, 1)); }}
-            className="w-8 h-8 rounded flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 active:scale-95 transition-all tactile-press"
+            className="w-9 h-9 sm:w-8 sm:h-8 rounded-md flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 active:scale-95 transition-all tactile-press touch-manipulation"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           </button>
         </div>
 

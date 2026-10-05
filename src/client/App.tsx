@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { RotateCcw, Check, X } from 'lucide-react';
 import { Header } from './components/Header.tsx';
 import { Navbar, NavTab } from './components/Navbar.tsx';
 import { DashboardView } from './views/DashboardView.tsx';
@@ -177,6 +178,14 @@ export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(() => typeof window !== 'undefined' && Boolean(localStorage.getItem('afterbuy_user')));
   const [loadError, setLoadError] = useState<string | null>(null);
   const stockRequestId = useRef(0);
+
+  // Undo Toast state for reversible 「今天已換」
+  const [undoToast, setUndoToast] = useState<{
+    itemId: string;
+    itemName: string;
+    snapshot: ItemResponse;
+  } | null>(null);
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setGuestItems = (next: ItemResponse[] | ((previous: ItemResponse[]) => ItemResponse[])) => {
     setItems((previous) => {
@@ -366,35 +375,77 @@ export const App: React.FC = () => {
   };
 
   const handleReplace = async (id: string) => {
+    const target = items.find((i) => i.id === id);
+    if (!target) return;
+    if (target.isStored || (target.trackingMode !== 'cycle' && target.trackingMode !== 'pao')) return;
+
+    // Snapshot before mutation for reversible undo
+    const snapshot: ItemResponse = { ...target };
+    const todayStr = businessDate();
+    const newStock = Math.max(0, target.backupStock - 1);
+    const updatedTarget: ItemResponse = {
+      ...target,
+      startDate: todayStr,
+      backupStock: newStock,
+      snoozeUntil: null,
+      ...computeItemStatus({
+        ...target,
+        startDate: todayStr,
+        backupStock: newStock,
+        snoozeUntil: null,
+      }),
+    };
+
     if (!user) {
-      // Local demo mode replace
-      setGuestItems((prev) =>
-        prev.map((i) => {
-          if (i.id !== id) return i;
-          if (i.isStored || (i.trackingMode !== 'cycle' && i.trackingMode !== 'pao')) return i;
-          const todayStr = businessDate();
-          const newStock = Math.max(0, i.backupStock - 1);
-          return {
-            ...i,
-            startDate: todayStr,
-            backupStock: newStock,
-            snoozeUntil: null,
-            ...computeItemStatus({
-              ...i,
-              startDate: todayStr,
-              backupStock: newStock,
-            }),
-          };
-        })
-      );
-      return;
+      setGuestItems((prev) => prev.map((i) => (i.id === id ? updatedTarget : i)));
+    } else {
+      // Optimistic update for instant mobile feedback
+      setItems((prev) => prev.map((i) => (i.id === id ? updatedTarget : i)));
+      try {
+        await api.markReplaced(id);
+      } catch (err: any) {
+        alert(err.message || '更新失敗');
+        setItems((prev) => prev.map((i) => (i.id === id ? snapshot : i)));
+        return;
+      }
     }
 
-    try {
-      await api.markReplaced(id);
-      await loadUserAndItems();
-    } catch (err: any) {
-      alert(err.message || '更新失敗');
+    // Trigger 5-second tactile undo toast
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+    }
+    setUndoToast({
+      itemId: id,
+      itemName: target.name,
+      snapshot,
+    });
+    undoTimerRef.current = setTimeout(() => {
+      setUndoToast(null);
+    }, 5000);
+  };
+
+  const handleUndoReplace = async () => {
+    if (!undoToast) return;
+    if (undoTimerRef.current) {
+      clearTimeout(undoTimerRef.current);
+    }
+    const { itemId, snapshot } = undoToast;
+    setUndoToast(null);
+
+    if (!user) {
+      setGuestItems((prev) => prev.map((i) => (i.id === itemId ? snapshot : i)));
+    } else {
+      setItems((prev) => prev.map((i) => (i.id === itemId ? snapshot : i)));
+      try {
+        await api.undoReplace(itemId, {
+          previousStartDate: snapshot.startDate,
+          previousBackupStock: snapshot.backupStock,
+          previousSnoozeUntil: snapshot.snoozeUntil,
+        });
+        await loadUserAndItems();
+      } catch (err: any) {
+        alert(err.message || '復原失敗');
+      }
     }
   };
 
@@ -674,6 +725,58 @@ export const App: React.FC = () => {
           />
         )}
       </main>
+
+      {/* 5-second Floating Tactile Undo Toast */}
+      {undoToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md app-surface border border-[var(--app-border)] shadow-2xl rounded-2xl overflow-hidden sheet-content-animate"
+        >
+          <div className="p-3.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <span className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <Check className="w-4 h-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="ui-label font-semibold text-[var(--app-text)] truncate">
+                  已完成更換：{undoToast.itemName}
+                </p>
+                <p className="ui-meta text-[var(--app-muted)] truncate">
+                  備品扣減 1 · 週期已重置為今日
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleUndoReplace}
+                className="app-primary ui-button min-h-9 px-3 text-sm font-semibold rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all tactile-press"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>復原</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+                  setUndoToast(null);
+                }}
+                aria-label="關閉提示"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* 5s animated countdown progress line */}
+          <div className="h-1 bg-[var(--app-surface-subtle)] w-full overflow-hidden">
+            <div className="h-full bg-[var(--app-accent)] animate-undo-shrink" />
+          </div>
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <Navbar

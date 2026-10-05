@@ -308,6 +308,19 @@
   }
 }
 
+@keyframes undo-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+.animate-undo-shrink {
+  animation: undo-shrink 5s linear forwards;
+}
+
 .app-shell {
   background: var(--app-bg);
   color: var(--app-text);
