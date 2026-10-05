@@ -233,7 +233,7 @@ itemsRouter.post('/', async (c) => {
   const initialQty = isQuantityMode ? Math.max(1, body.initialQuantity ?? 60) : null;
   const dailyRate = isQuantityMode ? Math.max(0.01, body.dailyUsage ?? 1) : null;
   const currentQty = isQuantityMode
-    ? (body.currentQuantity !== undefined && body.currentQuantity !== null ? Math.max(0, body.currentQuantity) : initialQty)
+    ? (body.currentQuantity !== undefined && body.currentQuantity !== null ? Math.max(0, body.currentQuantity) : null)
     : null;
 
   const newItem = {

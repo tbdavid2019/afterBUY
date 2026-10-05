@@ -75,8 +75,8 @@ export function computeItemStatus(
   needsRestock: boolean;
 } {
   const refDateStr = businessDate(referenceDate);
-  const nextDueDate = computeNextDueDate(item);
-  const totalDays = Math.max(1, businessDateDiff(item.startDate, nextDueDate));
+  let nextDueDate = computeNextDueDate(item);
+  let totalDays = Math.max(1, businessDateDiff(item.startDate, nextDueDate));
   const elapsedDays = businessDateDiff(item.startDate, refDateStr);
   let remainingDays = businessDateDiff(refDateStr, nextDueDate);
   let remainingQuantity: number | null = null;
@@ -90,9 +90,12 @@ export function computeItemStatus(
       remainingDays = Math.ceil(remainingQuantity / rate);
     } else {
       const consumed = Math.max(0, elapsedDays * rate);
-      remainingQuantity = Math.max(0, Math.round(initQty - consumed));
+      const rawRemaining = Math.max(0, initQty - consumed);
+      remainingQuantity = Math.round(rawRemaining * 100) / 100;
       remainingDays = Math.ceil(remainingQuantity / rate);
     }
+    nextDueDate = addBusinessDays(refDateStr, remainingDays);
+    totalDays = Math.max(1, Math.ceil(initQty / rate));
   }
 
   let percentageRemaining = Math.max(0, Math.min(100, Math.round((remainingDays / totalDays) * 100)));
@@ -137,7 +140,8 @@ export function formatRemainingDaysText(
   healthStatus?: HealthStatus,
   quantityMeta?: { remainingQuantity?: number | null; quantityUnit?: string | null }
 ): { text: string; color: string; badge: string; dot: string } {
-  const qtyPrefix = (quantityMeta?.remainingQuantity !== null && quantityMeta?.remainingQuantity !== undefined)
+  const hasRemainingQty = quantityMeta?.remainingQuantity !== null && quantityMeta?.remainingQuantity !== undefined;
+  const qtyPrefix = hasRemainingQty
     ? `約剩 ${quantityMeta.remainingQuantity} ${quantityMeta.quantityUnit || '個'} · `
     : '';
 
@@ -155,6 +159,15 @@ export function formatRemainingDaysText(
       color: 'text-blue-700 dark:text-blue-400',
       badge: 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60',
       dot: 'bg-blue-500',
+    };
+  }
+  // Depleted quantity items should explicitly indicate they are used up
+  if (hasRemainingQty && quantityMeta.remainingQuantity! <= 0) {
+    return {
+      text: `已用盡（需開新備品）`,
+      color: 'text-rose-700 dark:text-rose-400 font-semibold',
+      badge: 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60',
+      dot: 'bg-rose-500',
     };
   }
   if (remainingDays < 0) {

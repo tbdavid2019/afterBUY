@@ -58,6 +58,11 @@
   - 配備智慧狀態感知：若編輯之舊物品已有填寫進階資訊，自動展開抽屜；若為新增物品則預設收合並顯示「已填 X 項」徽章，大幅提升日常記錄流暢度。
 
 ### Fixed
+- **依據 Codex Code Review 結論修正數量模式之預估到期日與用盡狀態**：
+  - **預設保留自動消耗計算（Preserve Automatic Depletion）**：修正 `POST /api/items` 新建物品時當未填寫剩餘數時 fallback 至滿額數值的問題，保留 `currentQuantity: null`，確保開瓶後隨天數自動扣減之機制如期運作。
+  - **動態從當前剩餘數換算下次處理日期（Derive Due Date from Current Quantity）**：修正 `computeItemStatus` 在使用者手動記錄消耗或改變現存剩餘時，`nextDueDate` 仍停留於原始包裝天數的 bug，全面以 `addBusinessDays(refDateStr, remainingDays)` 同步更新預計用盡日。
+  - **小數耗用率平滑衰減（Fractional Burn Rate Precision）**：保留小數耗用精度至兩位小數（例如每 5 天 1 包，0.2包/天），杜絕整數 `Math.round` 導致的衰減停滯。
+  - **數量為 0 時明確標註為「已用盡」**：修正 `remainingQuantity <= 0` 在 `remainingDays === 0` 分支被顯示為「今日預計用盡」的歧義，直接明確顯示「`已用盡（需開新備品）`」。
 - **消除 Impeccable 靜態檢測之 `gray-on-color` 警示**：
   - 將 `Navbar.tsx` 採購補貨紅點標籤及 `StockSettingsModal.tsx` 擁有權轉移確認按鈕的 `text-slate-950 on bg-amber-500` 冷灰色文字調校為溫暖高對比深琥珀墨色 `text-amber-950`（`#451a03`），消除視覺雜色並使 `impeccable detect` 檢查維持 0 違規。
 

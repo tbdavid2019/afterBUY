@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { businessDate, addBusinessDays } from '../src/shared/date.ts';
-import { computeItemStatus } from '../src/shared/lifecycle.ts';
+import { computeItemStatus, formatRemainingDaysText } from '../src/shared/lifecycle.ts';
 import { DEMO_ITEM_IDS, readGuestItems, writeGuestItems } from '../src/client/utils/guestStorage.ts';
 
 test('business dates use Taiwan time and are timezone stable', () => {
@@ -136,9 +136,10 @@ test('quantity tracking mode calculates remaining days and burn rate properly', 
   }, new Date('2026-10-11T00:00:00Z'));
   assert.equal(overrideStatus.remainingQuantity, 10);
   assert.equal(overrideStatus.remainingDays, 5); // 10 / 2 = 5 days
+  assert.equal(overrideStatus.nextDueDate, '2026-10-16'); // 2026-10-11 + 5 days
   assert.equal(overrideStatus.healthStatus, 'due_soon'); // <= 7 days is due_soon
 
-  // When quantity is 0, becomes overdue
+  // When quantity is 0, becomes overdue and is labeled depleted
   const emptyStatus = computeItemStatus({
     ...item,
     currentQuantity: 0,
@@ -146,4 +147,25 @@ test('quantity tracking mode calculates remaining days and burn rate properly', 
   assert.equal(emptyStatus.remainingQuantity, 0);
   assert.equal(emptyStatus.remainingDays, 0);
   assert.equal(emptyStatus.healthStatus, 'overdue');
+
+  const zeroText = formatRemainingDaysText(emptyStatus.remainingDays, emptyStatus.healthStatus, {
+    remainingQuantity: emptyStatus.remainingQuantity,
+    quantityUnit: item.quantityUnit,
+  });
+  assert.equal(zeroText.text, '已用盡（需開新備品）');
+
+  // Fractional burn rate tracking (e.g. 10 packs, 0.2/day)
+  const fractionalItem = {
+    startDate: '2026-10-01',
+    trackingMode: 'quantity' as const,
+    initialQuantity: 10,
+    dailyUsage: 0.2,
+    quantityUnit: '包',
+    backupStock: 1,
+  };
+  const fractionalStatus = computeItemStatus(fractionalItem, new Date('2026-10-02T00:00:00Z'));
+  assert.equal(fractionalStatus.elapsedDays, 1);
+  assert.equal(fractionalStatus.remainingQuantity, 9.8);
+  assert.equal(fractionalStatus.remainingDays, 49);
+  assert.equal(fractionalStatus.nextDueDate, '2026-11-20');
 });
