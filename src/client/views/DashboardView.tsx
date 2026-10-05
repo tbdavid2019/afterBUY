@@ -90,33 +90,53 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   ];
 
   return (
-    <div className="space-y-3.5">
-      {/* Header section */}
-      <section className="flex items-center justify-between gap-3 pt-1">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            {locale === 'zh-TW' ? '耗材總覽' : 'Consumables'}
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            {locale === 'zh-TW'
-              ? `共追蹤 ${items.length} 項生活物品`
-              : `${items.length} items tracked`}
-          </p>
+    <div className="space-y-3.5 pb-6">
+      {/* Hero Life Status Overview */}
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50/60 to-slate-100/60 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-850 p-4 sm:p-5 shadow-xs">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
+              counts.due > 0
+                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/25'
+                : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25'
+            }`}>
+              {counts.due > 0 ? (
+                <AlertTriangle className="w-5 h-5 stroke-[2.2]" />
+              ) : (
+                <Sparkles className="w-5 h-5 stroke-[2.2]" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 leading-snug">
+                {counts.due > 0
+                  ? (locale === 'zh-TW' ? `${counts.due} 項耗材即將到期或需處理` : `${counts.due} items need attention`)
+                  : (locale === 'zh-TW' ? '生活耗材狀態一切就緒' : 'All items in good standing')}
+              </h2>
+              <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">
+                {counts.due > 0
+                  ? (locale === 'zh-TW' ? '及時更換確保生活品質，保持安心使用' : 'Replace in time to maintain optimal living quality')
+                  : (locale === 'zh-TW'
+                      ? `${counts.healthy} 項定期運作中 · ${counts.stored} 項備品存放中`
+                      : `${counts.healthy} active · ${counts.stored} stored in reserve`)}
+              </p>
+            </div>
+          </div>
+
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-xs font-semibold text-[var(--app-accent-strong)] hover:underline shrink-0 pt-0.5 tactile-press"
+            >
+              {locale === 'zh-TW' ? '重設篩選' : 'Reset'}
+            </button>
+          )}
         </div>
-        {hasFilters && (
-          <button
-            type="button"
-            onClick={clearFilters}
-            className="text-sm font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 underline tactile-press"
-          >
-            {locale === 'zh-TW' ? '清除篩選' : 'Reset filters'}
-          </button>
-        )}
       </section>
 
       {/* Guest Mode Banner */}
       {!user && (
-        <details className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-xs text-sm">
+        <details className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-xs text-sm">
           <summary className="font-semibold cursor-pointer list-none flex items-center justify-between text-slate-700 dark:text-slate-200 tactile-press">
             <span className="flex items-center gap-1.5">
               <Fingerprint className="h-4 w-4 text-[var(--app-accent)]" />
@@ -128,17 +148,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <p>{t('guestModeBannerDesc')}</p>
             <div className="mt-2.5 flex flex-wrap gap-2">
               {items.length > 0 && onClearDemoItems && (
-                <button type="button" onClick={onClearDemoItems} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press">
+                <button type="button" onClick={onClearDemoItems} className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press">
                   {t('guestModeClearDemoBtn')}
                 </button>
               )}
               {items.length === 0 && onRestoreDemoItems && (
-                <button type="button" onClick={onRestoreDemoItems} className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press flex items-center gap-1.5">
+                <button type="button" onClick={onRestoreDemoItems} className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press flex items-center gap-1.5">
                   <RotateCcw className="h-4 w-4" />{t('guestModeRestoreDemoBtn')}
                 </button>
               )}
               {onOpenAuth && (
-                <button type="button" onClick={onOpenAuth} className="app-primary px-3.5 py-2 rounded-lg text-sm font-semibold tactile-press flex items-center gap-1.5">
+                <button type="button" onClick={onOpenAuth} className="app-primary px-3.5 py-2 rounded-xl text-sm font-semibold tactile-press flex items-center gap-1.5">
                   <Fingerprint className="h-4 w-4" />{t('guestModeLoginBtn')}
                 </button>
               )}
@@ -147,19 +167,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </details>
       )}
 
-      {/* Cloudflare Segmented Status Filter Bar */}
+      {/* Segmented Status Filter Bar */}
       <section aria-label={locale === 'zh-TW' ? '狀態篩選' : 'Status filters'} className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
         <button
           type="button"
           onClick={() => setStatusFilter('all')}
-          className={`px-3.5 py-2 text-[13.5px] sm:text-sm font-medium rounded-lg border transition-all shrink-0 tactile-press ${
+          className={`px-3.5 py-2 text-[13px] sm:text-sm font-medium rounded-xl border transition-all shrink-0 tactile-press ${
             statusFilter === 'all'
-              ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs'
-              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
+              ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100 shadow-xs font-semibold'
+              : 'bg-white text-slate-600 border-slate-200/90 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
           }`}
         >
           {locale === 'zh-TW' ? '全部' : 'All'}
-          <span className="tabular-nums ml-1 opacity-75">{items.length}</span>
+          <span className="tabular-nums ml-1.5 opacity-75 font-semibold">{items.length}</span>
         </button>
 
         {statusChips.map(({ id, label, count, dotClass }) => (
@@ -168,10 +188,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             type="button"
             onClick={() => setStatusFilter(statusFilter === id ? 'all' : id)}
             aria-pressed={statusFilter === id}
-            className={`flex items-center gap-1.5 px-3.5 py-2 text-[13.5px] sm:text-sm font-medium rounded-lg border transition-all shrink-0 tactile-press ${
+            className={`flex items-center gap-1.5 px-3.5 py-2 text-[13px] sm:text-sm font-medium rounded-xl border transition-all shrink-0 tactile-press ${
               statusFilter === id
-                ? 'bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white shadow-xs'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
+                ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100 shadow-xs font-semibold'
+                : 'bg-white text-slate-600 border-slate-200/90 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800'
             }`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
@@ -192,14 +212,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={locale === 'zh-TW' ? '搜尋物品、型號或備註...' : 'Search items, models, or notes...'}
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg pl-9 pr-8 py-2.5 text-[15px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition-colors"
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-8 py-2.5 text-[14px] sm:text-[15px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition-colors"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label="清除搜尋"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 ×
               </button>
@@ -210,7 +230,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             type="button"
             onClick={() => setShowFilters((open) => !open)}
             aria-label={locale === 'zh-TW' ? '分類與位置篩選' : 'Filter by category and location'}
-            className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium rounded-lg border transition-colors tactile-press shrink-0 ${
+            className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border transition-colors tactile-press shrink-0 ${
               showFilters || selectedCategory !== 'all' || selectedLocation !== 'all'
                 ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100'
                 : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -228,7 +248,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={() => setIsPhotoModalOpen(true)}
             aria-label={t('batchIntake')}
             title={t('batchIntake')}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors tactile-press shrink-0"
+            className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors tactile-press shrink-0"
           >
             <Camera className="h-4 w-4" />
             <span className="hidden sm:inline">{t('batchIntake')}</span>
@@ -239,7 +259,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={() => { setIsSelecting((value) => !value); setSelectedIds(new Set()); }}
             aria-label={isSelecting ? t('cancelSelect') : t('batchMode')}
             title={isSelecting ? t('cancelSelect') : t('batchMode')}
-            className={`flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-medium rounded-lg border transition-colors tactile-press shrink-0 ${
+            className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border transition-colors tactile-press shrink-0 ${
               isSelecting
                 ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] text-[var(--app-accent-strong)] font-semibold'
                 : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -369,6 +389,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         )}
       </section>
+
+      {/* Mobile Floating Action Button (FAB) in Thumb Zone */}
+      {!isSelecting && (
+        <button
+          type="button"
+          onClick={onOpenNewItem}
+          aria-label={t('addItem')}
+          className="sm:hidden fixed bottom-20 right-4 z-30 h-12 px-4 rounded-full bg-[var(--app-accent)] hover:brightness-105 active:scale-95 text-white shadow-lg shadow-sky-600/30 flex items-center gap-2 font-semibold text-sm tactile-press transition-all"
+        >
+          <Plus className="w-4 h-4 stroke-[2.5]" />
+          <span>{locale === 'zh-TW' ? '新增耗材' : 'Add Item'}</span>
+        </button>
+      )}
 
       {isSelecting && selectedIds.size > 0 && <div className="fixed bottom-20 left-3 right-3 z-40 mx-auto max-w-xl"><div className="app-surface flex items-center justify-between gap-2 rounded-2xl border p-2.5 shadow-xl"><div className="flex min-w-0 items-center gap-2"><span className="ui-button truncate">{t('selectedItems', { n: selectedIds.size })}</span><button type="button" onClick={selectAll} className="ui-button shrink-0 text-[var(--app-accent-strong)]">{selectedIds.size === filteredItems.length ? '取消全選' : '全選'}</button></div><div className="flex shrink-0 gap-1"><button type="button" disabled={batchActionLoading} onClick={batchReplace} className="app-primary ui-button min-h-11 rounded-xl px-2.5"><RotateCcw className="inline h-4 w-4" /></button><button type="button" disabled={batchActionLoading} onClick={() => batchStock(1)} className="app-control ui-button min-h-11 rounded-xl border px-2.5">+1</button><button type="button" disabled={batchActionLoading} onClick={batchDelete} className="app-control min-h-11 rounded-xl border px-2.5 text-rose-600"><Trash2 className="h-4 w-4" /></button></div></div></div>}
       <BatchPhotoModal isOpen={isPhotoModalOpen} onClose={() => setIsPhotoModalOpen(false)} onSuccess={() => onRefreshItems?.()} user={user} onAddGuestItems={onAddGuestItems} />
