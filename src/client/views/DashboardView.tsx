@@ -16,6 +16,7 @@ interface DashboardViewProps {
   onOpenNewItem: () => void;
   onStartUsing?: (id: string) => void | Promise<void>;
   onSnooze?: (id: string, days: number) => void | Promise<void>;
+  onConsume?: (id: string, amount: number) => void | Promise<void>;
   onBatchReplace?: (ids: string[]) => Promise<void>;
   onBatchStock?: (ids: string[], delta: number) => Promise<void>;
   onBatchDelete?: (ids: string[]) => Promise<void>;
@@ -28,7 +29,7 @@ interface DashboardViewProps {
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
-  items, onReplace, onAdjustStock, onEdit, onDelete, onViewHistory, onOpenNewItem, onStartUsing, onSnooze,
+  items, onReplace, onAdjustStock, onEdit, onDelete, onViewHistory, onOpenNewItem, onStartUsing, onSnooze, onConsume,
   onBatchReplace, onBatchStock, onBatchDelete, onRefreshItems, user, onAddGuestItems, onOpenAuth, onClearDemoItems, onRestoreDemoItems,
 }) => {
   const { t, locale } = useTranslation();
@@ -381,6 +382,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onViewHistory={onViewHistory}
                 onStartUsing={onStartUsing}
                 onSnooze={onSnooze}
+                onConsume={onConsume}
                 selectable={isSelecting}
                 isSelected={selectedIds.has(item.id)}
                 onToggleSelect={toggleSelected}

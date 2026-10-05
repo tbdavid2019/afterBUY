@@ -11,12 +11,20 @@ export function computeNextDueDate(item: {
   paoMonths?: number | null;
   expiryDate?: string | null;
   warrantyDate?: string | null;
+  initialQuantity?: number | null;
+  dailyUsage?: number | null;
 }): string {
   const start = parseBusinessDate(item.startDate);
 
   switch (item.trackingMode) {
     case 'cycle': {
       const days = item.cycleDays || 90;
+      return addBusinessDays(item.startDate, days);
+    }
+    case 'quantity': {
+      const initQty = item.initialQuantity || 60;
+      const rate = Math.max(0.01, item.dailyUsage || 1);
+      const days = item.cycleDays || Math.ceil(initQty / rate);
       return addBusinessDays(item.startDate, days);
     }
     case 'pao': {
@@ -46,6 +54,10 @@ export function computeItemStatus(
     paoMonths?: number | null;
     expiryDate?: string | null;
     warrantyDate?: string | null;
+    initialQuantity?: number | null;
+    currentQuantity?: number | null;
+    dailyUsage?: number | null;
+    quantityUnit?: string | null;
     backupStock: number;
     minStockAlert?: number;
     isStored?: boolean | null;
@@ -58,6 +70,7 @@ export function computeItemStatus(
   elapsedDays: number;
   remainingDays: number;
   percentageRemaining: number;
+  remainingQuantity?: number | null;
   healthStatus: HealthStatus;
   needsRestock: boolean;
 } {
@@ -65,19 +78,34 @@ export function computeItemStatus(
   const nextDueDate = computeNextDueDate(item);
   const totalDays = Math.max(1, businessDateDiff(item.startDate, nextDueDate));
   const elapsedDays = businessDateDiff(item.startDate, refDateStr);
-  const remainingDays = businessDateDiff(refDateStr, nextDueDate);
+  let remainingDays = businessDateDiff(refDateStr, nextDueDate);
+  let remainingQuantity: number | null = null;
+
+  if (item.trackingMode === 'quantity') {
+    const initQty = item.initialQuantity || 60;
+    const rate = Math.max(0.01, item.dailyUsage || 1);
+
+    if (item.currentQuantity !== null && item.currentQuantity !== undefined) {
+      remainingQuantity = Math.max(0, item.currentQuantity);
+      remainingDays = Math.ceil(remainingQuantity / rate);
+    } else {
+      const consumed = Math.max(0, elapsedDays * rate);
+      remainingQuantity = Math.max(0, Math.round(initQty - consumed));
+      remainingDays = Math.ceil(remainingQuantity / rate);
+    }
+  }
 
   let percentageRemaining = Math.max(0, Math.min(100, Math.round((remainingDays / totalDays) * 100)));
 
   let healthStatus: HealthStatus = 'healthy';
   // A stored fixed-date item can still expire while it is unopened. Stored
-  // cycle/PAO items have no active lifespan until they are started.
+  // cycle/PAO/quantity items have no active lifespan until they are started.
   if (item.isStored && item.trackingMode !== 'expiry' && item.trackingMode !== 'warranty') {
     healthStatus = 'stored';
     percentageRemaining = 100;
   } else if (item.snoozeUntil && item.snoozeUntil > refDateStr) {
     healthStatus = 'snoozed';
-  } else if (remainingDays < 0) {
+  } else if (remainingDays < 0 || (item.trackingMode === 'quantity' && remainingQuantity !== null && remainingQuantity <= 0)) {
     healthStatus = 'overdue';
     percentageRemaining = 0;
   } else if (remainingDays <= 7 || percentageRemaining <= 15) {
@@ -95,6 +123,7 @@ export function computeItemStatus(
     elapsedDays,
     remainingDays,
     percentageRemaining,
+    remainingQuantity,
     healthStatus,
     needsRestock,
   };
@@ -105,8 +134,13 @@ export function computeItemStatus(
  */
 export function formatRemainingDaysText(
   remainingDays: number,
-  healthStatus?: HealthStatus
+  healthStatus?: HealthStatus,
+  quantityMeta?: { remainingQuantity?: number | null; quantityUnit?: string | null }
 ): { text: string; color: string; badge: string; dot: string } {
+  const qtyPrefix = (quantityMeta?.remainingQuantity !== null && quantityMeta?.remainingQuantity !== undefined)
+    ? `約剩 ${quantityMeta.remainingQuantity} ${quantityMeta.quantityUnit || '個'} · `
+    : '';
+
   if (healthStatus === 'stored') {
     return {
       text: '存放中（未拆封）',
@@ -126,7 +160,7 @@ export function formatRemainingDaysText(
   if (remainingDays < 0) {
     const days = Math.abs(remainingDays);
     return {
-      text: `已過期 ${days} 天`,
+      text: qtyPrefix ? `${qtyPrefix}已用盡` : `已過期 ${days} 天`,
       color: 'text-rose-700 dark:text-rose-400 font-semibold',
       badge: 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60',
       dot: 'bg-rose-500',
@@ -134,7 +168,7 @@ export function formatRemainingDaysText(
   }
   if (remainingDays === 0) {
     return {
-      text: '今天該換！',
+      text: qtyPrefix ? `${qtyPrefix}今日預計用盡！` : '今天該換！',
       color: 'text-amber-800 dark:text-amber-300 font-bold',
       badge: 'bg-amber-50 text-amber-800 border-amber-300/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 font-semibold',
       dot: 'bg-amber-500',
@@ -142,14 +176,14 @@ export function formatRemainingDaysText(
   }
   if (remainingDays <= 7) {
     return {
-      text: `剩餘 ${remainingDays} 天`,
+      text: `${qtyPrefix}剩餘 ${remainingDays} 天`,
       color: 'text-amber-800 dark:text-amber-300',
       badge: 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60',
       dot: 'bg-amber-500',
     };
   }
   return {
-    text: `剩餘 ${remainingDays} 天`,
+    text: `${qtyPrefix}剩餘 ${remainingDays} 天`,
     color: 'text-emerald-700 dark:text-emerald-400',
     badge: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60',
     dot: 'bg-emerald-500',

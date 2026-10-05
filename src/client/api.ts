@@ -109,6 +109,10 @@ export const api = {
     paoMonths?: number;
     expiryDate?: string;
     warrantyDate?: string;
+    initialQuantity?: number | null;
+    currentQuantity?: number | null;
+    dailyUsage?: number | null;
+    quantityUnit?: string | null;
     backupStock?: number;
     minStockAlert?: number;
     price?: number | null;
@@ -134,6 +138,10 @@ export const api = {
     paoMonths: number;
     expiryDate: string;
     warrantyDate: string;
+    initialQuantity: number | null;
+    currentQuantity: number | null;
+    dailyUsage: number | null;
+    quantityUnit: string | null;
     backupStock: number;
     minStockAlert: number;
     price: number | null;
@@ -154,13 +162,20 @@ export const api = {
     return request(`/items/${id}`, { method: 'DELETE' });
   },
 
-  async markReplaced(id: string): Promise<{ success: boolean; newStock: number; startDate: string }> {
+  async markReplaced(id: string): Promise<{ success: boolean; newStock: number; startDate: string; currentQuantity?: number | null }> {
     return request(`/items/${id}/replace`, { method: 'POST' });
+  },
+
+  async consumeItem(id: string, amount?: number): Promise<{ success: boolean; message: string; currentQuantity: number }> {
+    return request(`/items/${id}/consume`, {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+    });
   },
 
   async undoReplace(
     id: string,
-    snapshot?: { previousStartDate?: string; previousBackupStock?: number; previousSnoozeUntil?: string | null }
+    snapshot?: { previousStartDate?: string; previousBackupStock?: number; previousSnoozeUntil?: string | null; previousCurrentQuantity?: number | null }
   ): Promise<{ success: boolean; message: string; item?: any }> {
     return request(`/items/${id}/undo-replace`, {
       method: 'POST',

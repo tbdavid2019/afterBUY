@@ -139,6 +139,43 @@ const DEMO_ITEMS: ItemResponse[] = [
       backupStock: 0,
     }),
   },
+  {
+    id: 'demo-5',
+    userId: 'guest',
+    name: 'Kirkland 頂級深海魚油膠囊',
+    category: 'health',
+    trackingMode: 'quantity',
+    cycleDays: null,
+    startDate: businessDate(new Date(Date.now() - 11 * 24 * 60 * 60 * 1000)),
+    paoMonths: null,
+    expiryDate: null,
+    warrantyDate: null,
+    initialQuantity: 60,
+    currentQuantity: 38,
+    dailyUsage: 2,
+    quantityUnit: '顆',
+    backupStock: 1,
+    minStockAlert: 1,
+    price: 699,
+    specModel: '60粒裝 / 每日2粒',
+    location: '餐桌保健品架',
+    isStored: false,
+    snoozeUntil: null,
+    notes: 'Costco 經典深海魚油，飯後食用 2 顆',
+    imageUrl: '',
+    calendarSequence: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...computeItemStatus({
+      startDate: businessDate(new Date(Date.now() - 11 * 24 * 60 * 60 * 1000)),
+      trackingMode: 'quantity',
+      initialQuantity: 60,
+      currentQuantity: 38,
+      dailyUsage: 2,
+      quantityUnit: '顆',
+      backupStock: 1,
+    }),
+  },
 ];
 
 export const App: React.FC = () => {
@@ -377,21 +414,24 @@ export const App: React.FC = () => {
   const handleReplace = async (id: string) => {
     const target = items.find((i) => i.id === id);
     if (!target) return;
-    if (target.isStored || (target.trackingMode !== 'cycle' && target.trackingMode !== 'pao')) return;
+    if (target.isStored || (target.trackingMode !== 'cycle' && target.trackingMode !== 'pao' && target.trackingMode !== 'quantity')) return;
 
     // Snapshot before mutation for reversible undo
     const snapshot: ItemResponse = { ...target };
     const todayStr = businessDate();
     const newStock = Math.max(0, target.backupStock - 1);
+    const newCurrentQty = target.trackingMode === 'quantity' ? (target.initialQuantity || 60) : target.currentQuantity;
     const updatedTarget: ItemResponse = {
       ...target,
       startDate: todayStr,
       backupStock: newStock,
+      currentQuantity: newCurrentQty,
       snoozeUntil: null,
       ...computeItemStatus({
         ...target,
         startDate: todayStr,
         backupStock: newStock,
+        currentQuantity: newCurrentQty,
         snoozeUntil: null,
       }),
     };
@@ -422,6 +462,39 @@ export const App: React.FC = () => {
     undoTimerRef.current = setTimeout(() => {
       setUndoToast(null);
     }, 5000);
+  };
+
+  const handleConsume = async (id: string, amount: number) => {
+    const target = items.find((i) => i.id === id);
+    if (!target || target.isStored || target.trackingMode !== 'quantity') return;
+
+    const currentVal = target.currentQuantity !== null && target.currentQuantity !== undefined
+      ? target.currentQuantity
+      : (target.remainingQuantity !== null && target.remainingQuantity !== undefined
+          ? target.remainingQuantity
+          : (target.initialQuantity || 60));
+
+    const newCurrentQty = Math.max(0, currentVal - amount);
+    const updatedTarget: ItemResponse = {
+      ...target,
+      currentQuantity: newCurrentQty,
+      ...computeItemStatus({
+        ...target,
+        currentQuantity: newCurrentQty,
+      }),
+    };
+
+    if (!user) {
+      setGuestItems((prev) => prev.map((i) => (i.id === id ? updatedTarget : i)));
+    } else {
+      setItems((prev) => prev.map((i) => (i.id === id ? updatedTarget : i)));
+      try {
+        await api.consumeItem(id, amount);
+      } catch (err: any) {
+        alert(err.message || '扣減失敗');
+        setItems((prev) => prev.map((i) => (i.id === id ? target : i)));
+      }
+    }
   };
 
   const handleUndoReplace = async () => {
@@ -494,17 +567,20 @@ export const App: React.FC = () => {
       setGuestItems((prev) =>
         prev.map((i) => {
           if (!ids.includes(i.id)) return i;
-          if (i.isStored || (i.trackingMode !== 'cycle' && i.trackingMode !== 'pao')) return i;
+          if (i.isStored || (i.trackingMode !== 'cycle' && i.trackingMode !== 'pao' && i.trackingMode !== 'quantity')) return i;
           const newStock = Math.max(0, i.backupStock - 1);
+          const newCurrentQty = i.trackingMode === 'quantity' ? (i.initialQuantity || 60) : i.currentQuantity;
           return {
             ...i,
             startDate: todayStr,
             backupStock: newStock,
+            currentQuantity: newCurrentQty,
             snoozeUntil: null,
             ...computeItemStatus({
               ...i,
               startDate: todayStr,
               backupStock: newStock,
+              currentQuantity: newCurrentQty,
             }),
           };
         })
@@ -683,6 +759,7 @@ export const App: React.FC = () => {
             onOpenNewItem={handleOpenNewItem}
             onStartUsing={handleStartUsing}
             onSnooze={handleSnooze}
+            onConsume={handleConsume}
             onBatchReplace={handleBatchReplace}
             onBatchStock={handleBatchStock}
             onBatchDelete={handleBatchDelete}

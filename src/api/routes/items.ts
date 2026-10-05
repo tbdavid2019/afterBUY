@@ -133,6 +133,10 @@ itemsRouter.get('/', async (c) => {
         paoMonths: item.paoMonths,
         expiryDate: item.expiryDate,
         warrantyDate: item.warrantyDate,
+        initialQuantity: item.initialQuantity,
+        currentQuantity: item.currentQuantity,
+        dailyUsage: item.dailyUsage,
+        quantityUnit: item.quantityUnit,
         backupStock: item.backupStock,
         minStockAlert: item.minStockAlert,
         isStored: Boolean(item.isStored),
@@ -185,6 +189,10 @@ itemsRouter.post('/', async (c) => {
     paoMonths?: number;
     expiryDate?: string;
     warrantyDate?: string;
+    initialQuantity?: number;
+    currentQuantity?: number;
+    dailyUsage?: number;
+    quantityUnit?: string;
     backupStock?: number;
     minStockAlert?: number;
     price?: number;
@@ -221,6 +229,13 @@ itemsRouter.post('/', async (c) => {
     return c.json({ error: '您無權在此 Stock 新增物品' }, 403);
   }
 
+  const isQuantityMode = body.trackingMode === 'quantity';
+  const initialQty = isQuantityMode ? Math.max(1, body.initialQuantity ?? 60) : null;
+  const dailyRate = isQuantityMode ? Math.max(0.01, body.dailyUsage ?? 1) : null;
+  const currentQty = isQuantityMode
+    ? (body.currentQuantity !== undefined && body.currentQuantity !== null ? Math.max(0, body.currentQuantity) : initialQty)
+    : null;
+
   const newItem = {
     id: itemId,
     stockId: targetStockId,
@@ -229,11 +244,21 @@ itemsRouter.post('/', async (c) => {
     name: body.name.trim(),
     category: body.category || 'general',
     trackingMode: body.trackingMode || 'cycle',
-    cycleDays: body.cycleDays ?? (body.trackingMode === 'cycle' ? 90 : null),
+    cycleDays: body.cycleDays ?? (
+      body.trackingMode === 'cycle'
+        ? 90
+        : isQuantityMode && initialQty && dailyRate
+          ? Math.ceil(initialQty / dailyRate)
+          : null
+    ),
     startDate: body.startDate || todayStr,
     paoMonths: body.paoMonths ?? (body.trackingMode === 'pao' ? 6 : null),
     expiryDate: body.expiryDate || null,
     warrantyDate: body.warrantyDate || null,
+    initialQuantity: initialQty,
+    currentQuantity: currentQty,
+    dailyUsage: dailyRate,
+    quantityUnit: isQuantityMode ? (body.quantityUnit?.trim() || '顆') : null,
     backupStock: Math.max(0, body.backupStock ?? 0),
     minStockAlert: Math.max(0, body.minStockAlert ?? 1),
     price: body.price !== undefined && body.price !== null ? Math.max(0, Math.round(body.price)) : null,
@@ -371,6 +396,10 @@ itemsRouter.put('/:id', async (c) => {
     paoMonths: body.paoMonths !== undefined ? body.paoMonths : existing.paoMonths,
     expiryDate: body.expiryDate !== undefined ? body.expiryDate : existing.expiryDate,
     warrantyDate: body.warrantyDate !== undefined ? body.warrantyDate : existing.warrantyDate,
+    initialQuantity: body.initialQuantity !== undefined ? (body.initialQuantity !== null ? Math.max(1, body.initialQuantity) : null) : existing.initialQuantity,
+    currentQuantity: body.currentQuantity !== undefined ? (body.currentQuantity !== null ? Math.max(0, body.currentQuantity) : null) : existing.currentQuantity,
+    dailyUsage: body.dailyUsage !== undefined ? (body.dailyUsage !== null ? Math.max(0.01, body.dailyUsage) : null) : existing.dailyUsage,
+    quantityUnit: body.quantityUnit !== undefined ? (body.quantityUnit?.trim() || null) : existing.quantityUnit,
     backupStock: body.backupStock !== undefined ? Math.max(0, body.backupStock) : existing.backupStock,
     minStockAlert: body.minStockAlert !== undefined ? Math.max(0, body.minStockAlert) : existing.minStockAlert,
     price: body.price !== undefined ? (body.price === null ? null : Math.max(0, Math.round(body.price))) : existing.price,
@@ -507,18 +536,20 @@ itemsRouter.post('/:id/replace', async (c) => {
   if (access === false) return c.json({ error: '權限不足' }, 403);
 
   const existing = access.item;
-  if (existing.isStored || (existing.trackingMode !== 'cycle' && existing.trackingMode !== 'pao')) {
-    return c.json({ error: '只有啟用中的週期或開封保存期物品可以標記更換' }, 400);
+  if (existing.isStored || (existing.trackingMode !== 'cycle' && existing.trackingMode !== 'pao' && existing.trackingMode !== 'quantity')) {
+    return c.json({ error: '只有啟用中的週期、開封保存期或數量耗用物品可以標記更換' }, 400);
   }
   const nowIso = new Date().toISOString();
   const todayStr = businessDate();
   const newStock = Math.max(0, existing.backupStock - 1);
+  const resetQty = existing.trackingMode === 'quantity' ? (existing.initialQuantity ?? 60) : null;
 
   await db
     .update(items)
     .set({
       startDate: todayStr,
       backupStock: newStock,
+      currentQuantity: resetQty,
       snoozeUntil: null,
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
@@ -534,19 +565,60 @@ itemsRouter.post('/:id/replace', async (c) => {
     replacedAt: nowIso,
     previousStartDate: existing.startDate,
     stockAfterReplace: newStock,
-    notes: existing.backupStock > 0 ? '已扣減 1 個備品庫存' : '無備品庫存（需採購）',
+    notes: existing.trackingMode === 'quantity'
+      ? (existing.backupStock > 0 ? `已開啟新一${existing.quantityUnit === '顆' ? '瓶' : '包'}，備品扣減 1` : '已重置數量，備品已耗盡')
+      : (existing.backupStock > 0 ? '已扣減 1 個備品庫存' : '無備品庫存（需採購）'),
   };
   await db.insert(itemHistory).values(historyRecord);
 
   return c.json({
     success: true,
-    message: '已記錄更換！計時器已重置',
+    message: existing.trackingMode === 'quantity' ? '已開啟新備品！容量已重置' : '已記錄更換！計時器已重置',
     newStock,
     startDate: todayStr,
+    currentQuantity: resetQty,
   });
 });
 
-// 10. Undo replace operation (rollback startDate, backupStock, snooze, and delete history entry)
+// 11. Consume quantity (e.g. -2 fish oil pills or -1 trash bag)
+itemsRouter.post('/:id/consume', async (c) => {
+  const user = c.get('user')!;
+  const itemId = c.req.param('id');
+  const body = await c.req.json<{ amount?: number }>().catch(() => ({ amount: undefined }));
+  const db = getDb(c.env.DB);
+
+  const access = await checkItemAccess(db, itemId, user.id, 'edit');
+  if (access === null) return c.json({ error: '找不到該物品' }, 404);
+  if (access === false) return c.json({ error: '權限不足' }, 403);
+
+  const existing = access.item;
+  if (existing.isStored || existing.trackingMode !== 'quantity') {
+    return c.json({ error: '只有啟用中的數量耗用物品可以記錄耗用' }, 400);
+  }
+
+  const consumeAmount = Math.max(0.01, body.amount ?? existing.dailyUsage ?? 1);
+  const now = new Date();
+  const status = computeItemStatus(existing, now);
+  const currentRem = status.remainingQuantity ?? existing.initialQuantity ?? 60;
+  const newCurrentQuantity = Math.max(0, Math.round((currentRem - consumeAmount) * 100) / 100);
+  const nowIso = now.toISOString();
+
+  await db
+    .update(items)
+    .set({
+      currentQuantity: newCurrentQuantity,
+      updatedAt: nowIso,
+    })
+    .where(eq(items.id, itemId));
+
+  return c.json({
+    success: true,
+    message: `已記錄耗用 ${consumeAmount} ${existing.quantityUnit || '個'}`,
+    currentQuantity: newCurrentQuantity,
+  });
+});
+
+// 12. Undo replace operation (rollback startDate, backupStock, snooze, and delete history entry)
 itemsRouter.post('/:id/undo-replace', async (c) => {
   const user = c.get('user')!;
   const itemId = c.req.param('id');
@@ -554,6 +626,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
     previousStartDate?: string;
     previousBackupStock?: number;
     previousSnoozeUntil?: string | null;
+    previousCurrentQuantity?: number | null;
   }>().catch(() => ({}));
   const db = getDb(c.env.DB);
 
@@ -577,17 +650,21 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
   let restoredStock = existing.backupStock;
   if (typeof body.previousBackupStock === 'number') {
     restoredStock = body.previousBackupStock;
+  } else if (latestHistory && latestHistory.notes?.includes('備品扣減 1')) {
+    restoredStock = existing.backupStock + 1;
   } else if (latestHistory && latestHistory.notes?.includes('已扣減 1 個備品庫存')) {
     restoredStock = existing.backupStock + 1;
   }
 
   const restoredSnooze = body.previousSnoozeUntil !== undefined ? body.previousSnoozeUntil : existing.snoozeUntil;
+  const restoredQuantity = body.previousCurrentQuantity !== undefined ? body.previousCurrentQuantity : existing.currentQuantity;
 
   await db
     .update(items)
     .set({
       startDate: restoredStartDate,
       backupStock: restoredStock,
+      currentQuantity: restoredQuantity,
       snoozeUntil: restoredSnooze,
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
@@ -605,6 +682,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
       ...existing,
       startDate: restoredStartDate,
       backupStock: restoredStock,
+      currentQuantity: restoredQuantity,
       snoozeUntil: restoredSnooze,
     },
   });

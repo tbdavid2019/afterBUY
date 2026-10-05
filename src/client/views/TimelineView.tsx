@@ -41,10 +41,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
         <div className="relative space-y-3 pl-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-[var(--app-border)]">
           {scheduledItems.map((item) => {
             const category = CATEGORIES[item.category] || CATEGORIES.general;
-            const statusInfo = formatRemainingDaysText(item.remainingDays, item.healthStatus);
+            const statusInfo = formatRemainingDaysText(
+              item.remainingDays,
+              item.healthStatus,
+              item.trackingMode === 'quantity'
+                ? { remainingQuantity: item.remainingQuantity, quantityUnit: item.quantityUnit }
+                : undefined
+            );
             const dateOnly = item.trackingMode === 'expiry' || item.trackingMode === 'warranty';
             const displayDate = item.healthStatus === 'snoozed' && item.snoozeUntil ? item.snoozeUntil : item.nextDueDate;
-            const dateLabel = item.healthStatus === 'snoozed' ? '延後至' : item.trackingMode === 'warranty' ? '保固至' : item.trackingMode === 'expiry' ? '有效期限' : '下次處理';
+            const dateLabel = item.healthStatus === 'snoozed' ? '延後至' : item.trackingMode === 'warranty' ? '保固至' : item.trackingMode === 'expiry' ? '有效期限' : item.trackingMode === 'quantity' ? '預計用盡' : '下次處理';
             return (
               <article key={item.id} className="relative">
                 <div className={`absolute -left-6 top-4 h-3 w-3 rounded-full border-2 border-[var(--app-bg)] ${item.healthStatus === 'overdue' ? 'bg-rose-500' : item.healthStatus === 'due_soon' ? 'bg-amber-500' : item.healthStatus === 'snoozed' ? 'bg-sky-500' : 'bg-emerald-500'}`} />
@@ -53,7 +59,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                     <div className="ui-meta flex flex-wrap items-center gap-2 text-[var(--app-muted)]">
                       <span className="flex items-center gap-1 font-semibold text-[var(--app-accent-strong)] tabular-nums"><Clock className="h-3.5 w-3.5" />{dateLabel} · {displayDate}</span>
                       <span className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs font-semibold ${statusInfo.badge}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dotClass}`} />
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot || 'bg-current'}`} />
                         {statusInfo.text}
                       </span>
                     </div>

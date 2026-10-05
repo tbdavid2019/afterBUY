@@ -1,4 +1,4 @@
-export type TrackingMode = 'cycle' | 'pao' | 'expiry' | 'warranty';
+export type TrackingMode = 'cycle' | 'pao' | 'expiry' | 'warranty' | 'quantity';
 export type HealthStatus = 'healthy' | 'due_soon' | 'overdue' | 'out_of_stock' | 'snoozed' | 'stored';
 export type ItemCategory = 'bathroom' | 'kitchen' | 'skincare' | 'medicine' | 'appliances' | 'electronics' | 'clothing' | 'general';
 
@@ -61,6 +61,10 @@ export interface ItemResponse {
   paoMonths: number | null;
   expiryDate: string | null;
   warrantyDate: string | null;
+  initialQuantity?: number | null;
+  currentQuantity?: number | null;
+  dailyUsage?: number | null;
+  quantityUnit?: string | null;
   backupStock: number;
   minStockAlert: number;
   price: number | null;
@@ -80,6 +84,7 @@ export interface ItemResponse {
   elapsedDays: number;
   remainingDays: number;
   percentageRemaining: number;
+  remainingQuantity?: number | null;
   healthStatus: HealthStatus;
   needsRestock: boolean;
 }

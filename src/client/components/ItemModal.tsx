@@ -39,6 +39,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [paoMonths, setPaoMonths] = useState(6);
   const [expiryDate, setExpiryDate] = useState('');
   const [warrantyDate, setWarrantyDate] = useState('');
+  const [initialQuantity, setInitialQuantity] = useState<number | ''>(60);
+  const [currentQuantity, setCurrentQuantity] = useState<number | ''>('');
+  const [dailyUsage, setDailyUsage] = useState<number | ''>(2);
+  const [quantityUnit, setQuantityUnit] = useState('顆');
   const [backupStock, setBackupStock] = useState(1);
   const [minStockAlert, setMinStockAlert] = useState(1);
   const [price, setPrice] = useState<number | ''>('');
@@ -66,6 +70,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setPaoMonths(itemToEdit.paoMonths || 6);
       setExpiryDate(itemToEdit.expiryDate || '');
       setWarrantyDate(itemToEdit.warrantyDate || '');
+      setInitialQuantity(itemToEdit.initialQuantity ?? 60);
+      setCurrentQuantity(itemToEdit.currentQuantity !== null && itemToEdit.currentQuantity !== undefined ? itemToEdit.currentQuantity : '');
+      setDailyUsage(itemToEdit.dailyUsage ?? 2);
+      setQuantityUnit(itemToEdit.quantityUnit || '顆');
       setBackupStock(itemToEdit.backupStock);
       setMinStockAlert(itemToEdit.minStockAlert);
       setPrice(itemToEdit.price !== null && itemToEdit.price !== undefined ? itemToEdit.price : '');
@@ -97,6 +105,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setPaoMonths(6);
       setExpiryDate('');
       setWarrantyDate('');
+      setInitialQuantity(60);
+      setCurrentQuantity('');
+      setDailyUsage(2);
+      setQuantityUnit('顆');
       setBackupStock(1);
       setMinStockAlert(1);
       setPrice('');
@@ -125,6 +137,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     setTrackingMode(preset.trackingMode);
     if (preset.cycleDays) setCycleDays(preset.cycleDays);
     if (preset.paoMonths) setPaoMonths(preset.paoMonths);
+    if (preset.initialQuantity !== undefined) setInitialQuantity(preset.initialQuantity);
+    if (preset.currentQuantity !== undefined) setCurrentQuantity(preset.currentQuantity);
+    if (preset.dailyUsage !== undefined) setDailyUsage(preset.dailyUsage);
+    if (preset.quantityUnit) setQuantityUnit(preset.quantityUnit);
     if (preset.minStockAlert !== undefined) setMinStockAlert(preset.minStockAlert);
     if (preset.defaultPrice !== undefined) setPrice(preset.defaultPrice);
     if (preset.defaultSpecModel !== undefined) setSpecModel(preset.defaultSpecModel);
@@ -172,6 +188,13 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
     setSaving(true);
     setErrorMessage('');
+    const parsedInitQty = trackingMode === 'quantity' ? Number(initialQuantity) || 1 : null;
+    const parsedDailyUsage = trackingMode === 'quantity' ? Number(dailyUsage) || 1 : null;
+    const parsedCurrentQty = trackingMode === 'quantity'
+      ? (currentQuantity === '' ? null : Number(currentQuantity))
+      : null;
+    const parsedQtyUnit = trackingMode === 'quantity' ? quantityUnit.trim() || '顆' : null;
+
     try {
       if (!user) {
         // Guest mode: local state update
@@ -186,6 +209,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null,
             expiryDate: trackingMode === 'expiry' ? expiryDate : null,
             warrantyDate: trackingMode === 'warranty' ? warrantyDate : null,
+            initialQuantity: parsedInitQty,
+            currentQuantity: parsedCurrentQty,
+            dailyUsage: parsedDailyUsage,
+            quantityUnit: parsedQtyUnit,
             backupStock: Number(backupStock),
             minStockAlert: Number(minStockAlert),
             price: price === '' ? null : Number(price),
@@ -203,6 +230,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null,
               expiryDate: trackingMode === 'expiry' ? expiryDate : null,
               warrantyDate: trackingMode === 'warranty' ? warrantyDate : null,
+              initialQuantity: parsedInitQty,
+              currentQuantity: parsedCurrentQty,
+              dailyUsage: parsedDailyUsage,
+              quantityUnit: parsedQtyUnit,
               backupStock: Number(backupStock),
               minStockAlert: Number(minStockAlert),
               isStored,
@@ -222,6 +253,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null,
             expiryDate: trackingMode === 'expiry' ? expiryDate : null,
             warrantyDate: trackingMode === 'warranty' ? warrantyDate : null,
+            initialQuantity: parsedInitQty,
+            currentQuantity: parsedCurrentQty,
+            dailyUsage: parsedDailyUsage,
+            quantityUnit: parsedQtyUnit,
             backupStock: Number(backupStock),
             minStockAlert: Number(minStockAlert),
             price: price === '' ? null : Number(price),
@@ -241,6 +276,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null,
               expiryDate: trackingMode === 'expiry' ? expiryDate : null,
               warrantyDate: trackingMode === 'warranty' ? warrantyDate : null,
+              initialQuantity: parsedInitQty,
+              currentQuantity: parsedCurrentQty,
+              dailyUsage: parsedDailyUsage,
+              quantityUnit: parsedQtyUnit,
               backupStock: Number(backupStock),
               minStockAlert: Number(minStockAlert),
               isStored,
@@ -263,6 +302,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null as any,
           expiryDate: trackingMode === 'expiry' ? expiryDate : null as any,
           warrantyDate: trackingMode === 'warranty' ? warrantyDate : null as any,
+          initialQuantity: parsedInitQty as any,
+          currentQuantity: parsedCurrentQty as any,
+          dailyUsage: parsedDailyUsage as any,
+          quantityUnit: parsedQtyUnit as any,
           backupStock: Number(backupStock),
           minStockAlert: Number(minStockAlert),
           price: price === '' ? null : Number(price),
@@ -283,6 +326,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           paoMonths: trackingMode === 'pao' ? Number(paoMonths) : undefined,
           expiryDate: trackingMode === 'expiry' ? expiryDate : undefined,
           warrantyDate: trackingMode === 'warranty' ? warrantyDate : undefined,
+          initialQuantity: parsedInitQty ?? undefined,
+          currentQuantity: parsedCurrentQty ?? undefined,
+          dailyUsage: parsedDailyUsage ?? undefined,
+          quantityUnit: parsedQtyUnit ?? undefined,
           backupStock: Number(backupStock),
           minStockAlert: Number(minStockAlert),
           price: price === '' ? null : Number(price),
@@ -415,12 +462,13 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {/* Tracking Mode */}
           <div>
             <label className="block ui-label font-semibold text-[var(--app-text)] mb-1.5">追蹤模式</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               {[
                 { id: 'cycle', label: '週期更換' },
                 { id: 'pao', label: '開封期 (PAO)' },
                 { id: 'expiry', label: '有效期限' },
                 { id: 'warranty', label: '保固倒數' },
+                { id: 'quantity', label: '數量耗用 🆕' },
               ].map((m) => (
                 <button
                   key={m.id}
@@ -524,10 +572,105 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               </div>
             )}
 
+            {trackingMode === 'quantity' && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block ui-label font-medium text-[var(--app-text)] mb-1">
+                      單瓶 / 包總容量 *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      required
+                      placeholder="例如：60"
+                      value={initialQuantity}
+                      onChange={(e) => setInitialQuantity(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1))}
+                      className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
+                    />
+                  </div>
+                  <div>
+                    <label className="block ui-label font-medium text-[var(--app-text)] mb-1">
+                      每日平均耗用率 *
+                    </label>
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="any"
+                      required
+                      placeholder="例如：2"
+                      value={dailyUsage}
+                      onChange={(e) => setDailyUsage(e.target.value === '' ? '' : Math.max(0.01, parseFloat(e.target.value) || 1))}
+                      className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
+                    />
+                  </div>
+                </div>
+
+                {/* Unit picker & Custom input */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="ui-label font-medium text-[var(--app-text)]">計算單位</label>
+                    <span className="ui-meta text-[var(--app-muted)]">點擊快選或自訂</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 items-center">
+                    {['顆', '錠', '包', '個', '片', '入', '抽', '次', '捲'].map((u) => (
+                      <button
+                        key={u}
+                        type="button"
+                        onClick={() => setQuantityUnit(u)}
+                        className={`min-h-8 px-2.5 ui-button rounded-lg border text-xs ${
+                          quantityUnit === u ? 'app-primary font-bold shadow-sm' : 'app-control'
+                        }`}
+                      >
+                        {u}
+                      </button>
+                    ))}
+                    <input
+                      type="text"
+                      placeholder="自訂"
+                      value={['顆', '錠', '包', '個', '片', '入', '抽', '次', '捲'].includes(quantityUnit) ? '' : quantityUnit}
+                      onChange={(e) => setQuantityUnit(e.target.value)}
+                      className="w-16 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg px-2 min-h-8 text-xs text-[var(--app-text)] outline-none text-center"
+                    />
+                  </div>
+                </div>
+
+                {/* Current remaining override (optional) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="ui-label font-medium text-[var(--app-text)]">
+                      目前開瓶現存剩餘（選填）
+                    </label>
+                    <span className="ui-meta text-[var(--app-muted)]">留空則依起始日天數自動扣減</span>
+                  </div>
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder={`預設自動計算（新開即滿 ${initialQuantity || 60} ${quantityUnit}）`}
+                    value={currentQuantity}
+                    onChange={(e) => setCurrentQuantity(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
+                    className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums placeholder:text-[var(--app-muted-low)]"
+                  />
+                </div>
+
+                {/* Live estimation hint */}
+                {Number(initialQuantity) > 0 && Number(dailyUsage) > 0 && (
+                  <div className="app-primary-soft border border-[var(--app-accent)]/20 rounded-xl px-3 py-2 ui-meta flex items-center justify-between">
+                    <span className="text-[var(--app-text)]">
+                      💡 單盒 {initialQuantity} {quantityUnit} ÷ 每天 {dailyUsage} {quantityUnit}
+                    </span>
+                    <span className="font-bold text-[var(--app-accent-strong)] tabular-nums">
+                      約可使用 {Math.ceil(Number(initialQuantity) / Number(dailyUsage))} 天
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Start Date */}
             <div>
               <label className="block ui-label font-medium text-[var(--app-text)] mb-1">
-                {trackingMode === 'pao' ? '開封日期' : trackingMode === 'warranty' ? '購買日期' : '本次啟用 / 更換日期'}
+                {trackingMode === 'pao' ? '開封日期' : trackingMode === 'warranty' ? '購買日期' : trackingMode === 'quantity' ? '本次開瓶 / 開封日期' : '本次啟用 / 更換日期'}
               </label>
               <input
                 type="date"
@@ -541,7 +684,14 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
           {/* Backup Stock (Essential) */}
           <div>
-            <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">現有備品數量</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="ui-label font-semibold text-[var(--app-text)]">
+                {trackingMode === 'quantity' ? '未拆封備品庫存（瓶 / 包 / 盒）' : '現有備品數量'}
+              </label>
+              {trackingMode === 'quantity' && (
+                <span className="ui-meta text-[var(--app-muted)]">耗盡時開啟新備品將自動扣除 1</span>
+              )}
+            </div>
             <input
               type="number"
               min="0"

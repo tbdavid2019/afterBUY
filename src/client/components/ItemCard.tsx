@@ -27,6 +27,7 @@ interface ItemCardProps {
   onViewHistory: (item: ItemResponse) => void;
   onStartUsing?: (id: string) => void | Promise<void>;
   onSnooze?: (id: string, days: number) => void | Promise<void>;
+  onConsume?: (id: string, amount: number) => void | Promise<void>;
   selectable?: boolean;
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
@@ -41,6 +42,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   onViewHistory,
   onStartUsing,
   onSnooze,
+  onConsume,
   selectable,
   isSelected,
   onToggleSelect,
@@ -50,8 +52,15 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const categoryMeta = CATEGORIES[item.category] || CATEGORIES.general;
-  const statusInfo = formatRemainingDaysText(item.remainingDays, item.healthStatus);
+  const statusInfo = formatRemainingDaysText(
+    item.remainingDays,
+    item.healthStatus,
+    item.trackingMode === 'quantity'
+      ? { remainingQuantity: item.remainingQuantity, quantityUnit: item.quantityUnit }
+      : undefined
+  );
   const isStored = item.isStored || item.healthStatus === 'stored';
+  const isQuantityMode = item.trackingMode === 'quantity';
   const dateOnly = item.trackingMode === 'expiry' || item.trackingMode === 'warranty';
 
   const runAction = async (action: () => void | Promise<void>, successMessage?: string) => {
@@ -150,6 +159,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <div className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
             {item.stockName && <span className="truncate">{item.stockName}</span>}
             {item.specModel && <span className="truncate">型號: {item.specModel}</span>}
+            {isQuantityMode && (
+              <span className="tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
+                每日 {item.dailyUsage || 1} {item.quantityUnit || '顆'} · 單瓶 {item.initialQuantity || 60}
+              </span>
+            )}
             {item.price !== null && item.price !== undefined && <span className="tabular-nums">NT$ {item.price.toLocaleString()}</span>}
           </div>
         </div>
@@ -166,7 +180,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <div className="flex items-center justify-between gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
             <span className="flex min-w-0 items-center gap-1.5 truncate tabular-nums font-medium">
               <Clock className="h-4 w-4 shrink-0 text-slate-400" />
-              {dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : '下次處理'} · {item.nextDueDate}
+              {dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : isQuantityMode ? '預計用盡日' : '下次處理'} · {item.nextDueDate}
             </span>
             {item.healthStatus === 'snoozed' && item.snoozeUntil && (
               <span className="flex shrink-0 items-center gap-1 text-blue-600 dark:text-blue-400 tabular-nums font-medium">
@@ -230,6 +244,77 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             <Edit2 className="h-4 w-4 text-slate-400" />
             <span>編輯日期</span>
           </button>
+        ) : isQuantityMode ? (
+          <div className="relative flex items-center gap-1.5">
+            {(item.healthStatus === 'overdue' || item.healthStatus === 'due_soon') && onSnooze && (
+              <div className="relative">
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu((open) => !open); }}
+                  className="app-control ui-button min-h-10 flex items-center gap-1 px-2.5 py-2 text-[14px] font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
+                >
+                  <Moon className="h-4 w-4 text-slate-400" />
+                  <span>稍後</span>
+                </button>
+                {showSnoozeMenu && (
+                  <div
+                    className="absolute bottom-11 right-0 z-30 w-32 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-lg popover-animate text-sm font-medium"
+                    style={{ '--transform-origin': 'bottom right' } as React.CSSProperties}
+                  >
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 3), '提醒已延後 3 天'); }} className="min-h-9 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 3 天</button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 7), '提醒已延後 7 天'); }} className="min-h-9 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 7 天</button>
+                  </div>
+                )}
+              </div>
+            )}
+            {(item.remainingQuantity ?? 1) > 0 ? (
+              <>
+                <button
+                  type="button"
+                  disabled={busy}
+                  title="開新一瓶/包（扣減備品並重新裝滿）"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void runAction(() => onReplace(item.id), '已開啟新備品');
+                  }}
+                  className="app-control ui-button min-h-10 flex items-center gap-1 px-2.5 py-2 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 text-slate-400" />
+                  <span>開新瓶</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    if (onConsume) {
+                      void runAction(() => onConsume(item.id, item.dailyUsage || 1), `已扣減 ${item.dailyUsage || 1} ${item.quantityUnit || '顆'}`);
+                    } else {
+                      void runAction(() => onReplace(item.id), '已開啟新備品');
+                    }
+                  }}
+                  className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-semibold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+                >
+                  <Check className="h-4 w-4" />
+                  <span>今日已用 (-{item.dailyUsage || 1})</span>
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void runAction(() => onReplace(item.id), '已開啟新備品');
+                }}
+                className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+              >
+                <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
+                <span>開啟新備品</span>
+              </button>
+            )}
+          </div>
         ) : (
           <div className="relative flex items-center gap-1.5">
             {(item.healthStatus === 'overdue' || item.healthStatus === 'due_soon') && onSnooze && (

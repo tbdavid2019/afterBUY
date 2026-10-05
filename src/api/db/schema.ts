@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
@@ -66,6 +66,10 @@ export const items = sqliteTable('items', {
   paoMonths: integer('pao_months'), // e.g. 6 or 12
   expiryDate: text('expiry_date'), // YYYY-MM-DD
   warrantyDate: text('warranty_date'), // YYYY-MM-DD
+  initialQuantity: integer('initial_quantity'), // Total units in package/bottle (e.g. 60)
+  currentQuantity: integer('current_quantity'), // Remaining units
+  dailyUsage: real('daily_usage'), // Units consumed per day (e.g. 2 or 0.5)
+  quantityUnit: text('quantity_unit'), // Unit: 顆, 錠, 包, 個, 片, 入, 抽, 次
   backupStock: integer('backup_stock').notNull().default(0),
   minStockAlert: integer('min_stock_alert').notNull().default(1),
   price: integer('price'), // Purchase price / cost (e.g. NT$ integer or cents)

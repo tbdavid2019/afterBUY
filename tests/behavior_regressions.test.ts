@@ -109,3 +109,41 @@ test('reversible replace snapshot restores original startDate and backupStock', 
   assert.equal(rolledBackItem.backupStock, 2);
   assert.equal(rolledBackItem.healthStatus, originalItem.healthStatus);
 });
+
+test('quantity tracking mode calculates remaining days and burn rate properly', () => {
+  // 60 pills, 2/day = 30 days total lifespan
+  // Started 2026-10-01, checking on 2026-10-11 (10 days elapsed, so 20 pills consumed, 40 remaining, 20 days left)
+  const item = {
+    startDate: '2026-10-01',
+    trackingMode: 'quantity' as const,
+    initialQuantity: 60,
+    dailyUsage: 2,
+    quantityUnit: '顆',
+    backupStock: 1,
+  };
+
+  const status = computeItemStatus(item, new Date('2026-10-11T00:00:00Z'));
+  assert.equal(status.totalDays, 30);
+  assert.equal(status.elapsedDays, 10);
+  assert.equal(status.remainingQuantity, 40);
+  assert.equal(status.remainingDays, 20);
+  assert.equal(status.healthStatus, 'healthy');
+
+  // When explicit currentQuantity is provided (e.g. override to 10 pills)
+  const overrideStatus = computeItemStatus({
+    ...item,
+    currentQuantity: 10,
+  }, new Date('2026-10-11T00:00:00Z'));
+  assert.equal(overrideStatus.remainingQuantity, 10);
+  assert.equal(overrideStatus.remainingDays, 5); // 10 / 2 = 5 days
+  assert.equal(overrideStatus.healthStatus, 'due_soon'); // <= 7 days is due_soon
+
+  // When quantity is 0, becomes overdue
+  const emptyStatus = computeItemStatus({
+    ...item,
+    currentQuantity: 0,
+  }, new Date('2026-10-11T00:00:00Z'));
+  assert.equal(emptyStatus.remainingQuantity, 0);
+  assert.equal(emptyStatus.remainingDays, 0);
+  assert.equal(emptyStatus.healthStatus, 'overdue');
+});
