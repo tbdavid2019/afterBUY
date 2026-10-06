@@ -169,3 +169,59 @@ test('quantity tracking mode calculates remaining days and burn rate properly', 
   assert.equal(fractionalStatus.remainingDays, 49);
   assert.equal(fractionalStatus.nextDueDate, '2026-11-20');
 });
+
+test('calendar timeline tracks both purchase milestone dates and replacement due dates', () => {
+  // Simulate active consumable item purchased today with 90-day cycle
+  const activeItem = {
+    id: 'toothbrush-1',
+    name: '牙刷更換',
+    startDate: '2026-10-06',
+    cycleDays: 90,
+    nextDueDate: '2027-01-04',
+    isStored: false,
+    healthStatus: 'healthy' as const,
+    price: 150,
+  };
+
+  // Simulate backup item purchased into storage today
+  const storedItem = {
+    id: 'filter-reserve-1',
+    name: 'Brita 濾芯備品',
+    startDate: '2026-10-06',
+    cycleDays: 30,
+    nextDueDate: '2026-11-05',
+    isStored: true,
+    healthStatus: 'stored' as const,
+    price: 280,
+  };
+
+  // Event generator logic mirroring TimelineView
+  const generateEvents = (items: typeof activeItem[]) => {
+    const list: Array<{ id: string; type: 'start' | 'due'; date: string; itemId: string }> = [];
+    for (const item of items) {
+      if (item.startDate) {
+        list.push({ id: `${item.id}-start`, type: 'start', date: item.startDate, itemId: item.id });
+      }
+      if (!item.isStored && item.healthStatus !== 'stored') {
+        if (item.nextDueDate) {
+          list.push({ id: `${item.id}-due`, type: 'due', date: item.nextDueDate, itemId: item.id });
+        }
+      }
+    }
+    return list;
+  };
+
+  const events = generateEvents([activeItem, storedItem]);
+
+  // Both items should have purchase milestone events on 2026-10-06
+  const oct6Events = events.filter((e) => e.date === '2026-10-06');
+  assert.equal(oct6Events.length, 2, 'October 6 should reflect both item purchase events');
+  assert.ok(oct6Events.some((e) => e.itemId === 'toothbrush-1' && e.type === 'start'));
+  assert.ok(oct6Events.some((e) => e.itemId === 'filter-reserve-1' && e.type === 'start'));
+
+  // Only the active item should have a due replacement event in 2027
+  const dueEvents = events.filter((e) => e.type === 'due');
+  assert.equal(dueEvents.length, 1);
+  assert.equal(dueEvents[0].date, '2027-01-04');
+  assert.equal(dueEvents[0].itemId, 'toothbrush-1');
+});

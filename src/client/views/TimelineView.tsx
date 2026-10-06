@@ -9,6 +9,8 @@ import {
   Clock,
   Moon,
   Sparkles,
+  ShoppingBag,
+  Filter,
 } from 'lucide-react';
 import { ItemResponse } from '../../shared/types.ts';
 import { CATEGORIES } from '../utils/category.ts';
@@ -17,6 +19,15 @@ import { businessDate, parseBusinessDate } from '../../shared/date.ts';
 import { CategoryIcon } from '../components/CategoryIcon.tsx';
 import { ItemBrandBadge } from '../components/ItemBrandBadge.tsx';
 import { useTranslation } from '../i18n/index.tsx';
+
+export type TimelineEventType = 'due' | 'start';
+
+export interface TimelineEvent {
+  id: string;
+  type: TimelineEventType;
+  date: string; // YYYY-MM-DD
+  item: ItemResponse;
+}
 
 interface TimelineViewProps {
   items: ItemResponse[];
@@ -30,6 +41,7 @@ const WEEKDAYS_EN = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, onEdit }) => {
   const { locale } = useTranslation();
   const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
+  const [filterMode, setFilterMode] = useState<'all' | 'due' | 'start'>('all');
 
   const todayStr = useMemo(() => businessDate(new Date()), []);
   const todayMonthStr = useMemo(() => todayStr.slice(0, 7), [todayStr]);
@@ -40,42 +52,92 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
   // Selected date on the calendar: YYYY-MM-DD
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
 
-  // Filter out items that are purely stored in reserve and not in active countdown
-  const activeScheduledItems = useMemo(() => {
-    return items
-      .filter((item) => !item.isStored && item.healthStatus !== 'stored')
-      .sort((a, b) => {
-        const aDate = a.healthStatus === 'snoozed' && a.snoozeUntil ? a.snoozeUntil : a.nextDueDate;
-        const bDate = b.healthStatus === 'snoozed' && b.snoozeUntil ? b.snoozeUntil : b.nextDueDate;
-        return aDate.localeCompare(bDate);
-      });
+  // Unified timeline events (both purchase/start dates and due dates)
+  const allEvents = useMemo(() => {
+    const list: TimelineEvent[] = [];
+
+    for (const item of items) {
+      // 1. Purchase / Activation milestone (startDate)
+      if (item.startDate) {
+        list.push({
+          id: `${item.id}-start`,
+          type: 'start',
+          date: item.startDate,
+          item,
+        });
+      }
+
+      // 2. Due / Replacement milestone (only for active non-stored items)
+      if (!item.isStored && item.healthStatus !== 'stored') {
+        const dueDate = item.healthStatus === 'snoozed' && item.snoozeUntil ? item.snoozeUntil : item.nextDueDate;
+        if (dueDate) {
+          list.push({
+            id: `${item.id}-due`,
+            type: 'due',
+            date: dueDate,
+            item,
+          });
+        }
+      }
+    }
+
+    // Sort chronologically: earliest date first
+    return list.sort((a, b) => a.date.localeCompare(b.date));
   }, [items]);
 
-  // Map of date string -> items due on that date
-  const itemsByDate = useMemo(() => {
-    const map = new Map<string, ItemResponse[]>();
-    for (const item of activeScheduledItems) {
-      const d = item.healthStatus === 'snoozed' && item.snoozeUntil ? item.snoozeUntil : item.nextDueDate;
-      if (!d) continue;
-      const list = map.get(d) || [];
-      list.push(item);
-      map.set(d, list);
+  // Events filtered by user preference ('all' | 'due' | 'start')
+  const filteredEvents = useMemo(() => {
+    if (filterMode === 'due') return allEvents.filter((e) => e.type === 'due');
+    if (filterMode === 'start') return allEvents.filter((e) => e.type === 'start');
+    return allEvents;
+  }, [allEvents, filterMode]);
+
+  // Map of date string -> events on that date matching filterMode
+  const eventsByDate = useMemo(() => {
+    const map = new Map<string, TimelineEvent[]>();
+    for (const ev of filteredEvents) {
+      const list = map.get(ev.date) || [];
+      list.push(ev);
+      map.set(ev.date, list);
     }
     return map;
-  }, [activeScheduledItems]);
+  }, [filteredEvents]);
 
-  // Items due in current selected month
-  const itemsInCurrentMonth = useMemo(() => {
-    return activeScheduledItems.filter((item) => {
-      const d = item.healthStatus === 'snoozed' && item.snoozeUntil ? item.snoozeUntil : item.nextDueDate;
-      return d && d.startsWith(currentMonth);
-    });
-  }, [activeScheduledItems, currentMonth]);
+  // Map of all events by date (unfiltered, for inspector fallback)
+  const allEventsByDate = useMemo(() => {
+    const map = new Map<string, TimelineEvent[]>();
+    for (const ev of allEvents) {
+      const list = map.get(ev.date) || [];
+      list.push(ev);
+      map.set(ev.date, list);
+    }
+    return map;
+  }, [allEvents]);
+
+  // Current month's due events (independent of filterMode for summary stats)
+  const dueEventsInCurrentMonth = useMemo(() => {
+    return allEvents.filter((e) => e.type === 'due' && e.date.startsWith(currentMonth));
+  }, [allEvents, currentMonth]);
+
+  // Current month's purchase / start events
+  const startEventsInCurrentMonth = useMemo(() => {
+    return allEvents.filter((e) => e.type === 'start' && e.date.startsWith(currentMonth));
+  }, [allEvents, currentMonth]);
+
+  // Current month's total events
+  const totalEventsInCurrentMonth = useMemo(() => {
+    return allEvents.filter((e) => e.date.startsWith(currentMonth));
+  }, [allEvents, currentMonth]);
 
   // Total replacement cost estimated for current month
-  const currentMonthEstimatedCost = useMemo(() => {
-    return itemsInCurrentMonth.reduce((acc, curr) => acc + (curr.price || 0), 0);
-  }, [itemsInCurrentMonth]);
+  const currentMonthEstimatedDueCost = useMemo(() => {
+    return dueEventsInCurrentMonth.reduce((acc, curr) => acc + (curr.item.price || 0), 0);
+  }, [dueEventsInCurrentMonth]);
+
+  // Total purchase expenditure for current month
+  const currentMonthPurchaseCost = useMemo(() => {
+    return startEventsInCurrentMonth.reduce((acc, curr) => acc + (curr.item.price || 0), 0);
+  }, [startEventsInCurrentMonth]);
 
   // Navigation handlers for month
   const handlePrevMonth = () => {
@@ -114,8 +176,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
     return (parsedToday.getUTCDay() + 6) % 7;
   }, [todayStr]);
 
-  // Items for selected day
-  const selectedDayItems = itemsByDate.get(selectedDate) || [];
+  // Events for selected day (respects filterMode, or falls back to all events if filtered is empty)
+  const selectedDayFilteredEvents = eventsByDate.get(selectedDate) || [];
+  const selectedDayAllEvents = allEventsByDate.get(selectedDate) || [];
+  const selectedDayEvents = selectedDayFilteredEvents.length > 0 ? selectedDayFilteredEvents : (filterMode === 'all' ? [] : selectedDayAllEvents);
 
   // Helper for status dot
   const getStatusColor = (item: ItemResponse) => {
@@ -124,6 +188,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
     if (item.healthStatus === 'snoozed') return 'bg-sky-500';
     if (item.trackingMode === 'warranty') return 'bg-blue-500';
     return 'bg-emerald-500';
+  };
+
+  // Helper for dot color on an event (purchase vs due)
+  const getEventDotColor = (ev: TimelineEvent) => {
+    if (ev.type === 'start') return 'bg-indigo-500';
+    return getStatusColor(ev.item);
   };
 
   const weekdays = locale === 'zh-TW' ? WEEKDAYS_ZH : WEEKDAYS_EN;
@@ -200,43 +270,116 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
       {/* 2. CALENDAR VIEW CONTENT */}
       {viewMode === 'calendar' && (
         <div className="space-y-4">
-          {/* Monthly Summary Bar & Legend */}
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs">
-            <div className="flex items-center gap-5 sm:gap-8">
-              <div>
-                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
-                  {locale === 'zh-TW' ? '本月待更換' : 'Due this month'}
-                </span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tabular-nums">
-                  {itemsInCurrentMonth.length}{' '}
-                  <span className="text-sm sm:text-base font-bold text-slate-500">{locale === 'zh-TW' ? '件' : 'items'}</span>
-                </span>
-              </div>
-              {currentMonthEstimatedCost > 0 && (
-                <div className="border-l border-slate-200 dark:border-slate-800 pl-5 sm:pl-8">
+          {/* Monthly Summary Bar, Metrics, Filter Chips & Legend */}
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs space-y-4">
+            {/* Top Row: Metrics & Event Filter */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              {/* Metrics */}
+              <div className="flex flex-wrap items-center gap-5 sm:gap-8">
+                {/* Metric 1: Due This Month */}
+                <div>
                   <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
-                    {locale === 'zh-TW' ? '預估更換支出' : 'Monthly total'}
+                    {locale === 'zh-TW' ? '本月待更換' : 'Due this month'}
                   </span>
-                  <span className="text-2xl sm:text-3xl font-black text-[var(--app-accent-strong)] tabular-nums">
-                    NT$ {currentMonthEstimatedCost.toLocaleString()}
+                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tabular-nums">
+                    {dueEventsInCurrentMonth.length}{' '}
+                    <span className="text-sm sm:text-base font-bold text-slate-500">{locale === 'zh-TW' ? '件' : 'items'}</span>
                   </span>
                 </div>
-              )}
+
+                {/* Metric 2: Purchased / Started This Month */}
+                <div className="border-l border-slate-200 dark:border-slate-800 pl-5 sm:pl-8">
+                  <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
+                    {locale === 'zh-TW' ? '本月購買 / 啟用' : 'Purchased / Started'}
+                  </span>
+                  <span className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
+                    {startEventsInCurrentMonth.length}{' '}
+                    <span className="text-sm sm:text-base font-bold text-slate-500">{locale === 'zh-TW' ? '件' : 'items'}</span>
+                  </span>
+                </div>
+
+                {/* Metric 3: Cost / Expenditure */}
+                {(currentMonthPurchaseCost > 0 || currentMonthEstimatedDueCost > 0) && (
+                  <div className="border-l border-slate-200 dark:border-slate-800 pl-5 sm:pl-8">
+                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
+                      {locale === 'zh-TW' ? '本月支出 / 預估' : 'Monthly cost'}
+                    </span>
+                    <div className="flex items-baseline gap-2.5">
+                      {currentMonthPurchaseCost > 0 && (
+                        <span className="text-lg sm:text-2xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
+                          <span className="text-xs font-bold text-slate-400 mr-1">{locale === 'zh-TW' ? '已購' : 'Bought'}</span>
+                          NT$ {currentMonthPurchaseCost.toLocaleString()}
+                        </span>
+                      )}
+                      {currentMonthPurchaseCost > 0 && currentMonthEstimatedDueCost > 0 && (
+                        <span className="text-slate-300 dark:text-slate-700 font-bold">·</span>
+                      )}
+                      {currentMonthEstimatedDueCost > 0 && (
+                        <span className="text-lg sm:text-2xl font-black text-[var(--app-accent-strong)] tabular-nums">
+                          <span className="text-xs font-bold text-slate-400 mr-1">{locale === 'zh-TW' ? '預估' : 'Est.'}</span>
+                          NT$ {currentMonthEstimatedDueCost.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Event Filter Chips */}
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 w-fit self-start lg:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setFilterMode('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
+                    filterMode === 'all'
+                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  {locale === 'zh-TW' ? `全部 (${totalEventsInCurrentMonth.length})` : `All (${totalEventsInCurrentMonth.length})`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterMode('due')}
+                  className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
+                    filterMode === 'due'
+                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  🔄 {locale === 'zh-TW' ? `待更換 (${dueEventsInCurrentMonth.length})` : `Due (${dueEventsInCurrentMonth.length})`}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterMode('start')}
+                  className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
+                    filterMode === 'start'
+                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  }`}
+                >
+                  🛍️ {locale === 'zh-TW' ? `購買啟用 (${startEventsInCurrentMonth.length})` : `Purchased (${startEventsInCurrentMonth.length})`}
+                </button>
+              </div>
             </div>
 
             {/* Status Indicator Legend */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/80 pt-3">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                {locale === 'zh-TW' ? '已過期' : 'Overdue'}
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900/60" />
+                {locale === 'zh-TW' ? '購買 / 啟用' : 'Purchased / Started'}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                {locale === 'zh-TW' ? '週期正常' : 'Cycle'}
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                 {locale === 'zh-TW' ? '即將到期' : 'Due Soon'}
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                {locale === 'zh-TW' ? '週期正常' : 'Cycle'}
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                {locale === 'zh-TW' ? '已過期' : 'Overdue'}
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
@@ -277,11 +420,19 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const day = i + 1;
                 const dayDateStr = `${currentMonth}-${String(day).padStart(2, '0')}`;
-                const dayItems = itemsByDate.get(dayDateStr) || [];
+                const dayEvents = eventsByDate.get(dayDateStr) || [];
                 const isToday = dayDateStr === todayStr;
                 const isSelected = dayDateStr === selectedDate;
-                const hasItems = dayItems.length > 0;
-                const primaryItem = dayItems[0];
+                const hasEvents = dayEvents.length > 0;
+
+                // Priority sort: due events (overdue/due_soon) take priority for visual warning dot
+                const sortedDayEvents = [...dayEvents].sort((a, b) => {
+                  if (a.type === 'due' && b.type === 'start') return -1;
+                  if (a.type === 'start' && b.type === 'due') return 1;
+                  return 0;
+                });
+                const primaryEvent = sortedDayEvents[0];
+                const primaryItem = primaryEvent?.item;
 
                 return (
                   <button
@@ -293,14 +444,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                         ? 'ring-2 ring-[var(--app-accent)] bg-white dark:bg-[#25252A] shadow-md z-10 scale-[1.03]'
                         : isToday
                           ? 'border-2 border-[var(--app-accent)] bg-[var(--app-accent-soft)]/40 dark:bg-[var(--app-accent-strong)]/20 shadow-xs'
-                          : hasItems
+                          : hasEvents
                             ? 'bg-slate-100/90 dark:bg-[#1E1E22] hover:bg-slate-200/90 dark:hover:bg-[#28282D] border border-slate-200/80 dark:border-white/5 shadow-2xs'
                             : 'bg-slate-50/80 dark:bg-[#161619] hover:bg-slate-100 dark:hover:bg-[#202024] border border-slate-100 dark:border-white/5'
                     }`}
                   >
-                    {/* Top / Center: Product Icon with Notification Status Dot & Multi-item Badge */}
+                    {/* Top / Center: Product Icon with Event Dot & Multi-item Badge */}
                     <div className="w-full flex-1 flex items-center justify-center pt-0.5 relative">
-                      {hasItems && (
+                      {hasEvents && primaryItem && (
                         <div className="relative inline-flex items-center justify-center">
                           <ItemBrandBadge
                             name={primaryItem.name}
@@ -309,14 +460,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                             specModel={primaryItem.specModel}
                             size="sm"
                           />
-                          {/* Status Dot: Floating on top-right of the icon */}
+                          {/* Dot: Floating on top-right of the icon */}
                           <span
-                            className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-[#1E1E22] ${getStatusColor(primaryItem)} shadow-xs`}
+                            className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-[#1E1E22] ${getEventDotColor(primaryEvent)} shadow-xs`}
                           />
-                          {/* Multi-Item Pill: e.g. +2 (like Spotify in user reference) */}
-                          {dayItems.length > 1 && (
+                          {/* Multi-Item Pill: e.g. +2 */}
+                          {dayEvents.length > 1 && (
                             <span className="absolute -bottom-1 -right-2 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm tabular-nums leading-none">
-                              +{dayItems.length - 1}
+                              +{dayEvents.length - 1}
                             </span>
                           )}
                         </div>
@@ -331,7 +482,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                             ? 'text-[var(--app-accent-strong)] dark:text-white font-black'
                             : isToday
                               ? 'text-[var(--app-accent)] font-black'
-                              : hasItems
+                              : hasEvents
                                 ? 'text-slate-800 dark:text-slate-200'
                                 : 'text-slate-400 dark:text-slate-500 font-medium'
                         }`}
@@ -360,20 +511,96 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                 </h3>
               </div>
               <span className="text-sm font-bold text-slate-600 dark:text-slate-400 tabular-nums">
-                {selectedDayItems.length}{' '}
-                {locale === 'zh-TW' ? '項需處理' : 'items'}
+                {selectedDayEvents.length}{' '}
+                {locale === 'zh-TW' ? '項記錄' : 'items'}
               </span>
             </div>
 
-            {selectedDayItems.length === 0 ? (
+            {selectedDayEvents.length === 0 ? (
               <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm sm:text-base">
                 <Sparkles className="w-7 h-7 mx-auto mb-2 text-slate-400 dark:text-slate-500" />
-                <p className="font-medium">{locale === 'zh-TW' ? '本日生活安好，沒有需更換的排程耗材。' : 'No items scheduled for this day.'}</p>
+                <p className="font-medium">
+                  {locale === 'zh-TW' ? '本日生活安好，沒有需更換的排程耗材或購買記錄。' : 'No items scheduled or purchased on this day.'}
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {selectedDayItems.map((item) => {
+                {selectedDayEvents.map((ev) => {
+                  const item = ev.item;
+                  const isStart = ev.type === 'start';
                   const categoryMeta = CATEGORIES[item.category] || CATEGORIES.general;
+
+                  if (isStart) {
+                    return (
+                      <div
+                        key={ev.id}
+                        className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-indigo-200/80 dark:border-indigo-900/40 bg-indigo-50/30 dark:bg-indigo-950/20 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                          <ItemBrandBadge
+                            name={item.name}
+                            category={item.category}
+                            imageUrl={item.imageUrl}
+                            specModel={item.specModel}
+                            size="md"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h4>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shrink-0">
+                                <ShoppingBag className="w-3 h-3" />
+                                {item.isStored
+                                  ? (locale === 'zh-TW' ? '備品購入' : 'Stored')
+                                  : (locale === 'zh-TW' ? '購買啟用' : 'Purchased')}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-slate-500 dark:text-slate-400">
+                              <span className="font-semibold">{categoryMeta.label}</span>
+                              <span>·</span>
+                              <span>備品 <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">{item.backupStock}</span></span>
+                              {item.price != null && item.price > 0 && (
+                                <>
+                                  <span>·</span>
+                                  <span className="font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                    NT$ {item.price.toLocaleString()}
+                                  </span>
+                                </>
+                              )}
+                              {item.cycleDays ? (
+                                <>
+                                  <span>·</span>
+                                  <span>每 {item.cycleDays} 天更換</span>
+                                </>
+                              ) : item.paoMonths ? (
+                                <>
+                                  <span>·</span>
+                                  <span>開封保存 {item.paoMonths} 個月</span>
+                                </>
+                              ) : item.warrantyDate ? (
+                                <>
+                                  <span>·</span>
+                                  <span>保固至 {item.warrantyDate}</span>
+                                </>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => onEdit(item)}
+                            className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 tactile-press"
+                          >
+                            <Edit2 className="w-4 h-4 inline mr-1" />
+                            {locale === 'zh-TW' ? '編輯' : 'Edit'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Due event
                   const statusInfo = formatRemainingDaysText(
                     item.remainingDays,
                     item.healthStatus,
@@ -385,7 +612,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
 
                   return (
                     <div
-                      key={item.id}
+                      key={ev.id}
                       className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors"
                     >
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
@@ -397,15 +624,25 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           size="md"
                         />
                         <div className="min-w-0">
-                          <h4 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h4>
+                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold border ${statusInfo.badge} shrink-0`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot || 'bg-current'}`} />
+                              {statusInfo.text}
+                            </span>
+                          </div>
                           <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-slate-500 dark:text-slate-400">
                             <span className="font-semibold">{categoryMeta.label}</span>
                             <span>·</span>
                             <span>備品 <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">{item.backupStock}</span></span>
-                            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold border ${statusInfo.badge}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot || 'bg-current'}`} />
-                              {statusInfo.text}
-                            </span>
+                            {item.price != null && item.price > 0 && (
+                              <>
+                                <span>·</span>
+                                <span className="font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                                  預估 NT$ {item.price.toLocaleString()}
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -442,19 +679,125 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
 
       {/* 4. LIST VIEW (CHRONOLOGICAL TIMELINE) */}
       {viewMode === 'list' && (
-        <div>
-          {activeScheduledItems.length === 0 ? (
+        <div className="space-y-4">
+          {/* List View Filter Chips */}
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 w-fit">
+            <button
+              type="button"
+              onClick={() => setFilterMode('all')}
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
+                filterMode === 'all'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              {locale === 'zh-TW' ? `全部 (${allEvents.length})` : `All (${allEvents.length})`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode('due')}
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
+                filterMode === 'due'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              🔄 {locale === 'zh-TW' ? `待更換 (${allEvents.filter((e) => e.type === 'due').length})` : `Due (${allEvents.filter((e) => e.type === 'due').length})`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterMode('start')}
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
+                filterMode === 'start'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+              }`}
+            >
+              🛍️ {locale === 'zh-TW' ? `購買啟用 (${allEvents.filter((e) => e.type === 'start').length})` : `Purchased (${allEvents.filter((e) => e.type === 'start').length})`}
+            </button>
+          </div>
+
+          {filteredEvents.length === 0 ? (
             <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-xs">
               <CalendarIcon className="mx-auto mb-2 h-8 w-8 text-[var(--app-accent-strong)]" />
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">目前沒有待排程項目</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+                {locale === 'zh-TW' ? '目前沒有符合條件的項目' : 'No items match current filter'}
+              </h3>
               <p className="text-sm text-slate-500 mx-auto mt-1 max-w-xs font-medium">
-                所有物品都在正常週期內，或存放中尚未啟用。
+                {locale === 'zh-TW' ? '您可以切換上方篩選條件，或在物品庫中新增耗材。' : 'Try switching filter options or track new items.'}
               </p>
             </div>
           ) : (
             <div className="relative space-y-3.5 pl-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-slate-200 dark:before:bg-slate-800">
-              {activeScheduledItems.map((item) => {
+              {filteredEvents.map((ev) => {
+                const item = ev.item;
+                const isStart = ev.type === 'start';
                 const category = CATEGORIES[item.category] || CATEGORIES.general;
+
+                if (isStart) {
+                  return (
+                    <article key={ev.id} className="relative">
+                      <div className="absolute -left-6 top-4 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-900 bg-indigo-500" />
+                      <div className="rounded-2xl border border-indigo-200/80 dark:border-indigo-900/40 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex items-center justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0 flex-1">
+                          <ItemBrandBadge
+                            name={item.name}
+                            category={item.category}
+                            imageUrl={item.imageUrl}
+                            specModel={item.specModel}
+                            size="md"
+                          />
+                          <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left tactile-press">
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                              <span className="flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                <ShoppingBag className="h-4 w-4" />
+                                {item.isStored ? (locale === 'zh-TW' ? '備品購入' : 'Stored') : (locale === 'zh-TW' ? '購買啟用' : 'Purchased')} · {ev.date}
+                              </span>
+                              <span className="inline-flex items-center gap-1 rounded-md border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                                {item.isStored ? (locale === 'zh-TW' ? '庫存中' : 'In stock') : (locale === 'zh-TW' ? '啟用中' : 'Active')}
+                              </span>
+                            </div>
+                            <h3 className="mt-1.5 text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 truncate">
+                              {item.name}
+                            </h3>
+                            <p className="mt-1 text-sm text-slate-500 flex flex-wrap items-center gap-2 font-medium">
+                              <span>{category.label}</span>
+                              <span>·</span>
+                              <span>
+                                備品 <span className="tabular-nums font-bold text-slate-800 dark:text-slate-200">{item.backupStock}</span>
+                              </span>
+                              {item.price != null && item.price > 0 && (
+                                <>
+                                  <span>·</span>
+                                  <span className="font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                    NT$ {item.price.toLocaleString()}
+                                  </span>
+                                </>
+                              )}
+                              {item.cycleDays ? (
+                                <>
+                                  <span>·</span>
+                                  <span>每 {item.cycleDays} 天更換</span>
+                                </>
+                              ) : null}
+                            </p>
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => onEdit(item)}
+                          className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 tactile-press shrink-0"
+                        >
+                          <Edit2 className="h-4 w-4 inline mr-1 text-[var(--app-accent-strong)]" />
+                          {locale === 'zh-TW' ? '編輯' : 'Edit'}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                }
+
+                // Due event
                 const statusInfo = formatRemainingDaysText(
                   item.remainingDays,
                   item.healthStatus,
@@ -462,8 +805,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                     ? { remainingQuantity: item.remainingQuantity, quantityUnit: item.quantityUnit }
                     : undefined
                 );
-                const dateOnly = item.trackingMode === 'expiry' || item.trackingMode === 'warranty';
-                const displayDate = item.healthStatus === 'snoozed' && item.snoozeUntil ? item.snoozeUntil : item.nextDueDate;
+                const isDateOnly = item.trackingMode === 'expiry' || item.trackingMode === 'warranty';
                 const dateLabel =
                   item.healthStatus === 'snoozed'
                     ? '延後至'
@@ -473,10 +815,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                         ? '有效期限'
                         : item.trackingMode === 'quantity'
                           ? '預計用盡'
-                          : '下次處理';
+                          : '下次更換';
 
                 return (
-                  <article key={item.id} className="relative">
+                  <article key={ev.id} className="relative">
                     <div
                       className={`absolute -left-6 top-4 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-900 ${getStatusColor(item)}`}
                     />
@@ -493,7 +835,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
                             <span className="flex items-center gap-1 font-bold text-[var(--app-accent-strong)] tabular-nums">
                               <Clock className="h-4 w-4" />
-                              {dateLabel} · {displayDate}
+                              {dateLabel} · {ev.date}
                             </span>
                             <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-0.5 text-xs font-bold ${statusInfo.badge}`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot || 'bg-current'}`} />
@@ -519,14 +861,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                         </button>
                       </div>
 
-                      {dateOnly ? (
+                      {isDateOnly ? (
                         <button
                           type="button"
                           onClick={() => onEdit(item)}
                           className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 tactile-press shrink-0"
                         >
                           <Edit2 className="h-4 w-4 inline mr-1 text-[var(--app-accent-strong)]" />
-                          編輯
+                          {locale === 'zh-TW' ? '編輯' : 'Edit'}
                         </button>
                       ) : (
                         <button
@@ -535,7 +877,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           className="app-primary px-4 py-2.5 rounded-xl text-sm font-bold shadow-xs tactile-press shrink-0 flex items-center gap-1.5"
                         >
                           <RotateCcw className="h-4 w-4" />
-                          <span>已換</span>
+                          <span>{locale === 'zh-TW' ? '已換' : 'Replaced'}</span>
                         </button>
                       )}
                     </div>
