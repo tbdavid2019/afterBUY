@@ -1,4 +1,4 @@
-# 888 該換囉 🛒
+# 補貨日記 · After Buy
 
 ![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)
 ![GitHub Repository](https://img.shields.io/badge/GitHub-tbdavid2019%2FafterBUY-black.svg?logo=github)
@@ -9,7 +9,9 @@
 
 ---
 
-![](orca-paste-1788606489567-dbcf8023-5d25-4118-92ed-4e8863361d56.png)
+<img src="public/brand-lockup.svg" width="256" alt="補貨日記 · After Buy：橘底白色紙卷圖案，中文名稱位於圖案下方" />
+
+品牌中文名稱為「補貨日記」，英文名稱為 **After Buy**。PWA 安裝圖示採橘底紙卷圖案與中文名稱，頁面的小尺寸品牌標誌使用同款紙卷圖案。
 
 
 
@@ -108,14 +110,14 @@
 專案根目錄已自動生成具備真實加密金鑰的 [`.env`](./.env) 檔案：
 
 ```ini
-APP_NAME=afterBUY
+APP_NAME=補貨日記 | After Buy
 APP_ORIGIN=http://localhost:5173
 SESSION_SECRET=your_32_character_session_secret_here
 CRON_SECRET=your_cron_trigger_secret_here
 
 # 郵件服務 (可選填 Resend，未填寫時系統會在終端機自動輸出 [DEV OTP] 供本地測試)
 RESEND_API_KEY=
-EMAIL_FROM=afterBUY <notifications@afterbuy.app>
+EMAIL_FROM=補貨日記 <notifications@afterbuy.app>
 
 # Web Push VAPID 金鑰
 VAPID_PUBLIC_KEY=your_vapid_public_key_here

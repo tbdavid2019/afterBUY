@@ -48,9 +48,9 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <div className="flex items-center gap-2 min-w-0">
               <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate">
-                888 該換囉
+                {t('appName')}
               </h1>
-              <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0">
+              <span className="hidden sm:inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0">
                 {locale === 'zh-TW' ? '訪客模式' : 'Guest'}
               </span>
             </div>
@@ -64,7 +64,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="app-primary h-9 flex items-center gap-1.5 hover:brightness-105 active:scale-[0.98] tactile-press px-3.5 rounded-xl shadow-xs text-xs font-semibold transition-all"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>{locale === 'zh-TW' ? '新增耗材' : 'Add Item'}</span>
+            <span className="hidden min-[360px]:inline">{locale === 'zh-TW' ? '新增耗材' : 'Add Item'}</span>
           </button>
           {!user && (
             <button

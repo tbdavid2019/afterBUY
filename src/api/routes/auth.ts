@@ -21,7 +21,7 @@ function getRPInfo(c: any) {
   const hostname = host.split(':')[0];
   const reqOrigin = c.req.header('origin');
   const origin = reqOrigin || c.env.APP_ORIGIN || (host.includes('localhost') ? `http://${host}` : `https://${host}`);
-  return { rpID: hostname, origin, rpName: c.env.APP_NAME || 'afterBUY' };
+  return { rpID: hostname, origin, rpName: c.env.APP_NAME || '補貨日記 | After Buy' };
 }
 
 // 1. Send Email OTP
@@ -69,15 +69,15 @@ authRouter.post('/otp/send', async (c) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: c.env.EMAIL_FROM || 'afterBUY <notifications@create360.ai>',
+          from: c.env.EMAIL_FROM || '補貨日記 <notifications@create360.ai>',
           to: [normalizedEmail],
-          subject: `【afterBUY】您的登入驗證碼為 ${otp}`,
+          subject: `【補貨日記】您的登入驗證碼為 ${otp}`,
           html: `
             <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 12px;">
-              <h2 style="color: #38bdf8; margin-bottom: 12px;">afterBUY 買了之後</h2>
+              <h2 style="color: #FB923C; margin-bottom: 12px;">補貨日記 · After Buy</h2>
               <p style="font-size: 15px; line-height: 1.6; color: #94a3b8;">您好！請使用以下 6 位數驗證碼登入您的帳戶（10分鐘內有效）：</p>
               <div style="text-align: center; margin: 24px 0;">
-                <span style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #38bdf8; background: #1e293b; padding: 12px 24px; border-radius: 8px; border: 1px solid #334155;">${otp}</span>
+                <span style="display: inline-block; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #FB923C; background: #1e293b; padding: 12px 24px; border-radius: 8px; border: 1px solid #334155;">${otp}</span>
               </div>
               <p style="font-size: 13px; color: #64748b;">若非您本人操作，請忽略此信件。</p>
             </div>

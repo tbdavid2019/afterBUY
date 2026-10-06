@@ -236,8 +236,8 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
         try {
           const first = urgentItems[0];
           const title = urgentItems.length === 1
-            ? `【afterBuy 該換囉】[${first.stockName}] ${first.item.name} 該換了！`
-            : `【afterBuy 該換囉】您有 ${urgentItems.length} 項耗材即將到期`;
+            ? `【補貨日記】[${first.stockName}] ${first.item.name} 該換了！`
+            : `【補貨日記】您有 ${urgentItems.length} 項耗材即將到期`;
           const body = urgentItems.length === 1
             ? `${first.item.name} (${formatNotificationDays(first.daysRemaining)})`
             : urgentItems.map(i => `[${i.stockName}] ${i.item.name} (${formatNotificationDays(i.daysRemaining)})`).join('、');
@@ -270,7 +270,7 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
             (i) => `
             <tr style="border-bottom: 1px solid #334155;">
               <td style="padding: 12px 8px; font-weight: 600; color: #f8fafc;">
-                <span style="font-size: 11px; background: #334155; color: #38bdf8; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">${escapeHtml(i.stockName)}</span>
+                <span style="font-size: 11px; background: #334155; color: #FB923C; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">${escapeHtml(i.stockName)}</span>
                 ${escapeHtml(i.item.name)}
               </td>
               <td style="padding: 12px 8px; color: ${i.daysRemaining <= 0 ? '#f43f5e' : '#f59e0b'};">
@@ -289,12 +289,12 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            from: env.EMAIL_FROM || 'afterBUY <notifications@create360.ai>',
+            from: env.EMAIL_FROM || '補貨日記 <notifications@create360.ai>',
             to: [u.email],
-            subject: `【afterBuy 該換囉 晨間提醒】您有 ${urgentItems.length} 項耗材即將到期`,
+            subject: `【補貨日記 晨間提醒】您有 ${urgentItems.length} 項耗材即將到期`,
             html: `
               <div style="font-family: sans-serif; max-width: 540px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 12px;">
-                <h2 style="color: #38bdf8; margin-bottom: 8px;">afterBuy 該換囉 晨間更換提醒</h2>
+                <h2 style="color: #FB923C; margin-bottom: 8px;">補貨日記 晨間更換提醒</h2>
                 <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">早安！以下是您所屬備品庫中今日或近期需要更換的生活耗材：</p>
                 <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px;">
                   <thead>
@@ -307,7 +307,7 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
                   <tbody>${itemRows}</tbody>
                 </table>
                 <div style="text-align: center;">
-                  <a href="${env.APP_ORIGIN || 'https://afterbuy.app'}" style="display: inline-block; background: #38bdf8; color: #0f172a; font-weight: bold; padding: 12px 24px; border-radius: 8px; text-decoration: none;">開啟 afterBuy 該換囉 標記已換</a>
+                  <a href="${env.APP_ORIGIN || 'https://afterbuy.app'}" style="display: inline-block; background: #FB923C; color: #0f172a; font-weight: bold; padding: 12px 24px; border-radius: 8px; text-decoration: none;">開啟 補貨日記 標記已換</a>
                 </div>
               </div>
             `,

@@ -1,7 +1,7 @@
-# afterBUY
+# 補貨日記 · After Buy
 
 > **買了之後，別再忘記換！**
-> afterBUY is a mobile-first Progressive Web Application (PWA) built for tracking personal item lifecycles, recurring consumable replacements (toothbrushes, water filters, contact lenses, air filters), period-after-opening (PAO) shelf life, warranty countdowns, and backup spare inventory.
+> After Buy is a mobile-first Progressive Web Application (PWA) built for tracking personal item lifecycles, recurring consumable replacements (toothbrushes, water filters, contact lenses, air filters), period-after-opening (PAO) shelf life, warranty countdowns, and backup spare inventory.
 
 ## Core Capabilities
 - [Item Lifecycle Tracking](https://afterbuy.app/): Interval replacement days countdown, PAO opening months, food/medicine expiry, and appliance warranties.

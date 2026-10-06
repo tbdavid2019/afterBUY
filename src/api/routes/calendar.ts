@@ -36,7 +36,7 @@ calendarRouter.get('/:token.ics', async (c) => {
 
   // Check 1: User's All-in-One Calendar
   const user = await db.select().from(users).where(eq(users.calendarToken, token)).get();
-  let calTitle = 'afterBuy 該換囉 - 全部生活備品';
+  let calTitle = '補貨日記 - 全部生活備品';
   let targetItems: any[] = [];
   const stockNameMap = new Map<string, string>();
 
@@ -73,7 +73,7 @@ calendarRouter.get('/:token.ics', async (c) => {
       return c.text('401 Unauthorized: Invalid or revoked calendar token', 401);
     }
 
-    calTitle = `afterBuy 該換囉 - ${stock.name}`;
+    calTitle = `補貨日記 - ${stock.name}`;
     stockNameMap.set(stock.id, stock.name);
 
     targetItems = await db
@@ -134,7 +134,7 @@ calendarRouter.get('/:token.ics', async (c) => {
       `DTSTART;VALUE=DATE:${dueDateFormatted}`,
       `DTEND;VALUE=DATE:${endDateFormatted}`,
       `SUMMARY:${isSnoozed ? '💤 延後提醒：' : '🔄 該換了：'}${stockPrefix}${safeName} (${actionText})`,
-      `DESCRIPTION:空間: ${stockPrefix.replace(/[\[\]\s]/g, '') || '家庭'}\\n類別: ${safeCategory}\\n目前備品庫存: ${item.backupStock}\\n前往 afterBuy 該換囉 查看: ${appOrigin}`,
+      `DESCRIPTION:空間: ${stockPrefix.replace(/[\[\]\s]/g, '') || '家庭'}\\n類別: ${safeCategory}\\n目前備品庫存: ${item.backupStock}\\n前往 補貨日記 查看: ${appOrigin}`,
       `SEQUENCE:${sequence}`,
       'STATUS:CONFIRMED',
       'BEGIN:VALARM',

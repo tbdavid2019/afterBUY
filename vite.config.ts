@@ -10,13 +10,14 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'icons/*.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'brand-lockup.svg', 'icons/*.svg', 'icons/*.png'],
       manifest: {
-        name: '888 該換囉 - 生活耗材週期與保固備品管理',
-        short_name: '888 該換囉',
+        name: '補貨日記 | After Buy',
+        short_name: '補貨日記',
+        lang: 'zh-TW',
         description: '手機優先的生活耗材週期、保固與備品管理工具',
-        theme_color: '#FF5A00',
-        background_color: '#FF5A00',
+        theme_color: '#EA601A',
+        background_color: '#EA601A',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
@@ -32,10 +33,10 @@ export default defineConfig({
             type: 'image/png'
           },
           {
-            src: 'icons/icon-512x512.png',
+            src: 'icons/icon-maskable-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'maskable'
           }
         ]
       },

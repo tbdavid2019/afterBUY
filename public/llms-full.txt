@@ -1,13 +1,13 @@
-# afterBUY — Full System & API Documentation
+# 補貨日記 · After Buy — Full System & API Documentation
 
 > **買了之後，別再忘記換！**
-> afterBUY is an open-source, mobile-first, edge-native Progressive Web Application (PWA) designed to track household consumable replacement intervals, expiration dates, period-after-opening (PAO), appliance warranties, and backup spare inventory.
+> After Buy is an open-source, mobile-first, edge-native Progressive Web Application (PWA) designed to track household consumable replacement intervals, expiration dates, period-after-opening (PAO), appliance warranties, and backup spare inventory.
 
 ---
 
 ## 1. System Architecture Overview
 
-afterBUY runs natively on the Cloudflare Edge platform with full local development parity:
+After Buy runs natively on the Cloudflare Edge platform with full local development parity:
 
 1. **Edge API (Hono on Cloudflare Workers)**:
    - Ultra-low latency edge router.
@@ -28,7 +28,7 @@ afterBUY runs natively on the Cloudflare Edge platform with full local developme
 
 ## 2. Passwordless Authentication Model
 
-afterBUY eliminates traditional passwords via a dual-track passwordless architecture:
+After Buy eliminates traditional passwords via a dual-track passwordless architecture:
 
 ### A. Passkey (FIDO2 / WebAuthn)
 - **Technology**: `@simplewebauthn/browser` & `@simplewebauthn/server`.
@@ -72,7 +72,7 @@ Given `remainingDays = nextDueDate - currentDate`:
 
 ## 4. RFC 5545 WebCal Synchronization Protocol
 
-To solve the historic issue of stale or orphaned events in Apple Calendar, Google Calendar, and Outlook, afterBUY implements strict RFC 5545 compliance:
+To solve the historic issue of stale or orphaned events in Apple Calendar, Google Calendar, and Outlook, After Buy implements strict RFC 5545 compliance:
 
 - **Endpoint**: `/api/calendar/:token.ics` (served as `text/calendar; charset=utf-8`).
 - **Stable `UID`**: `UID:item-{itemId}@afterbuy.app`.

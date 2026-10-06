@@ -29,9 +29,9 @@ binding = "R2"
 bucket_name = "afterbuy-r2-local"
 
 [vars]
-APP_NAME = "afterBUY"
+APP_NAME = "補貨日記 | After Buy"
 APP_ORIGIN = "http://localhost:5173"
-EMAIL_FROM = "afterBUY <notifications@create360.ai>"
+EMAIL_FROM = "補貨日記 <notifications@create360.ai>"
 VAPID_PUBLIC_KEY = ""
 VAPID_SUBJECT = "mailto:support@afterbuy.app"
 
@@ -60,9 +60,9 @@ binding = "R2"
 bucket_name = "afterbuy-r2"
 
 [env.ai360.vars]
-APP_NAME = "afterBUY"
+APP_NAME = "補貨日記 | After Buy"
 APP_ORIGIN = "https://afterbuy.create360.ai"
-EMAIL_FROM = "afterBUY <notifications@create360.ai>"
+EMAIL_FROM = "補貨日記 <notifications@create360.ai>"
 VAPID_PUBLIC_KEY = "BJP-YovIwnpBJ7fyMTVN4HDQxYY1p9oVyyh9lggEEnRKmzFaaShRIguB5WT5_Ks5YJprRxPtXzslj7pj74qaGOA"
 VAPID_SUBJECT = "mailto:support@afterbuy.app"
 
@@ -91,8 +91,8 @@ binding = "R2"
 bucket_name = "afterbuy-r2"
 
 [env.david.vars]
-APP_NAME = "afterBUY"
+APP_NAME = "補貨日記 | After Buy"
 APP_ORIGIN = "https://afterbuy.david888.com"
-EMAIL_FROM = "afterBUY <notifications@vip.david888.com>"
+EMAIL_FROM = "補貨日記 <notifications@vip.david888.com>"
 VAPID_PUBLIC_KEY = "BJP-YovIwnpBJ7fyMTVN4HDQxYY1p9oVyyh9lggEEnRKmzFaaShRIguB5WT5_Ks5YJprRxPtXzslj7pj74qaGOA"
 VAPID_SUBJECT = "mailto:support@afterbuy.app"
