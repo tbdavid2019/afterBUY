@@ -112,7 +112,7 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
             {restockItems.map((item) => {
               const cat = CATEGORIES[item.category] || CATEGORIES.general;
 

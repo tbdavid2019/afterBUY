@@ -33,7 +33,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="app-header sticky top-0 z-30 backdrop-blur-md border-b pt-safe bg-white/85 dark:bg-slate-950/85 border-slate-200/80 dark:border-slate-800/80 transition-colors">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+      <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <BrandLogo size="sm" className="shadow-2xs" />
           {user && onSelectStock && onOpenStockSettings && onRefreshStocks ? (
