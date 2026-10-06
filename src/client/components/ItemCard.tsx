@@ -18,6 +18,7 @@ import { ItemResponse } from '../../shared/types.ts';
 import { CATEGORIES } from '../utils/category.ts';
 import { formatRemainingDaysText } from '../../shared/lifecycle.ts';
 import { CategoryIcon } from './CategoryIcon.tsx';
+import { ItemBrandBadge } from './ItemBrandBadge.tsx';
 
 interface ItemCardProps {
   item: ItemResponse;
@@ -111,13 +112,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       >
         {/* Top: Thumbnail + Tag + More Menu */}
         <div className="flex items-start justify-between gap-2">
-          <div className="w-12 h-12 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-            {item.imageUrl ? (
-              <img src={item.imageUrl} alt="" className="h-full w-full object-contain" loading="lazy" />
-            ) : (
-              <CategoryIcon category={item.category} className="h-6 w-6 text-slate-400" />
-            )}
-          </div>
+          <ItemBrandBadge
+            name={item.name}
+            category={item.category}
+            imageUrl={item.imageUrl}
+            specModel={item.specModel}
+            size="lg"
+          />
 
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 truncate max-w-[90px]">
@@ -356,9 +357,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       {/* Middle Row: Avatar & Title & Hero Metrics */}
       <div className="mt-3.5 flex items-start gap-3.5">
-        <div className="w-14 h-14 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-          {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-contain" loading="lazy" /> : <CategoryIcon category={item.category} className="h-7 w-7 text-slate-400" />}
-        </div>
+        <ItemBrandBadge
+          name={item.name}
+          category={item.category}
+          imageUrl={item.imageUrl}
+          specModel={item.specModel}
+          size="lg"
+        />
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight truncate">{item.name}</h3>

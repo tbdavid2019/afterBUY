@@ -15,6 +15,7 @@ import { CATEGORIES } from '../utils/category.ts';
 import { formatRemainingDaysText } from '../../shared/lifecycle.ts';
 import { businessDate, parseBusinessDate } from '../../shared/date.ts';
 import { CategoryIcon } from '../components/CategoryIcon.tsx';
+import { ItemBrandBadge } from '../components/ItemBrandBadge.tsx';
 import { useTranslation } from '../i18n/index.tsx';
 
 interface TimelineViewProps {
@@ -247,16 +248,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
           {/* Calendar Month Matrix Container */}
           <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-2.5 sm:p-5 shadow-xs">
             {/* Weekday Row */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-2.5 mb-2.5">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
               {weekdays.map((day, idx) => {
                 const isTodayDOW = currentMonth === todayMonthStr && todayDayOfWeekIndex === idx;
                 return (
                   <div
                     key={day}
-                    className={`py-2 text-center text-sm sm:text-base font-bold rounded-xl transition-colors ${
+                    className={`py-1.5 text-center text-xs sm:text-sm font-bold rounded-xl transition-colors ${
                       isTodayDOW
-                        ? 'bg-[var(--app-accent-soft)] text-[var(--app-accent-strong)] dark:bg-[var(--app-accent-strong)]/20'
-                        : 'text-slate-500 dark:text-slate-400'
+                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs font-black'
+                        : 'bg-slate-100/70 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold'
                     }`}
                   >
                     {day}
@@ -269,7 +270,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
             <div className="grid grid-cols-7 gap-1 sm:gap-2.5">
               {/* Empty leading offset days */}
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[58px] sm:min-h-[76px] rounded-xl sm:rounded-2xl opacity-15 bg-slate-100 dark:bg-slate-850" />
+                <div key={`empty-${i}`} className="aspect-square min-h-[58px] sm:min-h-[74px] rounded-2xl opacity-20 bg-slate-100 dark:bg-[#18181B]" />
               ))}
 
               {/* Days of the month */}
@@ -287,64 +288,57 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                     key={dayDateStr}
                     type="button"
                     onClick={() => setSelectedDate(dayDateStr)}
-                    className={`relative min-h-[58px] sm:min-h-[76px] rounded-xl sm:rounded-2xl p-1.5 sm:p-2 flex flex-col justify-between items-center transition-all tactile-press ${
+                    className={`relative aspect-square min-h-[58px] sm:min-h-[74px] rounded-2xl p-1 sm:p-1.5 flex flex-col justify-between items-center transition-all tactile-press ${
                       isSelected
-                        ? 'ring-2 ring-[var(--app-accent)] bg-white dark:bg-slate-800 shadow-md z-10'
+                        ? 'ring-2 ring-[var(--app-accent)] bg-white dark:bg-[#25252A] shadow-md z-10 scale-[1.03]'
                         : isToday
-                          ? 'border-2 border-[var(--app-accent)] bg-[var(--app-accent-soft)]/40 dark:bg-[var(--app-accent-strong)]/15'
+                          ? 'border-2 border-[var(--app-accent)] bg-[var(--app-accent-soft)]/40 dark:bg-[var(--app-accent-strong)]/20 shadow-xs'
                           : hasItems
-                            ? 'border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            : 'border border-slate-100 dark:border-slate-800/60 bg-transparent hover:bg-slate-50 dark:hover:bg-slate-850/60'
+                            ? 'bg-slate-100/90 dark:bg-[#1E1E22] hover:bg-slate-200/90 dark:hover:bg-[#28282D] border border-slate-200/80 dark:border-white/5 shadow-2xs'
+                            : 'bg-slate-50/80 dark:bg-[#161619] hover:bg-slate-100 dark:hover:bg-[#202024] border border-slate-100 dark:border-white/5'
                     }`}
                   >
-                    {/* Top: Status Dot / Multi-Badge & Day Number */}
-                    <div className="w-full flex items-center justify-between px-1 min-h-[22px]">
-                      {hasItems ? (
-                        <div className="flex items-center gap-1">
-                          <span className={`w-2 h-2 rounded-full ${getStatusColor(primaryItem)}`} />
+                    {/* Top / Center: Product Icon with Notification Status Dot & Multi-item Badge */}
+                    <div className="w-full flex-1 flex items-center justify-center pt-0.5 relative">
+                      {hasItems && (
+                        <div className="relative inline-flex items-center justify-center">
+                          <ItemBrandBadge
+                            name={primaryItem.name}
+                            category={primaryItem.category}
+                            imageUrl={primaryItem.imageUrl}
+                            specModel={primaryItem.specModel}
+                            size="sm"
+                          />
+                          {/* Status Dot: Floating on top-right of the icon */}
+                          <span
+                            className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-[#1E1E22] ${getStatusColor(primaryItem)} shadow-xs`}
+                          />
+                          {/* Multi-Item Pill: e.g. +2 (like Spotify in user reference) */}
                           {dayItems.length > 1 && (
-                            <span className="text-xs font-black text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-700 px-1 rounded-full tabular-nums">
+                            <span className="absolute -bottom-1 -right-2 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm tabular-nums leading-none">
                               +{dayItems.length - 1}
                             </span>
                           )}
                         </div>
-                      ) : (
-                        <span />
                       )}
+                    </div>
 
-                      {/* Day Number: Clear, bold and readable in Chinese context */}
+                    {/* Bottom: Date number */}
+                    <div className="w-full text-center pb-0.5">
                       <span
-                        className={`text-sm sm:text-base font-black tabular-nums ${
+                        className={`text-xs sm:text-sm font-black tabular-nums transition-colors ${
                           isSelected
-                            ? 'text-[var(--app-accent-strong)] font-black'
+                            ? 'text-[var(--app-accent-strong)] dark:text-white font-black'
                             : isToday
                               ? 'text-[var(--app-accent)] font-black'
-                              : 'text-slate-800 dark:text-slate-200'
+                              : hasItems
+                                ? 'text-slate-800 dark:text-slate-200'
+                                : 'text-slate-400 dark:text-slate-500 font-medium'
                         }`}
                       >
                         {day}
                       </span>
                     </div>
-
-                    {/* Middle: Miniature Brand / Item Icon (if has item) */}
-                    {hasItems ? (
-                      <div className="my-auto flex items-center justify-center pt-0.5">
-                        {primaryItem.imageUrl ? (
-                          <img
-                            src={primaryItem.imageUrl}
-                            alt=""
-                            className="w-6 h-6 sm:w-8 sm:h-8 object-contain drop-shadow-2xs"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-slate-200/90 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300">
-                            <CategoryIcon category={primaryItem.category} className="w-4 h-4" />
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="my-auto" />
-                    )}
                   </button>
                 );
               })}
@@ -395,13 +389,13 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                       className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors"
                     >
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div className="w-12 h-12 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 flex items-center justify-center shrink-0">
-                          {item.imageUrl ? (
-                            <img src={item.imageUrl} alt="" className="h-full w-full object-contain" />
-                          ) : (
-                            <CategoryIcon category={item.category} className="w-6 h-6 text-slate-400" />
-                          )}
-                        </div>
+                        <ItemBrandBadge
+                          name={item.name}
+                          category={item.category}
+                          imageUrl={item.imageUrl}
+                          specModel={item.specModel}
+                          size="md"
+                        />
                         <div className="min-w-0">
                           <h4 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h4>
                           <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -487,34 +481,43 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                       className={`absolute -left-6 top-4 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-900 ${getStatusColor(item)}`}
                     />
                     <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex items-center justify-between gap-3">
-                      <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left tactile-press">
-                        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                          <span className="flex items-center gap-1 font-bold text-[var(--app-accent-strong)] tabular-nums">
-                            <Clock className="h-4 w-4" />
-                            {dateLabel} · {displayDate}
-                          </span>
-                          <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-0.5 text-xs font-bold ${statusInfo.badge}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot || 'bg-current'}`} />
-                            {statusInfo.text}
-                          </span>
-                        </div>
-                        <h3 className="mt-1.5 text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 truncate">
-                          {item.name}
-                        </h3>
-                        <p className="mt-1 text-sm text-slate-500 flex items-center gap-2 font-medium">
-                          <span>{category.label}</span>
-                          <span>·</span>
-                          <span>
-                            備品 <span className="tabular-nums font-bold text-slate-800 dark:text-slate-200">{item.backupStock}</span>
-                          </span>
-                          {item.healthStatus === 'snoozed' && (
-                            <span className="inline-flex items-center gap-1 text-sky-500 font-bold">
-                              <Moon className="h-3.5 w-3.5" />
-                              延後提醒
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        <ItemBrandBadge
+                          name={item.name}
+                          category={item.category}
+                          imageUrl={item.imageUrl}
+                          specModel={item.specModel}
+                          size="md"
+                        />
+                        <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left tactile-press">
+                          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                            <span className="flex items-center gap-1 font-bold text-[var(--app-accent-strong)] tabular-nums">
+                              <Clock className="h-4 w-4" />
+                              {dateLabel} · {displayDate}
                             </span>
-                          )}
-                        </p>
-                      </button>
+                            <span className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-0.5 text-xs font-bold ${statusInfo.badge}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot || 'bg-current'}`} />
+                              {statusInfo.text}
+                            </span>
+                          </div>
+                          <h3 className="mt-1.5 text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 truncate">
+                            {item.name}
+                          </h3>
+                          <p className="mt-1 text-sm text-slate-500 flex items-center gap-2 font-medium">
+                            <span>{category.label}</span>
+                            <span>·</span>
+                            <span>
+                              備品 <span className="tabular-nums font-bold text-slate-800 dark:text-slate-200">{item.backupStock}</span>
+                            </span>
+                            {item.healthStatus === 'snoozed' && (
+                              <span className="inline-flex items-center gap-1 text-sky-500 font-bold">
+                                <Moon className="h-3.5 w-3.5" />
+                                延後提醒
+                              </span>
+                            )}
+                          </p>
+                        </button>
+                      </div>
 
                       {dateOnly ? (
                         <button
