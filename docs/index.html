@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="zh-TW" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>afterBUY 補貨日記 - 生活耗材週期、保存期限與保固管理 | 買了之後別再忘記換</title>
+  <meta name="description" content="afterBUY (補貨日記) 是一款手機優先、離線可用、隱私至上的生活耗材與週期管理工具。支援牙刷、濾芯、隱形眼鏡、保養品開封期（PAO）、保固倒數與數量耗用率追蹤，具備 Passkey 免密碼秒登與無殘留 WebCal 日曆訂閱。">
+  <meta name="keywords" content="afterBUY, 補貨日記, 耗材管理, 該換了吧, 開封保存期, PAO, 濾芯更換, 牙刷更換, 保固提醒, 備品庫存, PWA, Passkey, WebCal, 離線優先">
+  <meta name="author" content="afterBUY 團隊">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://afterbuy.david888.com/">
+  <meta property="og:site_name" content="afterBUY 補貨日記">
+  <meta property="og:title" content="afterBUY 補貨日記 - 買了之後別再忘記換！生活耗材與保固週期管理">
+  <meta property="og:description" content="手機優先 PWA 耗材更換週期追蹤、開封保存期（PAO）、保固倒數與備品庫存管理，支援 Passkey 免密秒登與 WebCal 日曆無殘留同步。">
+  <meta property="og:image" content="assets/img/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="afterBUY 補貨日記 - 買了之後別再忘記換！">
+  <meta name="twitter:description" content="手機優先 PWA 耗材更換週期追蹤、開封保存期（PAO）、保固倒數與備品庫存管理，支援 Passkey 免密秒登與 WebCal 日曆無殘留同步。">
+  <meta name="twitter:image" content="assets/img/og.png">
+
+  <!-- Favicon & PWA Icons -->
+  <link rel="icon" type="image/svg+xml" href="assets/img/mark.svg">
+  <link rel="alternate icon" href="assets/img/favicon.ico">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <meta name="theme-color" content="#EA601A">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="assets/css/styles.css">
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "afterBUY 補貨日記",
+    "alternateName": "After Buy",
+    "url": "https://afterbuy.david888.com/",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "All",
+    "description": "afterBUY is a privacy-first, mobile-first PWA for tracking consumable replacement cycles, period after opening (PAO), warranties, and backup supplies with Passkey login and WebCal calendar sync.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Consumable cycle tracking (toothbrush, water filter, aircon filter)",
+      "Period After Opening (PAO) cosmetic expiry countdown",
+      "Daily burn rate quantity tracking for vitamins and daily essentials",
+      "One-tap replacement with automatic backup stock deduction and 5-sec Undo Toast",
+      "RFC 5545 WebCal calendar subscription with zero ghost event residue",
+      "Biometric Passkey login (Touch ID, Face ID, Windows Hello)",
+      "Offline-first PWA with zero third-party tracking scripts"
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip">移至主要內容</a>
+
+  <!-- ==========================================
+       Sticky Header with Frosted Glass
+       ========================================== -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <!-- Brand Logo -->
+      <a href="./" class="brand-logo">
+        <img src="assets/img/mark.svg" alt="afterBUY" class="brand-logo-img">
+        <div class="brand-name">
+          <span class="brand-name-main">afterBUY</span>
+          <span class="brand-name-sub">補貨日記</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="nav-desktop" aria-label="主要導覽">
+        <a href="#features" class="nav-link" data-i18n="nav.features">核心特色</a>
+        <a href="#countdown" class="nav-link" data-i18n="nav.countdown">視覺狀態</a>
+        <a href="#how" class="nav-link" data-i18n="nav.how">運作方式</a>
+        <a href="#privacy" class="nav-link" data-i18n="nav.privacy">隱私承諾</a>
+        <a href="#faq" class="nav-link" data-i18n="nav.faq">常見問題</a>
+      </nav>
+
+      <!-- Nav Actions (Lang, Theme, CTA) -->
+      <div class="nav-actions">
+        <!-- Language Switcher -->
+        <button id="js-lang-btn" class="btn-icon" aria-label="切換語言" title="切換為 English">
+          <span class="lang-label" style="font-size: 0.75rem; font-weight: 700;">EN</span>
+        </button>
+
+        <!-- Theme Switcher -->
+        <button id="js-theme-btn" class="btn-icon" aria-label="切換深淺模式" title="切換為深色模式">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+
+        <!-- Direct Launch CTA -->
+        <a href="https://afterbuy.david888.com/" target="_blank" rel="noopener noreferrer" class="btn-cta">
+          <span data-i18n="nav.cta">立即體驗</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+        </a>
+
+        <!-- Mobile Nav Toggle -->
+        <button id="js-nav-toggle" class="nav-toggle" aria-label="開啟選單" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown Navigation -->
+    <div id="js-mobile-menu" class="nav-mobile-menu" aria-label="行動版選單">
+      <a href="#features" class="nav-link" data-i18n="nav.features">核心特色</a>
+      <a href="#countdown" class="nav-link" data-i18n="nav.countdown">視覺狀態</a>
+      <a href="#how" class="nav-link" data-i18n="nav.how">運作方式</a>
+      <a href="#privacy" class="nav-link" data-i18n="nav.privacy">隱私承諾</a>
+      <a href="#faq" class="nav-link" data-i18n="nav.faq">常見問題</a>
+      <a href="https://afterbuy.david888.com/" target="_blank" rel="noopener noreferrer" class="btn-hero-primary" style="margin-top: 0.5rem; width: 100%;">
+        <span data-i18n="nav.cta">立即體驗</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+      </a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ==========================================
+         Hero Section
+         ========================================== -->
+    <section class="section hero-section" id="hero">
+      <div class="hero-glow-1" aria-hidden="true"></div>
+      <div class="hero-glow-2" aria-hidden="true"></div>
+
+      <div class="container hero-grid">
+        <!-- Hero Text & Value Proposition -->
+        <div class="hero-content" data-reveal>
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            <span data-i18n="hero.badge">手機優先 · 離線可用 · 零追蹤隱私至上</span>
+          </div>
+
+          <h1 class="hero-headline">
+            <span data-i18n="hero.headline.prefix">不再遺忘買過的</span><br>
+            <span class="brand-gradient" id="js-rotating-word">牙刷刷頭</span><br>
+            <span data-i18n="hero.headline.suffix">更換與過期日</span>
+          </h1>
+
+          <p class="hero-description" data-i18n="hero.desc">
+            afterBUY 專為生活耗材、開封保存期（PAO）、保固倒數與常備庫存打造。相機直拍秒速建檔，精算週期自動扣庫存，支援 Passkey 生物辨識與 WebCal 日曆無縫同步。
+          </p>
+
+          <div class="hero-cta-group">
+            <a href="https://afterbuy.david888.com/" target="_blank" rel="noopener noreferrer" class="btn-hero-primary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span data-i18n="hero.cta.primary">免費開啟 Web App</span>
+            </a>
+            <a href="https://github.com/tbdavid2019/afterBUY" target="_blank" rel="noopener noreferrer" class="btn-hero-secondary">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              <span data-i18n="hero.cta.secondary">GitHub 開源專案</span>
+            </a>
+          </div>
+
+          <!-- Semantic Health Status Pills -->
+          <div class="hero-status-pills">
+            <span class="status-pill status-pill-fresh"><span class="status-dot"></span><span data-i18n="status.fresh">狀態良好</span></span>
+            <span class="status-pill status-pill-soon"><span class="status-dot"></span><span data-i18n="status.soon">即將到期</span></span>
+            <span class="status-pill status-pill-expired"><span class="status-dot"></span><span data-i18n="status.expired">今日到期/逾期</span></span>
+            <span class="status-pill status-pill-lowstock"><span class="status-dot"></span><span data-i18n="status.lowstock">備品告急</span></span>
+          </div>
+        </div>
+
+        <!-- iPhone 16 Pro Mockup Showcase -->
+        <div class="hero-mockup-wrapper" data-reveal>
+          <!-- Interactive Mode Tabs -->
+          <div class="mockup-mode-tabs">
+            <button id="js-tab-interactive" class="mockup-tab-btn active" data-i18n="mockup.tab.interactive">📱 互動展示</button>
+            <button id="js-tab-screenshot" class="mockup-tab-btn" data-i18n="mockup.tab.screenshot">📸 真機截圖</button>
+          </div>
+
+          <!-- Phone Chassis Frame -->
+          <div class="iphone-frame">
+            <div class="iphone-screen">
+              <!-- Dynamic Island -->
+              <div class="iphone-island" aria-hidden="true">
+                <div class="island-camera"></div>
+              </div>
+
+              <!-- iOS Status Bar -->
+              <div class="iphone-status-bar">
+                <span>9:41</span>
+                <div class="iphone-status-icons">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"></path><path d="M1.42 9a16 16 0 0 1 21.16 0"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
+                  <svg width="18" height="12" viewBox="0 0 24 14" fill="currentColor"><rect x="1" y="1" width="19" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"></rect><rect x="3" y="3" width="13" height="8" rx="1.5"></rect><path d="M22 5v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+                </div>
+              </div>
+
+              <!-- Interactive App Body View -->
+              <div id="js-mockup-app-body" class="mockup-app-body">
+                <!-- Workspace Title Header -->
+                <div class="mock-app-header">
+                  <div class="mock-workspace-title">
+                    <span>🏠</span>
+                    <span data-i18n="mockup.workspace">甜蜜的家</span>
+                    <span style="font-size: 0.65rem; color: var(--text-muted);">▾</span>
+                  </div>
+                  <span class="mock-app-badge" data-i18n="mockup.passkey">Passkey 已登入</span>
+                </div>
+
+                <!-- Life Status Overview Board -->
+                <div class="mock-overview-card">
+                  <div class="mock-overview-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                    <span data-i18n="mockup.overview.title">生活看板</span>
+                  </div>
+                  <div class="mock-overview-chips">
+                    <span class="mock-chip status-pill-soon">⚠️ 2 項需處理</span>
+                    <span class="mock-chip status-pill-fresh">✨ 4 項良好</span>
+                    <span class="mock-chip status-pill-lowstock">📦 1 項備品缺</span>
+                  </div>
+                </div>
+
+                <!-- Mockup Item 1: Toothbrush Head -->
+                <div class="mock-item-card" id="js-mock-card-1">
+                  <div class="mock-item-top">
+                    <div class="mock-item-info">
+                      <img src="assets/img/items/toothbrush-head.png" alt="Toothbrush" class="mock-item-img">
+                      <div class="mock-item-texts">
+                        <span class="mock-item-name" data-i18n="mockup.item1.name">Oral-B 電動牙刷刷頭</span>
+                        <span class="mock-item-meta" data-i18n="mockup.item1.meta">EB50 · 衛浴洗沐 · 90 天週期</span>
+                      </div>
+                    </div>
+                    <span class="mock-tag status-pill-soon" data-i18n="mockup.item1.tag">剩餘 5 天</span>
+                  </div>
+
+                  <!-- Progress Track -->
+                  <div class="mock-progress-track">
+                    <div class="mock-progress-bar" style="width: 15%; background: var(--status-soon);"></div>
+                  </div>
+
+                  <!-- Stock and Action Buttons -->
+                  <div class="mock-item-actions">
+                    <div class="mock-stock-info">
+                      <span>📦 備品: <strong class="mock-stock-count" data-tabular>2</strong> 件</span>
+                    </div>
+                    <div style="display: flex; gap: 4px;">
+                      <button class="mock-btn-action mock-btn-subtle" data-i18n="mockup.item1.snooze">稍後</button>
+                      <button id="js-mock-btn-replace-1" class="mock-btn-action" data-i18n="mockup.item1.replace">今天已換</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Mockup Item 2: Brita Water Filter -->
+                <div class="mock-item-card" id="js-mock-card-2">
+                  <div class="mock-item-top">
+                    <div class="mock-item-info">
+                      <img src="assets/img/items/water-filter.png" alt="Brita Filter" class="mock-item-img">
+                      <div class="mock-item-texts">
+                        <span class="mock-item-name" data-i18n="mockup.item2.name">Brita 淨水濾芯 MAXTRA+</span>
+                        <span class="mock-item-meta" data-i18n="mockup.item2.meta">全效型 · 廚房飲食 · 60 天週期</span>
+                      </div>
+                    </div>
+                    <span class="mock-tag status-pill-expired" data-i18n="mockup.item2.tag">已逾期 2 天</span>
+                  </div>
+
+                  <!-- Progress Track -->
+                  <div class="mock-progress-track">
+                    <div class="mock-progress-bar" style="width: 0%; background: var(--status-expired);"></div>
+                  </div>
+
+                  <div class="mock-item-actions">
+                    <div class="mock-stock-info">
+                      <span>📦 備品: <strong class="mock-stock-count" data-tabular>1</strong> 件</span>
+                    </div>
+                    <button id="js-mock-btn-replace-2" class="mock-btn-action" style="background: var(--status-expired);" data-i18n="mockup.item2.replace">今天已換</button>
+                  </div>
+                </div>
+
+                <!-- Mockup Item 3: Fish Oil Capsule (Burn Rate Mode) -->
+                <div class="mock-item-card" id="js-mock-card-3">
+                  <div class="mock-item-top">
+                    <div class="mock-item-info">
+                      <img src="assets/img/mark.svg" alt="Supplements" class="mock-item-img">
+                      <div class="mock-item-texts">
+                        <span class="mock-item-name" data-i18n="mockup.item3.name">Kirkland 頂級深海魚油</span>
+                        <span class="mock-item-meta" data-i18n="mockup.item3.meta">保健食品 · 每天 2 顆 · 剩 36 顆</span>
+                      </div>
+                    </div>
+                    <span class="mock-tag status-pill-fresh" data-i18n="mockup.item3.tag">剩餘 18 天</span>
+                  </div>
+
+                  <!-- Progress Track -->
+                  <div class="mock-progress-track">
+                    <div class="mock-progress-bar" style="width: 60%; background: var(--status-fresh);"></div>
+                  </div>
+
+                  <div class="mock-item-actions">
+                    <div class="mock-stock-info">
+                      <span data-i18n="mockup.item3.stock">未拆封備品: 1 瓶</span>
+                    </div>
+                    <button id="js-mock-btn-consume-3" class="mock-btn-action" style="background: var(--brand-secondary);" data-i18n="mockup.item3.consume">今日已用 (-2)</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Real Screenshot View (Toggled) -->
+              <div id="js-mockup-screenshot-view" class="mockup-screenshot-view">
+                <img src="assets/img/screenshot-home.png" alt="afterBUY Real App Screenshot" class="mockup-img-slide">
+              </div>
+
+              <!-- 5-Second Tactile Undo Toast -->
+              <div id="js-mock-undo-toast" class="mock-undo-toast" role="status" aria-live="polite">
+                <div class="mock-undo-content">
+                  <span data-i18n="mockup.toast.replaced">已完成更換，已自動扣減 1 個備品庫存！</span>
+                  <button id="js-mock-btn-undo" class="mock-btn-undo" data-i18n="mockup.toast.undo">復原</button>
+                </div>
+                <div class="mock-undo-bar"></div>
+              </div>
+
+              <!-- iOS Bottom Tab Bar -->
+              <div class="iphone-bottom-nav">
+                <div class="mock-nav-item active">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+                  <span>物品</span>
+                </div>
+                <div class="mock-nav-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  <span>行事曆</span>
+                </div>
+                <div class="mock-nav-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                  <span>備品採購</span>
+                </div>
+                <div class="mock-nav-item">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  <span>設定</span>
+                </div>
+              </div>
+
+              <!-- iOS Home Indicator -->
+              <div class="iphone-home-bar" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         6 Core Features Grid Section
+         ========================================== -->
+    <section class="section section-alt" id="features">
+      <div class="container">
+        <div class="section-header" data-reveal>
+          <span class="section-eyebrow" data-i18n="features.eyebrow">核心優勢</span>
+          <h2 class="section-title" data-i18n="features.title">買了之後，告別過期與斷貨慌</h2>
+          <p class="section-subtitle" data-i18n="features.subtitle">集合生活耗材週期、保存期限、智慧庫存與多管道通知於一身的完整解決方案。</p>
+        </div>
+
+        <div class="features-grid">
+          <!-- Feature 1 -->
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon-box">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <h3 class="feature-title" data-i18n="features.1.title">耗材週期與開封保存期 (PAO)</h3>
+            <p class="feature-description" data-i18n="features.1.desc">牙刷 90 天、淨水濾芯 180 天、開架化妝水 6M 開封倒數，精準支援西元年月日保固與深海魚油等「數量耗用率」模式。</p>
+            <div class="feature-tags">
+              <span class="feature-tag-chip">PAO 標誌</span>
+              <span class="feature-tag-chip">固定到期日</span>
+              <span class="feature-tag-chip">數量耗用率</span>
+            </div>
+          </article>
+
+          <!-- Feature 2 -->
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon-box">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            </div>
+            <h3 class="feature-title" data-i18n="features.2.title">一鍵更換與自動扣備品</h3>
+            <p class="feature-description" data-i18n="features.2.desc">點擊「今天已換」自動重置週期並扣除 1 件未拆封備品；手滑誤觸？底部 5 秒觸感復原條瞬間回滾，零焦慮。</p>
+            <div class="feature-tags">
+              <span class="feature-tag-chip">5 秒復原條</span>
+              <span class="feature-tag-chip">自動庫存扣減</span>
+              <span class="feature-tag-chip">採購清單</span>
+            </div>
+          </article>
+
+          <!-- Feature 3 -->
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon-box">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <h3 class="feature-title" data-i18n="features.3.title">WebCal 日曆無縫訂閱</h3>
+            <p class="feature-description" data-i18n="features.3.desc">一鍵訂閱至 Apple / Google / Outlook 日曆。專利級穩定 UID 與 30 天軟刪除墓碑機制，絕無舊事件幽靈殘留。</p>
+            <div class="feature-tags">
+              <span class="feature-tag-chip">RFC 5545</span>
+              <span class="feature-tag-chip">無殘留墓碑</span>
+              <span class="feature-tag-chip">全平台日曆</span>
+            </div>
+          </article>
+
+          <!-- Feature 4 -->
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon-box">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 004.07 9"></path></svg>
+            </div>
+            <h3 class="feature-title" data-i18n="features.4.title">Passkey 生物辨識秒登</h3>
+            <p class="feature-description" data-i18n="features.4.desc">支援 Touch ID / Face ID / Windows Hello 秒速解鎖；搭配 6 位數 Email OTP 雙軌登入，換機免記密碼。</p>
+            <div class="feature-tags">
+              <span class="feature-tag-chip">FIDO2 / WebAuthn</span>
+              <span class="feature-tag-chip">Face ID / Touch ID</span>
+              <span class="feature-tag-chip">免密碼 OTP</span>
+            </div>
+          </article>
+
+          <!-- Feature 5 -->
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon-box">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            </div>
+            <h3 class="feature-title" data-i18n="features.5.title">多管道貼心通知提醒</h3>
+            <p class="feature-description" data-i18n="features.5.desc">PWA Web Push 系統推播、每日 08:00 晨報摘要 Email、加值 VIP SMS 短訊，守護生活節奏不造成通知疲勞。</p>
+            <div class="feature-tags">
+              <span class="feature-tag-chip">Web Push 推播</span>
+              <span class="feature-tag-chip">每日晨報 Email</span>
+              <span class="feature-tag-chip">加值 VIP SMS</span>
+            </div>
+          </article>
+
+          <!-- Feature 6 -->
+          <article class="feature-card" data-reveal>
+            <div class="feature-icon-box">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+            </div>
+            <h3 class="feature-title" data-i18n="features.6.title">PWA 離線優先與隱私至上</h3>
+            <p class="feature-description" data-i18n="features.6.desc">免安裝商店直接加入主畫面，無廣告、無第三方分析追蹤 SDK，訪客免登入即開即用，資料安全掌握在自己手中。</p>
+            <div class="feature-tags">
+              <span class="feature-tag-chip">免商店安裝</span>
+              <span class="feature-tag-chip">離線快取</span>
+              <span class="feature-tag-chip">零追蹤 SDK</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         Visual Status Strip: "A Color for Every Countdown"
+         ========================================== -->
+    <section class="section countdown-section" id="countdown">
+      <div class="container">
+        <div class="countdown-banner" data-reveal>
+          <div class="countdown-header-grid">
+            <div>
+              <span class="section-eyebrow" data-i18n="countdown.eyebrow">色彩視覺化</span>
+              <h2 class="section-title" data-i18n="countdown.title">一目了然的倒數色彩哲學</h2>
+              <p class="section-subtitle" data-i18n="countdown.subtitle">每一件物品都有專屬健康度色彩，無需在腦中換算日期，掃一眼便知何時該換、何時該補。</p>
+            </div>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+              <span class="status-pill status-pill-fresh"><span class="status-dot"></span> 良好 (> 7 天)</span>
+              <span class="status-pill status-pill-soon"><span class="status-dot"></span> 即將到期 (≤ 7 天)</span>
+              <span class="status-pill status-pill-expired"><span class="status-dot"></span> 今日到期 / 逾期</span>
+              <span class="status-pill status-pill-lowstock"><span class="status-dot"></span> 備品庫存 = 0</span>
+            </div>
+          </div>
+
+          <!-- 4 Countdown Cards Grid -->
+          <div class="countdown-cards-grid">
+            <!-- Card 1: Fresh -->
+            <div class="countdown-card">
+              <div class="countdown-card-top">
+                <span class="countdown-status-badge status-pill-fresh" data-i18n="countdown.c1.badge">良好 · 正常運作</span>
+                <span class="countdown-time-left" style="color: var(--status-fresh);" data-i18n="countdown.c1.time" data-tabular>倒數 72 天</span>
+              </div>
+              <div class="countdown-meter-outer">
+                <div class="countdown-meter-inner" style="width: 80%; background-color: var(--status-fresh);"></div>
+              </div>
+              <h4 class="countdown-card-name" data-i18n="countdown.c1.name">冷氣抗敏防塵濾網</h4>
+              <p class="countdown-card-desc" data-i18n="countdown.c1.desc">翠綠色象徵充足時間，安心深呼吸，守護居家空氣品質。</p>
+            </div>
+
+            <!-- Card 2: Soon -->
+            <div class="countdown-card">
+              <div class="countdown-card-top">
+                <span class="countdown-status-badge status-pill-soon" data-i18n="countdown.c2.badge">即將到期 · 準備中</span>
+                <span class="countdown-time-left" style="color: var(--status-soon);" data-i18n="countdown.c2.time" data-tabular>倒數 4 天</span>
+              </div>
+              <div class="countdown-meter-outer">
+                <div class="countdown-meter-inner" style="width: 15%; background-color: var(--status-soon);"></div>
+              </div>
+              <h4 class="countdown-card-name" data-i18n="countdown.c2.name">Oral-B 牙刷刷頭</h4>
+              <p class="countdown-card-desc" data-i18n="countdown.c2.desc">琥珀金提示即將到期（≤ 7 天），提醒檢查備品或安排更換。</p>
+            </div>
+
+            <!-- Card 3: Expired -->
+            <div class="countdown-card">
+              <div class="countdown-card-top">
+                <span class="countdown-status-badge status-pill-expired" data-i18n="countdown.c3.badge">今日到期 / 已逾期</span>
+                <span class="countdown-time-left" style="color: var(--status-expired);" data-i18n="countdown.c3.time" data-tabular>今日到期！</span>
+              </div>
+              <div class="countdown-meter-outer">
+                <div class="countdown-meter-inner" style="width: 5%; background-color: var(--status-expired);"></div>
+              </div>
+              <h4 class="countdown-card-name" data-i18n="countdown.c3.name">Brita 淨水濾芯</h4>
+              <p class="countdown-card-desc" data-i18n="countdown.c3.desc">珊瑚玫瑰紅代表該換了！點擊「今天已換」立即完成打卡。</p>
+            </div>
+
+            <!-- Card 4: Low Stock -->
+            <div class="countdown-card">
+              <div class="countdown-card-top">
+                <span class="countdown-status-badge status-pill-lowstock" data-i18n="countdown.c4.badge">備品告急 · 待採購</span>
+                <span class="countdown-time-left" style="color: var(--status-lowstock);" data-i18n="countdown.c4.time" data-tabular>備品 0 件</span>
+              </div>
+              <div class="countdown-meter-outer">
+                <div class="countdown-meter-inner" style="width: 100%; background-color: var(--status-lowstock);"></div>
+              </div>
+              <h4 class="countdown-card-name" data-i18n="countdown.c4.name">抗菌洗衣膠囊</h4>
+              <p class="countdown-card-desc" data-i18n="countdown.c4.desc">湛藍色標記庫存告急，採購清單一鍵匯整，逛超市不漏買。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         How It Works (3 Steps)
+         ========================================== -->
+    <section class="section section-alt" id="how">
+      <div class="container">
+        <div class="section-header" data-reveal>
+          <span class="section-eyebrow" data-i18n="how.eyebrow">極簡步驟</span>
+          <h2 class="section-title" data-i18n="how.title">三個步驟，從容掌控生活節奏</h2>
+          <p class="section-subtitle" data-i18n="how.subtitle">建檔一次，剩下的時間交給 afterBUY 幫你盯著。</p>
+        </div>
+
+        <div class="steps-wrapper" data-reveal>
+          <!-- Step 1 -->
+          <div class="step-card">
+            <div class="step-number brand-gradient">01</div>
+            <h3 class="step-title" data-i18n="how.1.title">01 拍照或範本建檔</h3>
+            <p class="step-desc" data-i18n="how.1.desc">手機相機直拍或自選相片，搭配內建牙刷、濾芯、維他命等常用範本，10 秒迅速建檔完成。</p>
+          </div>
+
+          <div class="step-connector" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-card">
+            <div class="step-number brand-gradient">02</div>
+            <h3 class="step-title" data-i18n="how.2.title">02 智慧追蹤與生活看板</h3>
+            <p class="step-desc" data-i18n="how.2.desc">自動依據週期或每日用量倒數計時，情感化生活看板即時展示待處理數量，擺脫冰冷表格。</p>
+          </div>
+
+          <div class="step-connector" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-card">
+            <div class="step-number brand-gradient">03</div>
+            <h3 class="step-title" data-i18n="how.3.title">03 準時提醒並一鍵更換</h3>
+            <p class="step-desc" data-i18n="how.3.desc">到期前推播與日曆通知，點擊「今天已換」自動扣除備品庫存，隨時保持生活最清爽狀態。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         Privacy by Design Section
+         ========================================== -->
+    <section class="section" id="privacy">
+      <div class="container">
+        <div class="privacy-grid">
+          <div data-reveal>
+            <span class="section-eyebrow" data-i18n="privacy.eyebrow">隱私至上</span>
+            <h2 class="section-title" data-i18n="privacy.title">你的生活細節，只有你自己知道</h2>
+            <p class="section-subtitle" data-i18n="privacy.desc">
+              afterBUY 採邊緣原生與本地優先架構。沒有繁重的第三方行銷代碼，沒有廣告投遞，拍照與文字完全屬於你。
+            </p>
+
+            <ul class="privacy-list">
+              <li class="privacy-item">
+                <svg class="privacy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span data-i18n="privacy.f1">免綁手機號碼，支援 Passkey 與無密碼 Email OTP 登入</span>
+              </li>
+              <li class="privacy-item">
+                <svg class="privacy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span data-i18n="privacy.f2">零第三方分析追蹤、零廣告聯播網，不販售任何個人資料</span>
+              </li>
+              <li class="privacy-item">
+                <svg class="privacy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span data-i18n="privacy.f3">照片儲存於高規格安全邊緣節點，傳輸全程經 TLS 1.3 嚴格加密</span>
+              </li>
+              <li class="privacy-item">
+                <svg class="privacy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span data-i18n="privacy.f4">支援單鍵資料匯出與備份，你的數據完全由你掌控</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="privacy-showcase-box" data-reveal>
+            <div class="privacy-badge-banner">
+              <svg class="privacy-shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <div>
+                <h4 style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary); margin-bottom: 2px;">100% 隱私與安全防護</h4>
+                <p style="font-size: 0.8125rem; color: var(--text-secondary); margin: 0;">符合現代 Web 安全標準，無廣告、無 Cookie 追蹤</p>
+              </div>
+            </div>
+            <img src="assets/img/screenshot-modal.png" alt="afterBUY Settings" style="width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         Interactive FAQ Accordion
+         ========================================== -->
+    <section class="section section-alt" id="faq">
+      <div class="container">
+        <div class="section-header" data-reveal>
+          <span class="section-eyebrow" data-i18n="faq.eyebrow">常見問題</span>
+          <h2 class="section-title" data-i18n="faq.title">你想知道的，都在這裡</h2>
+          <p class="section-subtitle" data-i18n="faq.subtitle">若有其他疑問，歡迎透過 GitHub Issues 或 Support 信箱與我們聯繫。</p>
+        </div>
+
+        <div class="faq-container" data-reveal>
+          <!-- FAQ 1 -->
+          <details class="faq-item" open>
+            <summary class="faq-question">
+              <span data-i18n="faq.q1">afterBUY 是免費的嗎？</span>
+              <svg class="faq-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </summary>
+            <div class="faq-answer" data-i18n="faq.a1">
+              是的！afterBUY 核心功能完全免費開放使用，無擾人橫幅廣告、無強制付費牆。我們相信掌控好自己的生活耗材是每個人都應享有的數位自由。
+            </div>
+          </details>
+
+          <!-- FAQ 2 -->
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span data-i18n="faq.q2">如何在手機上當成 App（PWA）使用？</span>
+              <svg class="faq-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </summary>
+            <div class="faq-answer" data-i18n="faq.a2">
+              在 iPhone Safari 中開啟後點擊分享按鈕（Share），選擇「加入主畫面（Add to Home Screen）」；Android 使用者使用 Chrome 點擊「安裝應用程式」即可享有原生 App 等級的全螢幕與秒開體驗。
+            </div>
+          </details>
+
+          <!-- FAQ 3 -->
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span data-i18n="faq.q3">WebCal 日曆訂閱會不會有舊事件殘留？</span>
+              <svg class="faq-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </summary>
+            <div class="faq-answer" data-i18n="faq.a3">
+              絕不會！afterBUY 針對 RFC 5545 日曆規範深度打磨，採用穩定 UID、遞增 SEQUENCE 與 30 天軟刪除墓碑（STATUS:CANCELLED）技術，物品更換或刪除後，Apple / Google 日曆會自動更新或清除舊事件。
+            </div>
+          </details>
+
+          <!-- FAQ 4 -->
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span data-i18n="faq.q4">什麼是 Passkey 免密碼登入？換手機怎麼辦？</span>
+              <svg class="faq-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </summary>
+            <div class="faq-answer" data-i18n="faq.a4">
+              Passkey 採用 FIDO2 / WebAuthn 標準，利用手機的 Face ID、Touch ID 或指紋辨識快速登入，無需記憶密碼。如果您換了新手機或使用公用電腦，可隨時使用 6 位數 Email OTP 登入，安全無虞。
+            </div>
+          </details>
+
+          <!-- FAQ 5 -->
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span data-i18n="faq.q5">支援多人或家庭空間共享同一個備品庫嗎？</span>
+              <svg class="faq-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </summary>
+            <div class="faq-answer" data-i18n="faq.a5">
+              支援！afterBUY 具備強大多庫管理（Stock Spaces）與 4 級角色權限（擁有者、管理員、成員、檢視者），管理者一鍵生成 8 碼邀請代碼即可邀請家人或室友一同協作與打卡。
+            </div>
+          </details>
+
+          <!-- FAQ 6 -->
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span data-i18n="faq.q6">如果暫時不想換，可以延後提醒（Snooze）嗎？</span>
+              <svg class="faq-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </summary>
+            <div class="faq-answer" data-i18n="faq.a6">
+              可以！每張耗材卡片皆支援「延後 3 天」或「延後 7 天」功能；針對買了先囤著的物品，還可以開啟「先存放」模式，等拆封當天再點擊「開始使用」。
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         Final Call to Action Banner
+         ========================================== -->
+    <section class="section">
+      <div class="container">
+        <div class="cta-banner-wrapper" data-reveal>
+          <h2 class="cta-banner-title" data-i18n="cta.title">從今天起，告別耗材過期與斷貨慌</h2>
+          <p class="cta-banner-desc" data-i18n="cta.desc">免下載、免安裝商店、即開即用。加入 afterBUY，給你的生活一個清晰有序的節奏。</p>
+          <div class="cta-banner-btn-group">
+            <a href="https://afterbuy.david888.com/" target="_blank" rel="noopener noreferrer" class="btn-cta-white">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <span data-i18n="cta.btn.app">立即啟動 Web App</span>
+            </a>
+            <a href="https://github.com/tbdavid2019/afterBUY" target="_blank" rel="noopener noreferrer" class="btn-cta-outline">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              <span data-i18n="cta.btn.github">查看 GitHub 專案</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==========================================
+       Site Footer
+       ========================================== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img src="assets/img/mark.svg" alt="afterBUY" width="32" height="32" style="border-radius: 8px;">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary);">afterBUY 補貨日記</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">&copy; <span class="js-year"></span> afterBUY. All rights reserved.</div>
+          </div>
+        </div>
+
+        <nav class="footer-links" aria-label="頁尾連結">
+          <a href="#features" data-i18n="nav.features">核心特色</a>
+          <a href="#how" data-i18n="nav.how">運作方式</a>
+          <a href="#privacy" data-i18n="nav.privacy">隱私承諾</a>
+          <a href="#faq" data-i18n="nav.faq">常見問題</a>
+          <a href="https://github.com/tbdavid2019/afterBUY" target="_blank" rel="noopener noreferrer" data-i18n="footer.github">GitHub 原始碼</a>
+        </nav>
+      </div>
+
+      <div class="footer-bottom">
+        <span data-i18n="footer.rights">保留所有權利。以 AGPL-3.0 協議開源。</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main Interaction Scripts -->
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

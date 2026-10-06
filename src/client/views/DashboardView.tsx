@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Search, Plus, AlertTriangle, CheckCircle2, ShoppingBag, Sparkles, SlidersHorizontal, Camera, CheckSquare, RotateCcw, Trash2, MapPin, Fingerprint, Moon, Package } from 'lucide-react';
+import { Search, Plus, AlertTriangle, CheckCircle2, ShoppingBag, Sparkles, SlidersHorizontal, Camera, CheckSquare, RotateCcw, Trash2, MapPin, Fingerprint, Moon, Package, LayoutGrid, List } from 'lucide-react';
 import { ItemResponse, ItemCategory, UserSession } from '../../shared/types.ts';
 import { ItemCard } from '../components/ItemCard.tsx';
 import { BatchPhotoModal } from '../components/BatchPhotoModal.tsx';
@@ -42,6 +42,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [batchActionLoading, setBatchActionLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(() => {
+    try {
+      return (localStorage.getItem('afterbuy_view_mode') as 'grid' | 'list') || 'list';
+    } catch {
+      return 'list';
+    }
+  });
+
+  const toggleViewMode = () => {
+    const next = viewMode === 'grid' ? 'list' : 'grid';
+    setViewMode(next);
+    try {
+      localStorage.setItem('afterbuy_view_mode', next);
+    } catch {}
+  };
 
   const counts = useMemo(() => ({
     due: items.filter((i) => i.healthStatus === 'overdue' || i.healthStatus === 'due_soon').length,
@@ -257,6 +272,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           <button
             type="button"
+            onClick={toggleViewMode}
+            aria-label={viewMode === 'grid' ? (locale === 'zh-TW' ? '切換為清單模式' : 'Switch to list view') : (locale === 'zh-TW' ? '切換為雙欄網格' : 'Switch to grid view')}
+            title={viewMode === 'grid' ? (locale === 'zh-TW' ? '切換為清單模式' : 'Switch to list view') : (locale === 'zh-TW' ? '切換為雙欄網格' : 'Switch to grid view')}
+            className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border transition-colors tactile-press shrink-0 ${
+              viewMode === 'grid'
+                ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+            }`}
+          >
+            {viewMode === 'grid' ? <List className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
+            <span className="hidden sm:inline">{viewMode === 'grid' ? (locale === 'zh-TW' ? '清單' : 'List') : (locale === 'zh-TW' ? '網格' : 'Grid')}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => { setIsSelecting((value) => !value); setSelectedIds(new Set()); }}
             aria-label={isSelecting ? t('cancelSelect') : t('batchMode')}
             title={isSelecting ? t('cancelSelect') : t('batchMode')}
@@ -369,12 +399,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
             )}
           </div>
+        ) : viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            {filteredItems.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                viewMode="grid"
+                onReplace={onReplace}
+                onAdjustStock={onAdjustStock}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onViewHistory={onViewHistory}
+                onStartUsing={onStartUsing}
+                onSnooze={onSnooze}
+                onConsume={onConsume}
+                selectable={isSelecting}
+                isSelected={selectedIds.has(item.id)}
+                onToggleSelect={toggleSelected}
+              />
+            ))}
+          </div>
         ) : (
           <div className="space-y-2.5">
             {filteredItems.map((item) => (
               <ItemCard
                 key={item.id}
                 item={item}
+                viewMode="list"
                 onReplace={onReplace}
                 onAdjustStock={onAdjustStock}
                 onEdit={onEdit}

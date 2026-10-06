@@ -20,17 +20,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { t } = useTranslation();
 
   return (
-    <nav aria-label="主要導覽" className="app-navbar fixed bottom-0 left-0 right-0 z-40 backdrop-blur-md border-t pb-safe">
-      <div className="max-w-3xl mx-auto flex items-center justify-around min-h-[4.25rem] px-2 sm:px-6">
+    <nav aria-label="主要導覽" className="fixed bottom-0 left-0 right-0 z-40 px-3 pb-safe pointer-events-none mb-1 sm:mb-2">
+      <div className="max-w-md mx-auto pointer-events-auto backdrop-blur-xl bg-white/92 dark:bg-slate-900/92 border border-slate-200/80 dark:border-slate-800/80 shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.35)] rounded-2xl flex items-center justify-around min-h-[3.85rem] px-2 py-1">
         {/* 1. Dashboard Tab */}
         <button
           onClick={() => onSelectTab('dashboard')}
           aria-label={t('navDashboard')}
           aria-current={currentTab === 'dashboard' ? 'page' : undefined}
-          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-lg py-1 tactile-press ${
+          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[5.5rem] rounded-xl py-1 transition-all tactile-press ${
             currentTab === 'dashboard'
-              ? 'app-nav-item-active font-semibold'
-              : 'text-[var(--app-muted)] [@media(hover:hover)]:hover:bg-[var(--app-surface-subtle)] [@media(hover:hover)]:hover:text-[var(--app-text)] font-medium'
+              ? 'app-nav-item-active font-semibold text-[var(--app-accent-strong)] dark:text-white'
+              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-medium'
           }`}
         >
           <div className="relative">
@@ -41,7 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             )}
           </div>
-          <span className="text-xs tracking-tight">{t('navDashboard')}</span>
+          <span className="text-[11px] tracking-tight">{t('navDashboard')}</span>
         </button>
 
         {/* 2. Timeline Tab */}
@@ -49,14 +49,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onSelectTab('timeline')}
           aria-label={t('navCalendar')}
           aria-current={currentTab === 'timeline' ? 'page' : undefined}
-          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-lg py-1 tactile-press ${
+          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[5.5rem] rounded-xl py-1 transition-all tactile-press ${
             currentTab === 'timeline'
-              ? 'app-nav-item-active font-semibold'
-              : 'text-[var(--app-muted)] [@media(hover:hover)]:hover:bg-[var(--app-surface-subtle)] [@media(hover:hover)]:hover:text-[var(--app-text)] font-medium'
+              ? 'app-nav-item-active font-semibold text-[var(--app-accent-strong)] dark:text-white'
+              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-medium'
           }`}
         >
           <CalendarDays className="w-5 h-5 mb-0.5" />
-          <span className="text-xs tracking-tight">{t('navCalendar')}</span>
+          <span className="text-[11px] tracking-tight">{t('navCalendar')}</span>
         </button>
 
         {/* 3. Shopping / Stock Tab */}
@@ -64,10 +64,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onSelectTab('shopping')}
           aria-label={t('navShopping')}
           aria-current={currentTab === 'shopping' ? 'page' : undefined}
-          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-lg py-1 tactile-press ${
+          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[5.5rem] rounded-xl py-1 transition-all tactile-press ${
             currentTab === 'shopping'
-              ? 'app-nav-item-active font-semibold'
-              : 'text-[var(--app-muted)] [@media(hover:hover)]:hover:bg-[var(--app-surface-subtle)] [@media(hover:hover)]:hover:text-[var(--app-text)] font-medium'
+              ? 'app-nav-item-active font-semibold text-[var(--app-accent-strong)] dark:text-white'
+              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-medium'
           }`}
         >
           <div className="relative">
@@ -78,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             )}
           </div>
-          <span className="text-xs tracking-tight">{t('navShopping')}</span>
+          <span className="text-[11px] tracking-tight">{t('navShopping')}</span>
         </button>
 
         {/* 4. Settings Tab */}
@@ -86,14 +86,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           onClick={() => onSelectTab('settings')}
           aria-label={t('navSettings')}
           aria-current={currentTab === 'settings' ? 'page' : undefined}
-          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[6rem] rounded-lg py-1 tactile-press ${
+          className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-11 max-w-[5.5rem] rounded-xl py-1 transition-all tactile-press ${
             currentTab === 'settings'
-              ? 'app-nav-item-active font-semibold'
-              : 'text-[var(--app-muted)] [@media(hover:hover)]:hover:bg-[var(--app-surface-subtle)] [@media(hover:hover)]:hover:text-[var(--app-text)] font-medium'
+              ? 'app-nav-item-active font-semibold text-[var(--app-accent-strong)] dark:text-white'
+              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-medium'
           }`}
         >
           <Settings2 className="w-5 h-5 mb-0.5" />
-          <span className="text-xs tracking-tight">{t('navSettings')}</span>
+          <span className="text-[11px] tracking-tight">{t('navSettings')}</span>
         </button>
       </div>
     </nav>
