@@ -458,15 +458,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                             category={primaryItem.category}
                             imageUrl={primaryItem.imageUrl}
                             specModel={primaryItem.specModel}
-                            size="sm"
+                            size="calendar"
+                            shape="circle"
                           />
-                          {/* Dot: Floating on top-right of the icon */}
+                          {/* Dot: Floating on top-right of the circular badge */}
                           <span
-                            className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-[#1E1E22] ${getEventDotColor(primaryEvent)} shadow-xs`}
+                            className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-white dark:ring-[#1E1E22] ${getEventDotColor(primaryEvent)} shadow-xs z-10`}
                           />
                           {/* Multi-Item Pill: e.g. +2 */}
                           {dayEvents.length > 1 && (
-                            <span className="absolute -bottom-1 -right-2 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm tabular-nums leading-none">
+                            <span className="absolute -bottom-1 -right-1 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm tabular-nums leading-none ring-1.5 ring-white dark:ring-[#1E1E22] z-10">
                               +{dayEvents.length - 1}
                             </span>
                           )}
@@ -542,7 +543,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                             category={item.category}
                             imageUrl={item.imageUrl}
                             specModel={item.specModel}
-                            size="md"
+                            size="lg"
+                            shape="circle"
                           />
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
@@ -621,7 +623,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           category={item.category}
                           imageUrl={item.imageUrl}
                           specModel={item.specModel}
-                          size="md"
+                          size="lg"
+                          shape="circle"
                         />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -745,7 +748,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                             category={item.category}
                             imageUrl={item.imageUrl}
                             specModel={item.specModel}
-                            size="md"
+                            size="lg"
+                            shape="circle"
                           />
                           <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left tactile-press">
                             <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
@@ -829,7 +833,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           category={item.category}
                           imageUrl={item.imageUrl}
                           specModel={item.specModel}
-                          size="md"
+                          size="lg"
+                          shape="circle"
                         />
                         <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left tactile-press">
                           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">

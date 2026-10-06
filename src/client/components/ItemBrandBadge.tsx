@@ -24,7 +24,8 @@ interface ItemBrandBadgeProps {
   imageUrl?: string | null;
   specModel?: string | null;
   className?: string;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'calendar';
+  shape?: 'rounded' | 'circle';
 }
 
 // Brand SVG Icons
@@ -69,22 +70,61 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   imageUrl,
   className = '',
   size = 'md',
+  shape = 'rounded',
 }) => {
   const lowerName = name.toLowerCase();
+  const isCircle = shape === 'circle' || size === 'calendar';
 
   // Dimensions
-  const sizeClasses = {
-    xs: 'w-6 h-6 rounded-lg text-xs',
-    sm: 'w-7 h-7 rounded-xl text-xs',
-    md: 'w-8 h-8 rounded-xl text-sm',
-    lg: 'w-10 h-10 rounded-2xl text-base',
+  const dimClasses = {
+    xs: 'w-6 h-6 text-xs',
+    sm: 'w-7 h-7 text-xs',
+    md: 'w-9 h-9 text-sm',
+    lg: 'w-11 h-11 text-base',
+    xl: 'w-14 h-14 text-lg',
+    calendar: 'w-9 h-9 sm:w-11 sm:h-11 text-sm sm:text-base',
   }[size];
 
-  // 1. Direct custom user image
+  const roundedClass = isCircle
+    ? 'rounded-full'
+    : {
+        xs: 'rounded-lg',
+        sm: 'rounded-xl',
+        md: 'rounded-xl',
+        lg: 'rounded-2xl',
+        xl: 'rounded-2xl',
+        calendar: 'rounded-full',
+      }[size];
+
+  const sizeClasses = `${dimClasses} ${roundedClass}`;
+
+  const iconClass =
+    size === 'xl'
+      ? 'w-7 h-7'
+      : size === 'lg' || size === 'calendar'
+        ? 'w-5 h-5 sm:w-6 sm:h-6'
+        : size === 'md'
+          ? 'w-4.5 h-4.5'
+          : size === 'sm'
+            ? 'w-4 h-4'
+            : 'w-3.5 h-3.5';
+
+  // 1. Direct custom user image with circular mask or squircle
   if (imageUrl) {
     return (
-      <div className={`relative overflow-hidden bg-white dark:bg-slate-800 p-0.5 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <img src={imageUrl} alt="" className="w-full h-full object-contain rounded-md" loading="lazy" />
+      <div
+        className={`relative overflow-hidden bg-white dark:bg-slate-800 ${
+          isCircle
+            ? 'rounded-full ring-2 ring-white/90 dark:ring-white/15 shadow-xs'
+            : `${roundedClass} p-0.5 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs`
+        } flex items-center justify-center shrink-0 ${dimClasses} ${className}`}
+      >
+        <img
+          src={imageUrl}
+          alt={name}
+          className={`w-full h-full ${isCircle ? 'object-cover rounded-full' : 'object-contain rounded-md'}`}
+          loading="lazy"
+        />
       </div>
     );
   }
@@ -93,7 +133,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('netflix')) {
     return (
       <div className={`relative bg-black border border-red-900/40 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <NetflixIcon className={size === 'lg' ? 'w-6 h-6' : size === 'sm' || size === 'xs' ? 'w-4 h-4' : 'w-5 h-5'} />
+        <NetflixIcon className={iconClass} />
       </div>
     );
   }
@@ -101,7 +141,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('spotify')) {
     return (
       <div className={`relative bg-[#121212] border border-emerald-900/40 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <SpotifyIcon className={size === 'lg' ? 'w-6 h-6' : size === 'sm' || size === 'xs' ? 'w-4 h-4' : 'w-5 h-5'} />
+        <SpotifyIcon className={iconClass} />
       </div>
     );
   }
@@ -109,7 +149,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('chatgpt') || lowerName.includes('openai')) {
     return (
       <div className={`relative bg-[#10A37F] text-white border border-emerald-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <ChatGPTIcon className={`${size === 'lg' ? 'w-6 h-6' : size === 'sm' || size === 'xs' ? 'w-4 h-4' : 'w-5 h-5'} text-white fill-white`} />
+        <ChatGPTIcon className={`${iconClass} text-white fill-white`} />
       </div>
     );
   }
@@ -117,7 +157,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('apple') || lowerName.includes('icloud')) {
     return (
       <div className={`relative bg-slate-900 dark:bg-white text-white dark:text-slate-900 border border-slate-700 dark:border-slate-200 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <AppleIcon className={size === 'lg' ? 'w-5 h-5' : size === 'sm' || size === 'xs' ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
+        <AppleIcon className={iconClass} />
       </div>
     );
   }
@@ -127,7 +167,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('牙刷') || lowerName.includes('刷頭') || lowerName.includes('牙線') || lowerName.includes('oral-b')) {
     return (
       <div className={`relative bg-gradient-to-br from-cyan-500 to-blue-600 text-white border border-cyan-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <ToothbrushIcon className="w-4 h-4 stroke-[2.2]" />
+        <ToothbrushIcon className={`${iconClass} stroke-[2.2]`} />
       </div>
     );
   }
@@ -136,7 +176,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('濾芯') || lowerName.includes('淨水') || lowerName.includes('濾水') || lowerName.includes('brita') || lowerName.includes('濾網')) {
     return (
       <div className={`relative bg-gradient-to-br from-blue-500 to-indigo-600 text-white border border-blue-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Droplet className="w-4 h-4 fill-white/30 stroke-[2]" />
+        <Droplet className={`${iconClass} fill-white/30 stroke-[2]`} />
       </div>
     );
   }
@@ -145,7 +185,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('魚油') || lowerName.includes('維他命') || lowerName.includes('膠囊') || lowerName.includes('錠') || category === 'medicine') {
     return (
       <div className={`relative bg-gradient-to-br from-amber-500 to-orange-600 text-white border border-amber-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Pill className="w-4 h-4 fill-white/20 stroke-[2]" />
+        <Pill className={`${iconClass} fill-white/20 stroke-[2]`} />
       </div>
     );
   }
@@ -154,7 +194,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('隱形眼鏡') || lowerName.includes('眼藥水') || lowerName.includes('保養液') || lowerName.includes('人工淚液')) {
     return (
       <div className={`relative bg-gradient-to-br from-teal-400 to-emerald-600 text-white border border-teal-300/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Eye className="w-4 h-4 stroke-[2.2]" />
+        <Eye className={`${iconClass} stroke-[2.2]`} />
       </div>
     );
   }
@@ -163,7 +203,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('防曬') || lowerName.includes('乳液') || lowerName.includes('精華') || category === 'skincare') {
     return (
       <div className={`relative bg-gradient-to-br from-pink-500 to-rose-600 text-white border border-pink-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Sparkles className="w-4 h-4 fill-white/30 stroke-[2]" />
+        <Sparkles className={`${iconClass} fill-white/30 stroke-[2]`} />
       </div>
     );
   }
@@ -172,7 +212,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('刮鬍') || lowerName.includes('刀片') || lowerName.includes('剃鬚')) {
     return (
       <div className={`relative bg-gradient-to-br from-slate-700 to-slate-900 text-white border border-slate-600/50 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Scissors className="w-4 h-4 stroke-[2]" />
+        <Scissors className={`${iconClass} stroke-[2]`} />
       </div>
     );
   }
@@ -181,7 +221,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('冷氣') || lowerName.includes('空調') || lowerName.includes('清淨機') || lowerName.includes('除濕')) {
     return (
       <div className={`relative bg-gradient-to-br from-sky-400 to-blue-500 text-white border border-sky-300/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Wind className="w-4 h-4 stroke-[2.2]" />
+        <Wind className={`${iconClass} stroke-[2.2]`} />
       </div>
     );
   }
@@ -190,7 +230,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('衛生紙') || lowerName.includes('紙巾') || lowerName.includes('垃圾袋')) {
     return (
       <div className={`relative bg-gradient-to-br from-violet-500 to-purple-600 text-white border border-violet-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Layers className="w-4 h-4 stroke-[2]" />
+        <Layers className={`${iconClass} stroke-[2]`} />
       </div>
     );
   }
@@ -199,7 +239,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (lowerName.includes('機油') || lowerName.includes('輪胎') || lowerName.includes('汽車') || lowerName.includes('機車')) {
     return (
       <div className={`relative bg-gradient-to-br from-red-600 to-rose-700 text-white border border-red-500/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Wrench className="w-4 h-4 stroke-[2]" />
+        <Wrench className={`${iconClass} stroke-[2]`} />
       </div>
     );
   }
@@ -208,7 +248,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (category === 'clothing' || lowerName.includes('內衣') || lowerName.includes('內褲') || lowerName.includes('襪')) {
     return (
       <div className={`relative bg-gradient-to-br from-amber-600 to-stone-700 text-white border border-amber-500/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Shirt className="w-4 h-4 stroke-[2]" />
+        <Shirt className={`${iconClass} stroke-[2]`} />
       </div>
     );
   }
@@ -217,7 +257,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   if (category === 'electronics' || category === 'appliances' || lowerName.includes('保固')) {
     return (
       <div className={`relative bg-gradient-to-br from-indigo-500 to-blue-700 text-white border border-indigo-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-        <Laptop className="w-4 h-4 stroke-[2]" />
+        <Laptop className={`${iconClass} stroke-[2]`} />
       </div>
     );
   }
@@ -225,7 +265,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   // L. Default fallback with vibrant theme accent
   return (
     <div className={`relative bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-accent-strong)] text-white border border-white/20 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
-      <Package className="w-4 h-4 stroke-[2]" />
+      <Package className={`${iconClass} stroke-[2]`} />
     </div>
   );
 };
