@@ -18,6 +18,12 @@
   - **1 欄 List 管理清單**：保留完整高密度一鍵打卡與備品庫存調整步進器，同步強化天數對比與視覺階層。
 - **底部導覽（Navbar）升級為 Apple 原生風格「懸浮膠囊導覽島（Floating Capsule Dock）」**：
   - 告別傳統滿版貼底硬邊，升級為雙側內縮、懸浮居中的毛玻璃膠囊島（`backdrop-blur-xl bg-white/92 dark:bg-slate-900/92 rounded-2xl`），搭配立體微陰影，並完美相容 iOS Home Bar 安全邊距（`pb-safe`）。
+- **繁體中文排版與字階尺度全面重構（`/impeccable typeset`）**：
+  - 徹底克服英文微型字體（10–11px）直接套用於高筆畫繁體漢字時之辨識障礙，建立繁中專屬排版尺度與視覺重心理論：
+  - **嚴格執行字級下限與視覺工藝**：微型徽章最低 `text-xs` (12–13px) `font-bold`，輔助說明/標籤全面 `text-sm` (14px)，內文輸入 `text-base` (16px)，標題按鈕 `text-base ~ text-lg` (16–18px)，核心數字突破至 `text-2xl ~ text-4xl` (24–36px) `font-black tabular-nums`。
+  - **月曆矩陣（TimelineView）**：星期欄位（週一 ~ 週日）升級為 14–16px `font-bold`、天數數字升級為 `text-sm sm:text-base font-black`、月度支出與件數指標升級為 24–30px `font-black`，當日排程詳情文字全面放大至 14–17px。
+  - **懸浮膠囊導覽（Navbar）**：繁中標籤自 `text-[11px]` 擴充為 `text-xs sm:text-[13px] font-bold`，膠囊高度擴展至 `min-h-[4.25rem]`。
+  - **看板卡片與避讓（DashboardView & ItemCard）**：篩選晶片文字升級為 14–16px，底部容器內距加寬為 `pb-36 sm:pb-40`，手機浮動按鈕與批次操作列提升至 `bottom-24`，徹底排除與底部懸浮島重疊遮擋問題。
 - **建立 GitHub Pages 官方靜態 Landing Page 官網（`docs/`）**：
   - 參考 `https://expiresby.app/` 現代 Apple / iOS 頂級質感，具備極簡、毛玻璃、精緻陰影與圓角、流暢響應式 RWD 與深淺模式自動適配。
   - **Sticky Header**：Logo（afterBUY / 補貨日記）、深淺模式切換（☀️/🌙）、繁中/英文切換（🇹🇼/🇬🇧）、錨點導覽與「立即體驗」CTA。

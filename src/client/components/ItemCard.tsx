@@ -103,7 +103,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     return (
       <article
         onClick={selectable ? () => onToggleSelect?.(item.id) : undefined}
-        className={`relative rounded-2xl border p-3.5 sm:p-4 flex flex-col justify-between transition-all duration-200 ${
+        className={`relative rounded-2xl border p-3.5 sm:p-5 flex flex-col justify-between transition-all duration-200 ${
           isSelected
             ? 'bg-[var(--app-surface)] border-[var(--app-accent)] ring-2 ring-[var(--app-accent)]/30 shadow-md'
             : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs hover:shadow-md'
@@ -111,16 +111,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       >
         {/* Top: Thumbnail + Tag + More Menu */}
         <div className="flex items-start justify-between gap-2">
-          <div className="w-11 h-11 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+          <div className="w-12 h-12 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
             {item.imageUrl ? (
               <img src={item.imageUrl} alt="" className="h-full w-full object-contain" loading="lazy" />
             ) : (
-              <CategoryIcon category={item.category} className="h-5 w-5 text-slate-400" />
+              <CategoryIcon category={item.category} className="h-6 w-6 text-slate-400" />
             )}
           </div>
 
-          <div className="flex items-center gap-1">
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200/60 dark:border-slate-700/60 truncate max-w-[80px]">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 truncate max-w-[90px]">
               {frequencyTag}
             </span>
             <div className="relative">
@@ -128,17 +128,17 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 type="button"
                 aria-label={`更多操作`}
                 onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                <MoreVertical className="w-3.5 h-3.5" />
+                <MoreVertical className="w-4 h-4" />
               </button>
               {showMenu && (
                 <>
                   <button aria-label="關閉" className="fixed inset-0 z-20 cursor-default" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-8 z-30 w-36 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-lg popover-animate text-xs font-medium">
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); onEdit(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><Edit2 className="w-3.5 h-3.5" />編輯</button>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); onViewHistory(item); }} className="flex w-full items-center gap-2 px-3 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><History className="w-3.5 h-3.5 text-blue-500" />記錄</button>
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); void runAction(() => onDelete(item.id)); }} className="flex w-full items-center gap-2 px-3 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"><Trash2 className="w-3.5 h-3.5" />刪除</button>
+                  <div className="absolute right-0 top-9 z-30 w-40 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 shadow-lg popover-animate text-sm font-medium">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); onEdit(item); }} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><Edit2 className="w-4 h-4" />編輯內容</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); onViewHistory(item); }} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><History className="w-4 h-4 text-blue-500" />更換記錄</button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); void runAction(() => onDelete(item.id)); }} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"><Trash2 className="w-4 h-4" />刪除物品</button>
                   </div>
                 </>
               )}
@@ -147,62 +147,62 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         </div>
 
         {/* Item Title */}
-        <div className="mt-2.5">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight line-clamp-1" title={item.name}>
+        <div className="mt-3">
+          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight line-clamp-1" title={item.name}>
             {item.name}
           </h3>
           {item.location && (
-            <p className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
-              <MapPin className="w-3 h-3 shrink-0" />
+            <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+              <MapPin className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">{item.location}</span>
             </p>
           )}
         </div>
 
-        {/* HERO METRIC DISPLAY (Large bold numbers) */}
-        <div className="mt-3 my-auto">
+        {/* HERO METRIC DISPLAY (Bold, readable Chinese metrics) */}
+        <div className="mt-3.5 my-auto">
           {isStored ? (
             <div className="py-1">
-              <span className="text-base sm:text-lg font-black text-slate-700 dark:text-slate-300">
+              <span className="text-lg sm:text-xl font-black text-slate-700 dark:text-slate-300">
                 未拆封
               </span>
-              <p className="text-[11px] text-slate-400 mt-0.5">拆封後開始計算</p>
+              <p className="text-xs text-slate-400 mt-0.5 font-medium">拆封後開始計算</p>
             </div>
           ) : isQuantityMode ? (
             <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xs text-slate-400 font-medium">現存</span>
-                <span className="text-2xl sm:text-[26px] font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-sm text-slate-500 font-semibold">現存</span>
+                <span className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
                   {item.remainingQuantity ?? 0}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">{item.quantityUnit || '顆'}</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400 font-semibold">{item.quantityUnit || '顆'}</span>
               </div>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                約剩 <span className="font-bold tabular-nums text-slate-700 dark:text-slate-300">{item.remainingDays}</span> 天
+              <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+                約剩 <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">{item.remainingDays}</span> 天
               </p>
             </div>
           ) : dateOnly ? (
             <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xs text-slate-400 font-medium">{item.trackingMode === 'warranty' ? '保固' : '到期'}</span>
-                <span className="text-lg sm:text-xl font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-sm text-slate-500 font-semibold">{item.trackingMode === 'warranty' ? '保固' : '到期'}</span>
+                <span className="text-xl sm:text-2xl font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
                   {item.nextDueDate.slice(5)}
                 </span>
               </div>
-              <p className={`text-[11px] font-bold mt-0.5 ${item.remainingDays < 0 ? 'text-rose-600' : item.remainingDays <= 30 ? 'text-amber-600' : 'text-slate-500'}`}>
+              <p className={`text-xs sm:text-sm font-bold mt-1 ${item.remainingDays < 0 ? 'text-rose-600' : item.remainingDays <= 30 ? 'text-amber-600' : 'text-slate-500'}`}>
                 {item.remainingDays < 0 ? `已逾期 ${Math.abs(item.remainingDays)} 天` : `剩餘 ${item.remainingDays} 天`}
               </p>
             </div>
           ) : (
             <div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-xs text-slate-400 font-medium">已用</span>
-                <span className="text-2xl sm:text-[28px] font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-sm text-slate-500 font-semibold">已用</span>
+                <span className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
                   {item.elapsedDays ?? 0}
                 </span>
-                <span className="text-xs text-slate-500 font-medium">天</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400 font-semibold">天</span>
               </div>
-              <p className={`text-[11px] font-bold mt-0.5 ${
+              <p className={`text-xs sm:text-sm font-bold mt-1 ${
                 item.healthStatus === 'overdue'
                   ? 'text-rose-600 dark:text-rose-400'
                   : item.healthStatus === 'due_soon'
@@ -218,17 +218,17 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
           {/* Slim Progress Bar */}
           {!dateOnly && !isStored && (
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div className={`h-full rounded-full transition-[width] duration-300 ${progressColor}`} style={{ width: `${item.percentageRemaining}%` }} />
             </div>
           )}
         </div>
 
         {/* Bottom: Stock Count & Quick Action */}
-        <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1.5">
-          <div className="flex items-center text-xs text-slate-500 dark:text-slate-400">
+        <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+          <div className="flex items-center text-sm text-slate-600 dark:text-slate-400 font-medium">
             <span>備品:</span>
-            <span className={`ml-1 font-bold tabular-nums ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
+            <span className={`ml-1.5 text-base font-black tabular-nums ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
               {item.backupStock}
             </span>
           </div>
@@ -239,16 +239,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               type="button"
               disabled={busy}
               onClick={(e) => { e.stopPropagation(); if (onStartUsing) void runAction(() => onStartUsing(item.id), '已開始使用'); }}
-              className="app-primary px-2.5 py-1 text-xs font-semibold rounded-lg shadow-2xs tactile-press flex items-center gap-1"
+              className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1.5"
             >
-              <Play className="w-3 h-3 fill-current" />
+              <Play className="w-3.5 h-3.5 fill-current" />
               <span>啟用</span>
             </button>
           ) : dateOnly ? (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onEdit(item); }}
-              className="px-2.5 py-1 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 tactile-press"
+              className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 tactile-press"
             >
               編輯
             </button>
@@ -264,9 +264,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   void runAction(() => onReplace(item.id), '已開啟新備品');
                 }
               }}
-              className="app-primary px-2.5 py-1 text-xs font-semibold rounded-lg shadow-2xs tactile-press flex items-center gap-1"
+              className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1"
             >
-              <Check className="w-3 h-3" />
+              <Check className="w-3.5 h-3.5" />
               <span>已用 (-{item.dailyUsage || 1})</span>
             </button>
           ) : (
@@ -274,9 +274,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               type="button"
               disabled={busy}
               onClick={(e) => { e.stopPropagation(); void runAction(() => onReplace(item.id), '已更新更換！'); }}
-              className="app-primary px-2.5 py-1 text-xs font-semibold rounded-lg shadow-2xs tactile-press flex items-center gap-1"
+              className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1"
             >
-              <RotateCcw className="w-3 h-3" />
+              <RotateCcw className="w-3.5 h-3.5" />
               <span>已換</span>
             </button>
           )}
@@ -294,12 +294,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       className={`relative rounded-2xl border p-4 sm:p-5 transition-all duration-200 ${
         isSelected
           ? 'bg-[var(--app-surface)] border-[var(--app-accent)] ring-2 ring-[var(--app-accent)]/30 shadow-md'
-          : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-[0_2px_10px_rgba(0,0,0,0.03)] dark:shadow-none hover:shadow-md'
+          : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs hover:shadow-md'
       } ${selectable ? 'cursor-pointer select-none' : ''}`}
     >
       {/* Top Header Row: Category, Status dot badge, Location, Overflow Menu */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           {selectable && (
             <button
               type="button"
@@ -312,16 +312,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               </span>
             </button>
           )}
-          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80">
+          <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80">
             {categoryMeta.label}
           </span>
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusInfo.badge}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${statusInfo.dot || 'bg-current'}`} />
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs sm:text-sm font-bold border ${statusInfo.badge}`}>
+            <span className={`h-2 w-2 rounded-full ${statusInfo.dot || 'bg-current'}`} />
             {statusInfo.text}
           </span>
           {item.location && (
-            <span className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
-              <MapPin className="h-3.5 w-3.5 text-slate-400" />
+            <span className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 dark:text-slate-400">
+              <MapPin className="h-4 w-4 text-slate-400" />
               <span>{item.location}</span>
             </span>
           )}
@@ -335,13 +335,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             onClick={(event) => { event.stopPropagation(); setShowMenu((open) => !open); }}
             className="w-9 h-9 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
-            <MoreVertical className="h-4 w-4" />
+            <MoreVertical className="h-4.5 w-4.5" />
           </button>
           {showMenu && (
             <>
               <button aria-label="關閉選單" className="fixed inset-0 z-20 cursor-default" onClick={() => setShowMenu(false)} />
               <div
-                className="absolute right-0 top-10 z-30 w-44 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-lg popover-animate text-sm font-medium"
+                className="absolute right-0 top-10 z-30 w-44 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 shadow-lg popover-animate text-sm font-medium"
                 style={{ '--transform-origin': 'top right' } as React.CSSProperties}
               >
                 <button type="button" onClick={(event) => { event.stopPropagation(); setShowMenu(false); onEdit(item); }} className="flex min-h-10 w-full items-center gap-2.5 px-3.5 text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"><Edit2 className="h-4 w-4 text-slate-500" />編輯內容</button>
@@ -356,47 +356,47 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       {/* Middle Row: Avatar & Title & Hero Metrics */}
       <div className="mt-3.5 flex items-start gap-3.5">
-        <div className="w-13 h-13 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-          {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-contain" loading="lazy" /> : <CategoryIcon category={item.category} className="h-6 w-6 text-slate-400" />}
+        <div className="w-14 h-14 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-1.5 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+          {item.imageUrl ? <img src={item.imageUrl} alt="" className="h-full w-full object-contain" loading="lazy" /> : <CategoryIcon category={item.category} className="h-7 w-7 text-slate-400" />}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight truncate">{item.name}</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight truncate">{item.name}</h3>
             {!isStored && !dateOnly && (
-              <span className="text-xs font-semibold text-slate-500 shrink-0">
-                已用 <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">{item.elapsedDays}</span> 天
+              <span className="text-sm font-bold text-slate-500 shrink-0">
+                已用 <span className="font-black tabular-nums text-slate-900 dark:text-slate-100">{item.elapsedDays}</span> 天
               </span>
             )}
           </div>
-          <div className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+          <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-medium">
             {item.stockName && <span className="truncate">{item.stockName}</span>}
             {item.specModel && <span className="truncate">型號: {item.specModel}</span>}
             {isQuantityMode && (
-              <span className="tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className="tabular-nums font-bold text-emerald-600 dark:text-emerald-400">
                 每日 {item.dailyUsage || 1} {item.quantityUnit || '顆'} · 單瓶 {item.initialQuantity || 60}
               </span>
             )}
-            {item.price !== null && item.price !== undefined && <span className="tabular-nums">NT$ {item.price.toLocaleString()}</span>}
+            {item.price !== null && item.price !== undefined && <span className="tabular-nums font-semibold">NT$ {item.price.toLocaleString()}</span>}
           </div>
         </div>
       </div>
 
       {/* Lifecycle Status: Clean Inline Row */}
       {isStored ? (
-        <div className="mt-3 flex items-center gap-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-          <Package className="h-4 w-4 shrink-0 text-slate-400" />
+        <div className="mt-3 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 font-medium">
+          <Package className="h-4.5 w-4.5 shrink-0 text-slate-400" />
           <span>未拆封備品 · 開始使用後才會計算更換週期</span>
         </div>
       ) : (
-        <div className="mt-3 space-y-1.5">
-          <div className="flex items-center justify-between gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-            <span className="flex min-w-0 items-center gap-1.5 truncate tabular-nums font-medium">
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between gap-2 text-sm text-slate-600 dark:text-slate-400">
+            <span className="flex min-w-0 items-center gap-1.5 truncate tabular-nums font-semibold">
               <Clock className="h-4 w-4 shrink-0 text-slate-400" />
               {dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : isQuantityMode ? '預計用盡日' : '下次處理'} · {item.nextDueDate}
             </span>
             {item.healthStatus === 'snoozed' && item.snoozeUntil && (
-              <span className="flex shrink-0 items-center gap-1 text-blue-600 dark:text-blue-400 tabular-nums font-medium">
-                <Moon className="h-3.5 w-3.5" />{item.snoozeUntil}
+              <span className="flex shrink-0 items-center gap-1 text-blue-600 dark:text-blue-400 tabular-nums font-bold">
+                <Moon className="h-4 w-4" />{item.snoozeUntil}
               </span>
             )}
           </div>
@@ -411,8 +411,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       {/* Bottom Row: Minimalist Stock Stepper & Primary CTA */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800/80 pt-3">
         {/* Stock Stepper */}
-        <div className="flex items-center border border-slate-200 dark:border-slate-800 rounded-xl p-0.5 bg-slate-50/80 dark:bg-slate-800/50">
-          <span className="text-xs text-slate-500 dark:text-slate-400 px-2.5 font-medium">備品</span>
+        <div className="flex items-center border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/80 dark:bg-slate-800/50">
+          <span className="text-sm text-slate-600 dark:text-slate-400 px-3 font-bold">備品</span>
           <button
             type="button"
             disabled={busy || item.backupStock <= 0}
@@ -420,9 +420,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, -1)); }}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 active:scale-95 transition-all tactile-press touch-manipulation"
           >
-            <Minus className="h-3.5 w-3.5" />
+            <Minus className="h-4 w-4" />
           </button>
-          <span className={`text-[15px] font-bold tabular-nums min-w-7 text-center px-1 ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
+          <span className={`text-base font-black tabular-nums min-w-8 text-center px-1.5 ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
             {item.backupStock}
           </span>
           <button
@@ -432,7 +432,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             onClick={(event) => { event.stopPropagation(); void runAction(() => onAdjustStock(item.id, 1)); }}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-30 active:scale-95 transition-all tactile-press touch-manipulation"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
           </button>
         </div>
 
@@ -442,7 +442,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             type="button"
             disabled={busy}
             onClick={(event) => { event.stopPropagation(); if (onStartUsing) void runAction(() => onStartUsing(item.id), '已開始使用'); }}
-            className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+            className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
           >
             <Play className="h-4 w-4 fill-current" />
             <span>開始使用</span>
@@ -451,31 +451,31 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); onEdit(item); }}
-            className="app-control ui-button min-h-10 flex items-center gap-1.5 px-4 py-2 text-[14px] font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 active:scale-[0.98] transition-all tactile-press"
+            className="app-control ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-700 dark:text-slate-300 active:scale-[0.98] transition-all tactile-press"
           >
             <Edit2 className="h-4 w-4 text-slate-400" />
             <span>編輯日期</span>
           </button>
         ) : isQuantityMode ? (
-          <div className="relative flex items-center gap-1.5">
+          <div className="relative flex items-center gap-2">
             {(item.healthStatus === 'overdue' || item.healthStatus === 'due_soon') && onSnooze && (
               <div className="relative">
                 <button
                   type="button"
                   disabled={busy}
                   onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu((open) => !open); }}
-                  className="app-control ui-button min-h-10 flex items-center gap-1 px-2.5 py-2 text-[14px] font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
+                  className="app-control ui-button min-h-11 flex items-center gap-1 px-3 py-2.5 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
                 >
                   <Moon className="h-4 w-4 text-slate-400" />
                   <span>稍後</span>
                 </button>
                 {showSnoozeMenu && (
                   <div
-                    className="absolute bottom-11 right-0 z-30 w-32 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-lg popover-animate text-sm font-medium"
+                    className="absolute bottom-12 right-0 z-30 w-36 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 shadow-lg popover-animate text-sm font-medium"
                     style={{ '--transform-origin': 'bottom right' } as React.CSSProperties}
                   >
-                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 3), '提醒已延後 3 天'); }} className="min-h-9 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 3 天</button>
-                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 7), '提醒已延後 7 天'); }} className="min-h-9 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 7 天</button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 3), '提醒已延後 3 天'); }} className="min-h-10 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 3 天</button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu(false); void runAction(() => onSnooze(item.id, 7), '提醒已延後 7 天'); }} className="min-h-10 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 7 天</button>
                   </div>
                 )}
               </div>
@@ -490,9 +490,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     event.stopPropagation();
                     void runAction(() => onReplace(item.id), '已開啟新備品');
                   }}
-                  className="app-control ui-button min-h-10 flex items-center gap-1 px-2.5 py-2 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
+                  className="app-control ui-button min-h-11 flex items-center gap-1 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
                 >
-                  <RotateCcw className="h-3.5 w-3.5 text-slate-400" />
+                  <RotateCcw className="h-4 w-4 text-slate-400" />
                   <span>開新瓶</span>
                 </button>
                 <button
@@ -506,7 +506,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                       void runAction(() => onReplace(item.id), '已開啟新備品');
                     }
                   }}
-                  className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-semibold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+                  className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
                 >
                   <Check className="h-4 w-4" />
                   <span>今日已用 (-{item.dailyUsage || 1})</span>
@@ -520,7 +520,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   event.stopPropagation();
                   void runAction(() => onReplace(item.id), '已開啟新備品');
                 }}
-                className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+                className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
               >
                 <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
                 <span>開啟新備品</span>
@@ -528,25 +528,25 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             )}
           </div>
         ) : (
-          <div className="relative flex items-center gap-1.5">
+          <div className="relative flex items-center gap-2">
             {(item.healthStatus === 'overdue' || item.healthStatus === 'due_soon') && onSnooze && (
               <div className="relative">
                 <button
                   type="button"
                   disabled={busy}
                   onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu((open) => !open); }}
-                  className="app-control ui-button min-h-10 flex items-center gap-1 px-3 py-2 text-[14px] font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
+                  className="app-control ui-button min-h-11 flex items-center gap-1 px-3 py-2.5 text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
                 >
                   <Moon className="h-4 w-4 text-slate-400" />
                   <span>稍後</span>
                 </button>
                 {showSnoozeMenu && (
                   <div
-                    className="absolute bottom-11 right-0 z-30 w-32 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-lg popover-animate text-sm font-medium"
+                    className="absolute bottom-12 right-0 z-30 w-36 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 shadow-lg popover-animate text-sm font-medium"
                     style={{ '--transform-origin': 'bottom right' } as React.CSSProperties}
                   >
-                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowMenu(false); void runAction(() => onSnooze(item.id, 3), '提醒已延後 3 天'); }} className="min-h-9 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 3 天</button>
-                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowMenu(false); void runAction(() => onSnooze(item.id, 7), '提醒已延後 7 天'); }} className="min-h-9 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 7 天</button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowMenu(false); void runAction(() => onSnooze(item.id, 3), '提醒已延後 3 天'); }} className="min-h-10 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 3 天</button>
+                    <button type="button" onClick={(event) => { event.stopPropagation(); setShowMenu(false); void runAction(() => onSnooze(item.id, 7), '提醒已延後 7 天'); }} className="min-h-10 w-full px-3.5 text-left hover:bg-slate-100 dark:hover:bg-slate-800">延後 7 天</button>
                   </div>
                 )}
               </div>
@@ -555,7 +555,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               type="button"
               disabled={busy}
               onClick={(event) => { event.stopPropagation(); void runAction(() => onReplace(item.id), '耗材已完成更換'); }}
-              className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-4 py-2 text-[14px] font-semibold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+              className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
             >
               <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
               <span>今天已換</span>
@@ -565,7 +565,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       </div>
 
       {feedback && (
-        <div role="status" className={`mt-2 flex items-center justify-end gap-1.5 text-sm font-medium transition-opacity duration-150 ${feedback.includes('失敗') ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+        <div role="status" className={`mt-2.5 flex items-center justify-end gap-1.5 text-sm font-bold transition-opacity duration-150 ${feedback.includes('失敗') ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
           {!feedback.includes('失敗') && <Check className="h-4 w-4 shrink-0" />}
           <span>{feedback}</span>
         </div>
