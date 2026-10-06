@@ -468,7 +468,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                 { id: 'pao', label: '開封期 (PAO)' },
                 { id: 'expiry', label: '有效期限' },
                 { id: 'warranty', label: '保固倒數' },
-                { id: 'quantity', label: '數量耗用 🆕' },
+                { id: 'quantity', label: '數量耗用' },
               ].map((m) => (
                 <button
                   key={m.id}
