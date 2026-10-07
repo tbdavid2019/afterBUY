@@ -38,6 +38,7 @@ const PRESET_CATEGORIES = [
 
 interface ItemModalProps {
   isOpen: boolean;
+  initialTab?: 'presets' | 'form';
   itemToEdit?: ItemResponse | null;
   initialPreset?: ItemPreset | null;
   user?: UserSession | null;
@@ -53,6 +54,7 @@ interface ItemModalProps {
 
 export const ItemModal: React.FC<ItemModalProps> = ({
   isOpen,
+  initialTab = 'presets',
   itemToEdit,
   initialPreset,
   user,
@@ -66,7 +68,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   onDirectAdd,
 }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'presets' | 'form'>(itemToEdit ? 'form' : 'presets');
+  const [activeTab, setActiveTab] = useState<'presets' | 'form'>('presets');
+  const [selectedPresetName, setSelectedPresetName] = useState<string | null>(null);
   const [presetSearch, setPresetSearch] = useState('');
   const [presetCategory, setPresetCategory] = useState<string>('all');
   const [directAddingId, setDirectAddingId] = useState<string | null>(null);
@@ -91,11 +94,16 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [isStored, setIsStored] = useState(false);
   const [notes, setNotes] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [previewImgError, setPreviewImgError] = useState(false);
   const [selectedStockId, setSelectedStockId] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  useEffect(() => {
+    setPreviewImgError(false);
+  }, [imageUrl]);
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -171,11 +179,29 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   }, [itemToEdit, isOpen, currentStockId, stocks]);
 
   useEffect(() => {
-    if (initialPreset && !itemToEdit && isOpen) {
-      handleApplyPreset(initialPreset);
-      setActiveTab('form');
+    if (isOpen) {
+      if (itemToEdit) {
+        setActiveTab('form');
+        setSelectedPresetName(null);
+      } else if (initialPreset) {
+        handleApplyPreset(initialPreset);
+        setActiveTab('form');
+        setSelectedPresetName(initialPreset.name);
+      } else {
+        setActiveTab(initialTab || 'presets');
+        setSelectedPresetName(null);
+      }
     }
-  }, [initialPreset, itemToEdit, isOpen]);
+  }, [isOpen, itemToEdit, initialPreset, initialTab]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const filteredPresets = useMemo(() => {
     const q = presetSearch.trim().toLowerCase();
@@ -213,6 +239,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   };
 
   const handleApplyPreset = (preset: ItemPreset) => {
+    setSelectedPresetName(preset.name);
     setName(preset.name);
     setCategory(preset.category);
     setTrackingMode(preset.trackingMode);
@@ -227,6 +254,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     if (preset.defaultSpecModel !== undefined) setSpecModel(preset.defaultSpecModel);
     if (preset.notes) setNotes(preset.notes);
     setImageUrl(preset.imageUrl || '');
+    setActiveTab('form');
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -440,8 +468,15 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     minStockAlert !== 1,
   ].filter(Boolean).length;
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm modal-backdrop-animate">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm modal-backdrop-animate"
+    >
       <div className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden sheet-content-animate sm:modal-content-animate">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--app-border)]">
@@ -692,79 +727,39 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               </div>
             )}
 
-            {/* Preset quick pills with Search & Category Filters (When creating new item) */}
-            {!itemToEdit && (
-              <div className="space-y-2 bg-[var(--app-surface-subtle)] p-3.5 rounded-2xl border border-[var(--app-border)]">
-                <div className="flex items-center justify-between">
-                  <span className="ui-label font-semibold text-[var(--app-accent-strong)] flex items-center gap-1.5 text-xs sm:text-sm">
-                    <Sparkles className="w-3.5 h-3.5" /> 常用耗材範本（點擊快速帶入）
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('presets')}
-                    className="ui-meta font-bold text-xs text-[var(--app-accent-strong)] hover:underline flex items-center gap-1 shrink-0"
-                  >
-                    <span>切換卡片庫 ↗</span>
-                  </button>
+            {/* Active Preset indicator or switch to presets prompt */}
+            {!itemToEdit && selectedPresetName ? (
+              <div className="bg-[var(--app-surface-subtle)] border border-[var(--app-border)] rounded-2xl px-4 py-3 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                  <div className="w-8 h-8 rounded-xl app-primary-soft flex items-center justify-center shrink-0 border border-[var(--app-accent)]/20">
+                    <Sparkles className="w-4 h-4 text-[var(--app-accent-strong)]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="ui-meta text-[11px] text-[var(--app-muted)]">已帶入生活範本規格</p>
+                    <p className="ui-body text-xs font-bold text-[var(--app-text)] truncate">{selectedPresetName}</p>
+                  </div>
                 </div>
-
-                {/* Inline Search Input */}
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-muted-low)]" />
-                  <input
-                    type="text"
-                    value={presetSearch}
-                    onChange={(e) => setPresetSearch(e.target.value)}
-                    placeholder="搜尋耗材範本（如：魚油、垃圾袋、衛生紙）"
-                    className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl pl-8.5 pr-8 min-h-9 text-xs text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted-low)]"
-                  />
-                  {presetSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setPresetSearch('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Inline Category Filter Pills */}
-                <div className="flex gap-1 overflow-x-auto pb-0.5 no-scrollbar">
-                  {PRESET_CATEGORIES.map((cat) => {
-                    const isSelected = presetCategory === cat.id;
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setPresetCategory(cat.id)}
-                        className={`flex-shrink-0 min-h-7 px-2.5 rounded-full ui-button text-[11px] font-bold border transition-all ${
-                          isSelected
-                            ? 'app-primary border-transparent'
-                            : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-muted)]'
-                        }`}
-                      >
-                        {cat.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Filtered preset pills */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-1">
-                  {filteredPresets.slice(0, 15).map((p, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleApplyPreset(p)}
-                      className="flex-shrink-0 app-control ui-button min-h-8 px-3 rounded-full border hover:border-[var(--app-accent)] text-[var(--app-text)] tactile-press text-xs font-semibold"
-                    >
-                      {p.name}
-                    </button>
-                  ))}
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('presets')}
+                  className="app-control ui-button min-h-8 px-3 rounded-lg border hover:border-[var(--app-accent)] text-xs font-semibold text-[var(--app-accent-strong)] shrink-0"
+                >
+                  重新選擇
+                </button>
               </div>
-            )}
+            ) : !itemToEdit ? (
+              <div className="bg-[var(--app-surface-subtle)] border border-[var(--app-border)] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
+                <span className="ui-meta text-[var(--app-muted)]">填寫自訂物品規格，或從範本快速帶入</span>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('presets')}
+                  className="ui-button font-bold text-[var(--app-accent-strong)] hover:underline flex items-center gap-1 shrink-0 ml-2"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>瀏覽耗材範本庫</span>
+                </button>
+              </div>
+            ) : null}
 
           {/* Item Name */}
           <div>
@@ -1119,8 +1114,13 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                   <div className="flex items-center gap-3">
                     {/* Preview Thumbnail */}
                     <div className="w-16 h-16 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] flex items-center justify-center shrink-0 overflow-hidden relative shadow-inner">
-                      {imageUrl ? (
-                        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                      {imageUrl && !previewImgError ? (
+                        <img
+                          src={imageUrl}
+                          alt=""
+                          className="w-full h-full object-cover"
+                          onError={() => setPreviewImgError(true)}
+                        />
                       ) : (
                         <div className="text-[var(--app-muted)] flex flex-col items-center">
                           <Camera className="w-5 h-5 mb-0.5 text-[var(--app-muted-low)]" />

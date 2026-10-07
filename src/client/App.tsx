@@ -207,6 +207,7 @@ export const App: React.FC = () => {
   const [isStockSettingsOpen, setIsStockSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+  const [itemModalInitialTab, setItemModalInitialTab] = useState<'presets' | 'form'>('presets');
   const [itemToEdit, setItemToEdit] = useState<ItemResponse | null>(null);
   const [isPresetCatalogOpen, setIsPresetCatalogOpen] = useState(false);
   const [presetForNewItem, setPresetForNewItem] = useState<ItemPreset | null>(null);
@@ -419,12 +420,21 @@ export const App: React.FC = () => {
   const handleOpenNewItem = () => {
     setItemToEdit(null);
     setPresetForNewItem(null);
+    setItemModalInitialTab('presets');
+    setIsItemModalOpen(true);
+  };
+
+  const handleOpenPresetCatalog = () => {
+    setItemToEdit(null);
+    setPresetForNewItem(null);
+    setItemModalInitialTab('presets');
     setIsItemModalOpen(true);
   };
 
   const handleSelectPresetForModal = (preset: ItemPreset) => {
     setItemToEdit(null);
     setPresetForNewItem(preset);
+    setItemModalInitialTab('form');
     setIsPresetCatalogOpen(false);
     setIsItemModalOpen(true);
   };
@@ -864,7 +874,7 @@ export const App: React.FC = () => {
             onOpenAuth={() => setIsAuthOpen(true)}
             onClearDemoItems={handleClearDemoItems}
             onRestoreDemoItems={handleRestoreDemoItems}
-            onOpenPresetCatalog={() => setIsPresetCatalogOpen(true)}
+            onOpenPresetCatalog={handleOpenPresetCatalog}
           />
         )}
 
@@ -896,7 +906,7 @@ export const App: React.FC = () => {
             currentPalette={palette}
             onSelectPalette={(newPalette) => setPalette(newPalette)}
             onOpenVersionNotice={() => setIsVersionNoticeOpen(true)}
-            onOpenPresetCatalog={() => setIsPresetCatalogOpen(true)}
+            onOpenPresetCatalog={handleOpenPresetCatalog}
           />
         )}
       </main>
@@ -973,6 +983,7 @@ export const App: React.FC = () => {
 
       <ItemModal
         isOpen={isItemModalOpen}
+        initialTab={itemModalInitialTab}
         itemToEdit={itemToEdit}
         initialPreset={presetForNewItem}
         user={user}
@@ -988,10 +999,7 @@ export const App: React.FC = () => {
         onUpdateGuestItem={(updatedItem) =>
           setGuestItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)))
         }
-        onOpenPresetCatalog={() => {
-          setIsItemModalOpen(false);
-          setIsPresetCatalogOpen(true);
-        }}
+        onOpenPresetCatalog={handleOpenPresetCatalog}
         onDirectAdd={handleDirectAddPreset}
       />
 
@@ -1007,7 +1015,7 @@ export const App: React.FC = () => {
         onClose={() => setIsVersionNoticeOpen(false)}
         onAction={() => {
           setIsVersionNoticeOpen(false);
-          setIsPresetCatalogOpen(true);
+          handleOpenPresetCatalog();
         }}
       />
 

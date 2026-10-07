@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Pill,
@@ -72,6 +72,12 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   size = 'md',
   shape = 'rounded',
 }) => {
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [imageUrl]);
+
   const lowerName = name.toLowerCase();
   const isCircle = shape === 'circle' || size === 'calendar';
 
@@ -110,7 +116,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
             : 'w-3.5 h-3.5';
 
   // 1. Direct custom user image with circular mask or squircle
-  if (imageUrl) {
+  if (imageUrl && !imgError) {
     return (
       <div
         className={`relative overflow-hidden bg-white dark:bg-slate-800 ${
@@ -124,6 +130,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
           alt={name}
           className={`w-full h-full ${isCircle ? 'object-cover rounded-full' : 'object-contain rounded-md'}`}
           loading="lazy"
+          onError={() => setImgError(true)}
         />
       </div>
     );

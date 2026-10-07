@@ -36,7 +36,7 @@ export interface ItemPreset {
 }
 
 export const ITEM_PRESETS: ItemPreset[] = [
-  { name: '好市多 Kirkland 深海魚油膠囊 (150顆)', category: 'medicine', trackingMode: 'quantity', initialQuantity: 150, dailyUsage: 2, quantityUnit: '顆', minStockAlert: 1, notes: '好市多常備 Kirkland 150 粒魚油，每天 2 顆隨餐食用，約 75 天份', defaultSpecModel: '150顆/瓶', defaultPrice: 699, imageUrl: '/images/items/fish-oil.png' },
+  { name: '好市多 Kirkland 深海魚油膠囊 (150顆)', category: 'medicine', trackingMode: 'quantity', initialQuantity: 150, dailyUsage: 2, quantityUnit: '顆', minStockAlert: 1, notes: '好市多常備 Kirkland 150 粒魚油，每天 2 顆隨餐食用，約 75 天份', defaultSpecModel: '150顆/瓶', defaultPrice: 699 },
   { name: '抽取式衛生紙 / 面紙', category: 'general', trackingMode: 'quantity', initialQuantity: 24, dailyUsage: 0.2, quantityUnit: '包', minStockAlert: 3, notes: '好市多 24 包一串，平均 5 天使用 1 包約 120 天份', defaultSpecModel: '24包/串', defaultPrice: 389 },
   { name: '環保抽取垃圾袋', category: 'kitchen', trackingMode: 'quantity', initialQuantity: 50, dailyUsage: 1, quantityUnit: '個', minStockAlert: 2, notes: '居家日用品，中型 20L 環保袋，每天 1 個約 50 天份', defaultSpecModel: '50入/包', defaultPrice: 120 },
   { name: '洗衣膠囊 / 洗衣精補充包', category: 'kitchen', trackingMode: 'quantity', initialQuantity: 60, dailyUsage: 1, quantityUnit: '顆', minStockAlert: 1, notes: '洗衣常備耗材，每天 1 顆洗滌使用，約 60 天份', defaultSpecModel: '60顆/盒', defaultPrice: 399 },
