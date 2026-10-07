@@ -43,7 +43,7 @@ agentApiRouter.get('/openapi.json', (c) => {
     openapi: '3.1.0',
     info: {
       title: 'afterBUY Consumable & Inventory Management API',
-      version: '1.0.0',
+      version: '2026.10.07.1',
       description:
         'RESTful API for AI Agents to manage home & personal consumables, interval replacement countdowns, warranty dates, and spare stock inventory.',
       contact: {

@@ -146,119 +146,122 @@ Every \`GET /api/v1/items\` response includes a 10-point global summary:
 
 export const SKILL_MD = `---
 name: afterbuy-assistant
-description: 管理 afterBUY（補貨日記）個人生活耗材週期、到期日、備品庫存、範本庫與更換紀錄的 AI Agent Skill。支援範本搜尋、全維度特殊狀態搜尋（缺貨、現存備品、待採購清單、今天到期、自訂天數即將到期、容量耗盡、時間區間）、新增/修改/刪除、備品採購補貨、記錄更換（自動扣減備品）與記錄用量。
-version: 1.2.0
+description: AI Agent Skill for afterBUY (補貨日記) to manage household consumables, replacement cycles, expiration dates, period-after-opening (PAO), appliance warranties, preset template library, and backup spare inventory. Supports natural language queries, multi-dimensional special searches (out_of_stock, in_stock, needs_restock, due_today, due_soon, quantity_depleted), template lookups, one-tap replacements, restock logs, and usage tracking.
+version: 2026.10.07.1
 ---
 
-# afterBUY 耗材與備品管理 Agent Skill
+# afterBUY Consumable & Inventory Management Agent Skill
 
-本規範供各類 AI Agent（ChatGPT GPT Actions、Claude Projects、Cursor、Open WebUI、Antigravity 等）整合 afterBUY（補貨日記）使用。
-
----
-
-## ⚠️ 強制先驗對齊協定 (Pre-flight Alignment Protocol)
-
-**重要指示（LLM Agents 必讀）**：
-因 afterBUY（補貨日記）功能、耗材範本庫與特殊搜尋參數持續迭代擴充，任何 LLM Agent 在與使用者展開任何耗材管理會話、或執行任何搜尋/操作前，**強烈建議/必須先發起 GET 請求讀取最新規格進行能力對齊**：
-
-- **主節點 Skill 規範（固定 URL）**：\`GET https://afterbuy.david888.com/skill.md\`
-- **OpenAPI 3.1 規格（固定 URL）**：\`GET https://afterbuy.david888.com/api/v1/openapi.json\`
-- **精簡系統摘要**：\`GET https://afterbuy.david888.com/llms.txt\`
-- **完整架構文檔**：\`GET https://afterbuy.david888.com/llms-full.txt\`
-- **備援鏡像節點**：\`https://afterbuy.create360.ai/skill.md\`
-
-對齊後即可確保掌握最新支援之搜尋狀態（如 \`status=out_of_stock\`, \`in_stock\`, \`needs_restock\`, \`due_today\`, \`quantity_depleted\`）、自訂到期天數窗口（\`dueWithinDays\`）與安全備品扣減邏輯。
+This specification is designed for AI Agents (ChatGPT Actions, Claude Projects, Cursor Rules, Open WebUI, Antigravity, etc.) integrating with **afterBUY (補貨日記)**.
 
 ---
 
-## 1. 認證、權限與端點
+## ⚠️ Mandatory Pre-flight Alignment Protocol
 
-- **認證方式**：所有請求需在 HTTP Header 附帶 API Key：
+**Notice for all LLM Agents**:
+Because afterBUY introduces continuous improvements to query parameters, preset catalogs, and inventory lifecycle rules, LLMs **MUST fetch the canonical specifications upon session initialization or before executing any consumable operations**:
+
+- **Canonical Agent Skill Spec (Fixed URL)**: \`GET https://afterbuy.david888.com/skill.md\`
+- **Canonical OpenAPI 3.1 Spec (Fixed URL)**: \`GET https://afterbuy.david888.com/api/v1/openapi.json\`
+- **Canonical llms.txt (Quick Reference)**: \`GET https://afterbuy.david888.com/llms.txt\`
+- **Canonical Full System Documentation**: \`GET https://afterbuy.david888.com/llms-full.txt\`
+- **Backup / Secondary Mirror**: \`https://afterbuy.create360.ai/skill.md\`
+
+Synchronizing with these canonical URLs guarantees alignment with the latest filter parameters (e.g. \`status=out_of_stock\`, \`in_stock\`, \`needs_restock\`, \`due_today\`, \`quantity_depleted\`), custom due day windows (\`dueWithinDays\`), and dual-inventory deduction rules.
+
+---
+
+## 1. Authentication, Scopes & Permissions
+
+- **Authentication**: All HTTP requests must include a personal API Key in the \`Authorization\` header:
   \`\`\`http
   Authorization: Bearer ab_live_<64-character-hex>
   Content-Type: application/json
   \`\`\`
-- **Base URL**：
-  - 生產環境：\`https://afterbuy.david888.com/api/v1\` 或 \`https://afterbuy.create360.ai/api/v1\`
-  - 本地開發：\`http://localhost:5173/api/v1\`
-- **時區規範**：所有日期格式為 \`YYYY-MM-DD\`（統一使用 \`Asia/Taipei\` 台灣業務日）。
-- **API Key 權限範圍 (Scopes)**：
-  - \`read_write\`：完整讀寫權限。
-  - \`read_only\`：僅可調用 \`GET\` 查詢端點；任何寫入變更操作（POST/PATCH/DELETE）將直接回傳 \`403 Forbidden\`。
-- **空間協同權限 (RBAC)**：
-  - \`owner\` / \`admin\`：空間與耗材完整管理權。
-  - \`member\`：可建立與編輯耗材，但**無法刪除其他成員建立的耗材**。
-  - \`viewer\`：僅具唯讀檢視權限，不可執行新增、修改、刪除、更換、補貨或消耗。
+- **Base URLs**:
+  - Production: \`https://afterbuy.david888.com/api/v1\` or \`https://afterbuy.create360.ai/api/v1\`
+  - Local Dev: \`http://localhost:5173/api/v1\`
+- **Timezone Standard**: All dates use \`YYYY-MM-DD\` formatted in the \`Asia/Taipei\` business timezone.
+- **Language & Localization**:
+  - The API and database seamlessly store items in Traditional Chinese, English, or any multilingual strings.
+  - The Assistant should communicate with the user in their preferred language (defaults to Traditional Chinese \`zh-TW\` for Taiwanese households).
+- **API Key Scopes**:
+  - \`read_write\`: Full read and write permissions.
+  - \`read_only\`: Read-only queries (\`GET\`). Any mutation requests (\`POST\`, \`PATCH\`, \`DELETE\`) will be rejected with \`403 Forbidden\`.
+- **Shared Stock Space RBAC**:
+  - \`owner\` / \`admin\`: Full administrative control over stock spaces and items.
+  - \`member\`: Can create and edit items, but **cannot delete items created by other members**.
+  - \`viewer\`: Strictly read-only; cannot create, edit, delete, replace, restock, or consume items.
 
 ---
 
-## 2. 核心觀念與欄位說明（重要區分）
+## 2. Core Concepts & Field Distinctions (Critical)
 
-為了讓 AI 助理正確理解使用者的生活物品狀態，務必嚴格區分以下三組核心概念：
+To accurately manage household inventory, agents must strictly distinguish between the following three concepts:
 
-### 2.1 常用耗材範本庫 (\`presets\`)
-- afterBUY 內建台灣家庭常見耗材預設庫（如好市多 150 顆魚油、Brita 濾芯、抽取式衛生紙、洗衣膠囊、日拋隱形眼鏡等）。
-- **查詢範本**：調用 \`GET /api/v1/presets?q=魚油\`。
-- **快速建檔**：建立物品時，若帶入 \`presetId: "costco-fish-oil"\`，系統會自動填入推薦的分類、週期/顆數、每日建議用量與規格價格，使用者無需手動輸入瑣碎參數。
+### 2.1 Consumable Preset Library (\`presets\`)
+- afterBUY includes a built-in catalog of common household consumable presets (e.g. Costco Kirkland 150-capsule Fish Oil, Brita filter cartridges, facial tissues, laundry pods, daily contact lenses).
+- **Search Presets**: \`GET /api/v1/presets?q=魚油\` or \`GET /api/v1/presets?q=filter\`.
+- **Fast Item Creation**: When creating an item (\`POST /api/v1/items\`), providing \`presetId: "costco-fish-oil"\` automatically populates recommended categories, cycle days / capsule counts, daily burn rates, and units.
 
-### 2.2 備品庫存 (\`backupStock\`) vs 使用中容量 (\`quantity\`)
-這是最關鍵的業務區隔：
-1. **備品庫存 (\`backupStock\`)**：
-   - 存放在儲藏櫃、抽屜中「**未開封全新備用件**」的數量（例如家裡還有 2 瓶未拆封的魚油、3 支全新牙刷）。
-   - **採購補貨 (\`POST /api/v1/items/:id/restock\`)**：買了新備品時調用，增加 \`backupStock\`（如 \`{ delta: 2 }\`）。
-   - **換新替換 (\`POST /api/v1/items/:id/replace\`)**：當舊的用完換新時調用，系統重設使用天數/容量，並自動扣減備品 \`backupStock -= 1\`。
-   - **安全庫存警示 (\`minStockAlert\`)**：當 \`backupStock < minStockAlert\` 時，系統自動標記 \`needsRestock: true\`，提醒採購。
-2. **使用中容量 (\`currentQuantity\` / \`initialQuantity\`)**：
-   - 目前「**正在使用中**」那一瓶/那一包的容量剩餘量（例如這瓶魚油原本 \`initialQuantity: 150\` 顆，目前剩 \`currentQuantity: 110\` 顆）。
-   - **消耗用量 (\`POST /api/v1/items/:id/consume\`)**：使用者每天吃了 2 顆魚油時調用，扣減目前這瓶的容量。
-   - **容量耗盡 (\`quantity_depleted\`)**：當 \`currentQuantity === 0\` 時，代表當前這一瓶已用完，需換新（調用 replace）或補貨。
+### 2.2 Backup Spares (\`backupStock\`) vs In-Use Active Volume (\`quantity\`)
+This is the most essential inventory distinction:
+1. **Backup Spares (\`backupStock\`)**:
+   - Number of **brand new, unopened spares** stored in cabinets, drawers, or pantry (e.g. 2 unopened bottles of fish oil, 3 new toothbrushes).
+   - **Purchasing Restock (\`POST /api/v1/items/:id/restock\`)**: Call when buying new spares, increasing \`backupStock\` (e.g. \`{ "delta": 2, "note": "Costco trip" }\`).
+   - **Replacing with New (\`POST /api/v1/items/:id/replace\`)**: Call when the old item is exhausted or expired. The system resets the countdown timer and **automatically decrements backup stock** (\`backupStock -= 1\`).
+   - **Safety Stock Threshold (\`minStockAlert\`)**: When \`backupStock < minStockAlert\`, the item is flagged with \`needsRestock: true\`.
+2. **In-Use Active Volume (\`currentQuantity\` / \`initialQuantity\`)**:
+   - Volume remaining in the **currently open, active bottle or pack** (e.g. currently open fish oil bottle has 110 of 150 capsules remaining).
+   - **Daily Consumption (\`POST /api/v1/items/:id/consume\`)**: Call when the user takes their daily dose (e.g. \`{ "amount": 2 }\`), reducing the active bottle count (clamped to 0).
+   - **Volume Depleted (\`quantity_depleted\`)**: When \`currentQuantity === 0\`, the active container is empty and ready for replacement (\`replace\`) or restock.
 
-### 2.3 五種追蹤模式 (\`trackingMode\`)
-- \`cycle\`（固定週期）：依固定天數更換（需附 \`cycleDays\`，例：電動牙刷 90 天、淨水器濾芯 30 天）。
-- \`quantity\`（數量用量）：依包裝容量與每日消耗量倒數（需附 \`initialQuantity: 150\`, \`dailyUsage: 2\`, \`quantityUnit: "顆"\`，例：魚油、維他命、抽取式衛生紙、日拋隱眼）。
-- \`pao\`（開封後保期）：開封後有效月數（需附 \`paoMonths\`，例：防曬乳 12 個月、眼藥水 1 個月、精華液 6 個月）。
-- \`expiry\`（固定效期）：有效期限截止日（需附 \`expiryDate: "YYYY-MM-DD"\`，例：成藥、罐頭、常備食品）。
-- \`warranty\`（保固倒數）：保固到期日（需附 \`warrantyDate: "YYYY-MM-DD"\`，例：冷氣保固 7 年、吸塵器保固 2 年）。
+### 2.3 Five Tracking Modes (\`trackingMode\`)
+- \`cycle\`: Recurring interval replacement in days (requires \`cycleDays\`, e.g. toothbrush 90 days, water filter 30 days).
+- \`quantity\`: Capacity volume & daily burn-rate countdown (requires \`initialQuantity: 150\`, \`dailyUsage: 2\`, \`quantityUnit: "顆"\`, e.g. fish oil, vitamins, tissues, daily contact lenses).
+- \`pao\`: Period After Opening in months (requires \`paoMonths\`, e.g. sunscreen 12 months, eye drops 1 month, serum 6 months).
+- \`expiry\`: Fixed expiration date (requires \`expiryDate: "YYYY-MM-DD"\`, e.g. pharmaceuticals, canned food, dry goods).
+- \`warranty\`: Hardware warranty expiration date (requires \`warrantyDate: "YYYY-MM-DD"\`, e.g. air conditioner 7 years, vacuum 2 years).
 
 ---
 
-## 3. 全維度特殊搜尋與過濾參數表 (Special Search Matrix)
+## 3. Comprehensive Special Search Matrix
 
-端點：\`GET /api/v1/items\`
+Endpoint: \`GET /api/v1/items\`
 
-afterBUY 為 AI Agent 提供了豐富精準的特殊搜尋參數，LLM 在處理使用者自然語言查詢時，應主動採用最貼切的篩選條件：
+afterBUY provides granular search parameters tailored for natural language AI queries:
 
-| 參數名稱 | 允許值 / 格式 | 說明與適用場景 |
+| Query Parameter | Allowed Values / Format | Description & Use Case |
 | :--- | :--- | :--- |
-| **\`status\`** | \`all\` | 返回所有進行中的耗材（預設） |
-| | \`overdue\` | **已逾期**（\`remainingDays < 0\`）：查詢已經超過更換日期的物品 |
-| | \`due_today\` | **今天到期**（\`remainingDays === 0\`）：精確查詢今天必須更換的物品 |
-| | \`due_soon\` | **即將到期**：預設 7 天內到期，可搭配 \`dueWithinDays\` 自訂天數 |
-| | \`low_stock\` | **缺備品**：備品庫存低於警戒值（\`backupStock < minStockAlert\`） |
-| | \`out_of_stock\` | **缺貨 / 備品見底**：備品庫存歸零（\`backupStock === 0\`） |
-| | \`in_stock\` | **現存備品充足**：抽屜有現成全新未拆備品（\`backupStock > 0\`） |
-| | \`needs_restock\` | **待採購清單**：備品不足 (\`< minStockAlert\`) 或使用中容量已空 (\`=== 0\`) |
-| | \`quantity_depleted\` | **使用中已耗盡**：正在開用的那一瓶/包已見底（\`currentQuantity === 0\`） |
-| | \`normal\` | **正常**：備品充裕且未到期 |
-| | \`stored\` | **先存放未拆封**：純在庫未啟用（\`isStored: true\`） |
-| | \`snoozed\` | **暫停提醒中** |
-| **\`stockStatus\`** | \`in_stock\` \\| \`out_of_stock\` \\| \`low_stock\` | **獨立備品庫存篩選**：可與任意 \`status\` 組合（例：查快到期且家裡有備品 \`?status=due_soon&stockStatus=in_stock\`） |
-| **\`dueWithinDays\`** | 正整數（例：\`3\`, \`7\`, \`14\`, \`30\`） | **自訂到期天數窗口**：搭配 \`status=due_soon\`，例「這 3 天內要換什麼？」→ \`?status=due_soon&dueWithinDays=3\` |
-| **\`isStored\`** | \`true\` \\| \`false\` | 篩選純在庫存放項目 vs 正在開用中的項目 |
-| **\`trackingMode\`** | \`cycle\` \\| \`quantity\` \\| \`pao\` \\| \`expiry\` \\| \`warranty\` | 篩選特定追蹤模式 |
-| **\`category\`** | \`bathroom\`, \`kitchen\`, \`medicine\`, \`skincare\`, \`appliances\`, \`clothing\`, \`electronics\`, \`general\` | 生活分類篩選 |
-| **\`dueBefore\`** | \`YYYY-MM-DD\` | 到期日早於或等於指定日期（例：本月底前到期 \`dueBefore=2026-10-31\`） |
-| **\`dueAfter\`** | \`YYYY-MM-DD\` | 到期日晚於或等於指定日期 |
-| **\`startedBefore\`** | \`YYYY-MM-DD\` | 開始使用日早於或等於指定日期 |
-| **\`startedAfter\`** | \`YYYY-MM-DD\` | 開始使用日晚於或等於指定日期 |
-| **\`stockId\`** | UUID 字串 | 指定空間庫存（不傳則返回該使用者參與的所有空間） |
-| **\`location\`** | 字串（模糊匹配） | 存放實體位置（例：「電視櫃」、「主臥衛浴」、「儲藏室第二層」） |
-| **\`q\`** | 字串 | 全文關鍵字搜尋（匹配物品名稱、型號規格或備註） |
-| **\`sortBy\`** | \`dueDate\` \\| \`backupStock\` \\| \`quantity\` \\| \`startDate\` \\| \`name\` \\| \`price\` | 排序欄位（預設 \`dueDate\`） |
-| **\`sortOrder\`** | \`asc\` \\| \`desc\` | 升冪或降冪排序 |
+| **\`status\`** | \`all\` | Return all active items (default) |
+| | \`overdue\` | **Overdue**: Items whose replacement date has passed (\`remainingDays < 0\`) |
+| | \`due_today\` | **Due Today**: Items due for replacement today (\`remainingDays === 0\`) |
+| | \`due_soon\` | **Due Soon**: Items due within window (default 7 days, customizable via \`dueWithinDays\`) |
+| | \`low_stock\` | **Low Backup Stock**: Items where \`backupStock < minStockAlert\` |
+| | \`out_of_stock\` | **Out of Stock**: Unopened backup stock is completely exhausted (\`backupStock === 0\`) |
+| | \`in_stock\` | **In Stock**: Has available unopened backup spares in cabinet/drawer (\`backupStock > 0\`) |
+| | \`needs_restock\` | **Restock Shopping List**: Backup stock is low (\`< minStockAlert\`) OR in-use volume is empty (\`=== 0\`) |
+| | \`quantity_depleted\` | **In-Use Volume Exhausted**: Currently open container is empty (\`currentQuantity === 0\`) |
+| | \`normal\` | **Normal**: Healthy items (adequate backup stock and not due soon) |
+| | \`stored\` | **Stored in Reserve**: Brand new items stored in reserve, timer not yet started (\`isStored: true\`) |
+| | \`snoozed\` | **Snoozed**: Items with active reminder snoozes |
+| **\`stockStatus\`** | \`in_stock\` \\| \`out_of_stock\` \\| \`low_stock\` | **Dedicated Backup Stock Filter**: Composable with any \`status\` (e.g. due soon with available spares: \`?status=due_soon&stockStatus=in_stock\`) |
+| **\`dueWithinDays\`** | Positive integer (e.g. \`3\`, \`7\`, \`14\`, \`30\`) | **Custom Due Window**: Used with \`status=due_soon\` (e.g. "What's expiring in 3 days?" → \`?status=due_soon&dueWithinDays=3\`) |
+| **\`isStored\`** | \`true\` \\| \`false\` | Filter items stored in reserve vs currently in active use |
+| **\`trackingMode\`** | \`cycle\` \\| \`quantity\` \\| \`pao\` \\| \`expiry\` \\| \`warranty\` | Filter by lifecycle tracking mode |
+| **\`category\`** | \`bathroom\`, \`kitchen\`, \`medicine\`, \`skincare\`, \`appliances\`, \`clothing\`, \`electronics\`, \`general\` | Category filter |
+| **\`dueBefore\`** | \`YYYY-MM-DD\` | Items with next due date on or before date |
+| **\`dueAfter\`** | \`YYYY-MM-DD\` | Items with next due date on or after date |
+| **\`startedBefore\`** | \`YYYY-MM-DD\` | Items started on or before date |
+| **\`startedAfter\`** | \`YYYY-MM-DD\` | Items started on or after date |
+| **\`stockId\`** | UUID string | Filter by specific stock space ID |
+| **\`location\`** | String (fuzzy match) | Physical storage spot (e.g. "電視櫃", "浴室鏡櫃", "Pantry Shelf 2") |
+| **\`q\`** | Keyword string | Full-text search across item name, specModel, and notes |
+| **\`sortBy\`** | \`dueDate\` \\| \`backupStock\` \\| \`quantity\` \\| \`startDate\` \\| \`name\` \\| \`price\` | Sort field (default \`dueDate\`) |
+| **\`sortOrder\`** | \`asc\` \\| \`desc\` | Sort direction (default \`asc\`) |
 
-### 回應指標概要 (\`summary\`)
-每次調用 \`GET /api/v1/items\`，頂層皆會回傳包含 10 項全局指標的 \`summary\`，讓 Agent 單次請求即可洞察全局：
+### Top-Level Summary Object
+Every \`GET /api/v1/items\` response includes a 10-metric global \`summary\` enabling instant situational awareness:
 \`\`\`json
 {
   "items": [...],
@@ -280,121 +283,126 @@ afterBUY 為 AI Agent 提供了豐富精準的特殊搜尋參數，LLM 在處理
 
 ---
 
-## 4. 核心 API 端點操作
+## 4. API Endpoints Reference
 
-### 4.1 查詢耗材列表 (\`list_items\`)
+### 4.1 List Items (\`list_items\`)
 - **HTTP**: \`GET /api/v1/items\`
-- **說明**：支援第 3 節所有特殊搜尋參數。
+- **Description**: Query user consumables with rich search parameters detailed in Section 3.
 
-### 4.2 查詢範本庫 (\`list_presets\`)
+### 4.2 List Presets (\`list_presets\`)
 - **HTTP**: \`GET /api/v1/presets\`
-- **Query 參數**：\`q\` (搜尋關鍵字，如「魚油」、「濾芯」、「衛生紙」)、\`category\`
-- **說明**：獲取常用耗材範本，建立耗材時可將 \`preset.id\` 填入 \`POST /api/v1/items\` 的 \`presetId\`。
+- **Query Params**: \`q\` (keyword e.g. "魚油", "filter"), \`category\`
+- **Description**: Search common household consumable presets to obtain \`preset.id\`.
 
-### 4.3 新增耗材項目 (\`create_item\`)
+### 4.3 Create Item (\`create_item\`)
 - **HTTP**: \`POST /api/v1/items\`
-- **Body 欄位**：
-  - \`presetId\` (string, 選填): 範本 ID（例如 \`"costco-fish-oil"\`、\`"brita-filter"\`），提供時自動帶入預設分類、用量與週期！
-  - \`name\` (string, 若未提供 presetId 則必填): 耗材名稱
-  - \`category\` (string, 選填): 分類代碼
-  - \`trackingMode\` (string, 選填): \`cycle\` | \`quantity\` | \`pao\` | \`expiry\` | \`warranty\`
-  - \`cycleDays\` (number, 選填): 循環天數
-  - \`initialQuantity\` (number, 選填): 滿裝容量（例如 150）
-  - \`dailyUsage\` (number, 選填): 每日估計用量（例如 2）
-  - \`quantityUnit\` (string, 選填): 單位名稱（例如 "顆"、"錠"、"包"、"片"）
-  - \`backupStock\` (number, 選填, 預設 0): 目前未開封全新備品庫存件數
-  - \`minStockAlert\` (number, 選填, 預設 1): 安全備品警戒值
-  - \`price\` (number, 選填): 單價
-  - \`specModel\` (string, 選填): 型號/規格（例："150顆/瓶"）
-  - \`stockId\` (string, 選填): 所屬空間 ID（預設為使用者的預設備品庫）
+- **Body Fields**:
+  - \`presetId\` (string, optional): Preset template ID (e.g. \`"costco-fish-oil"\`, \`"brita-filter"\`). Automatically fills category, cycle/quantity, dailyUsage, and units.
+  - \`name\` (string, required if no \`presetId\`): Consumable name.
+  - \`category\` (string, optional): Category code.
+  - \`trackingMode\` (string, optional): \`cycle\` | \`quantity\` | \`pao\` | \`expiry\` | \`warranty\`.
+  - \`cycleDays\` (number, optional): Interval days.
+  - \`initialQuantity\` (number, optional): Full package capacity (e.g. 150).
+  - \`dailyUsage\` (number, optional): Estimated daily consumption (e.g. 2).
+  - \`quantityUnit\` (string, optional): Unit name (e.g. "顆", "錠", "包", "片").
+  - \`backupStock\` (number, optional, default 0): Current unopened backup spare units.
+  - \`minStockAlert\` (number, optional, default 1): Low stock warning threshold.
+  - \`price\` (number, optional): Unit price.
+  - \`specModel\` (string, optional): Specification/model (e.g. "150顆/瓶").
+  - \`stockId\` (string, optional): Target stock space ID (defaults to user primary stock).
 
-### 4.4 採購補充備品庫存 (\`restock_item\`)
+### 4.4 Restock Backup Spares (\`restock_item\`)
 - **HTTP**: \`POST /api/v1/items/:id/restock\`
-- **Body 欄位**：
-  - \`delta\` (number, 選填, 預設 1): 增加的備品件數（例如去好市多買了 2 罐，傳 \`{ delta: 2 }\`）
-  - \`backupStock\` (number, 選填): 直接指定絕對備品數量
-  - \`note\` (string, 選填): 補貨備註紀錄（例："好市多採購"）
-- **說明**：增加抽屜裡的未開封備品庫存，並寫入歷史異動記錄。
+- **Body Fields**:
+  - \`delta\` (number, optional, default 1): Number of new spare units to add (e.g. bought 2 bottles → \`{ "delta": 2 }\`).
+  - \`backupStock\` (number, optional): Explicitly set absolute backup stock count.
+  - \`note\` (string, optional): Restock note (e.g. "Costco purchase").
+- **Description**: Increases unopened backup stock in drawer and records history log.
 
-### 4.5 記錄今天已換新（重設週期並自動扣減備品）(\`replace_item\`)
+### 4.5 Record Replacement Today (\`replace_item\`)
 - **HTTP**: \`POST /api/v1/items/:id/replace\`
-- **說明**：
-  - 若 \`backupStock > 0\`，系統將自動扣減備品庫存 1 件（\`backupStock -= 1\`），重設使用開始日為今天，並將使用中容量重設為滿量。
-  - 若 \`backupStock == 0\`，系統仍會重設週期，但會提示備品已耗盡，需盡快採購！
+- **Description**:
+  - If \`backupStock > 0\`, system automatically decrements backup stock (\`backupStock -= 1\`), resets start date to today, and refills active bottle capacity to initial full volume.
+  - If \`backupStock === 0\`, system resets the timer but returns a restock warning indicating zero spares remain.
 
-### 4.6 扣減使用中用量 (\`consume_item\`)
+### 4.6 Consume Active Quantity (\`consume_item\`)
 - **HTTP**: \`POST /api/v1/items/:id/consume\`
-- **Body 欄位**：
-  - \`amount\` (number, 選填, 相容 \`count\`, 預設為每日用量 dailyUsage 或 1): 扣減數量
-- **說明**：扣減當前使用中的那一瓶/包容量（最低歸零，不為負數）。
+- **Body Fields**:
+  - \`amount\` (number, optional, aliases \`count\`, default \`dailyUsage\` or 1): Amount consumed.
+- **Description**: Decrements currently open container quantity (clamped to 0).
 
-### 4.7 更新耗材屬性 (\`update_item\`)
+### 4.7 Update Item Attributes (\`update_item\`)
 - **HTTP**: \`PATCH /api/v1/items/:id\`
-- **說明**：部分更新耗材欄位。
+- **Description**: Partially update item fields.
 
-### 4.8 刪除耗材 (\`delete_item\`)
+### 4.8 Delete Item (\`delete_item\`)
 - **HTTP**: \`DELETE /api/v1/items/:id\`
-- **說明**：軟刪除該耗材（自動自行事曆取消並封存）。
+- **Description**: Soft deletes the item (removes from calendar and archives).
 
-### 4.9 查詢空間列表 (\`list_stocks\`)
+### 4.9 List Stock Spaces (\`list_stocks\`)
 - **HTTP**: \`GET /api/v1/stocks\`
-- **說明**：查詢使用者參與的備品空間（例如「客廳」、「主臥浴室」、「辦公室」）。
+- **Description**: List accessible stock spaces (e.g. "Living Room", "Master Bath", "Office").
 
 ---
 
-## 5. 常見任務對話範例 (Examples)
+## 5. Practical Conversation Examples
 
-### 範例 1：查詢待採購清單與缺貨清單
-**使用者**：「我等一下要去好市多採購，幫我查有哪些東西備品已經沒了或快用完了？」  
-**Agent 行為**：
-1. 調用 \`GET /api/v1/items?status=needs_restock\`
-2. 查看返回之缺貨與低備品項目。
-3. 回報：「為您整理好市多採購清單：
-   - ⚠️ **備品用罄（缺貨）**：Kirkland 抽取式衛生紙（抽屜備品 0 包）
-   - ⚠️ **備品不足**：Brita 濾芯（抽屜剩 1 件，低於警戒值 2）
-   - ⚠️ **容量用盡**：好市多魚油（當前開啟用中剩 0 顆，抽屜無備品）
-   建議本次優先補齊這 3 項！」
+### Example 1: Restock Shopping List Query
+**User**: "I'm heading to Costco soon. What items are out of stock or running low on backup spares?"  
+**Agent Action**:
+1. Call \`GET /api/v1/items?status=needs_restock\`
+2. Summarize the items needing purchase:
+   - "Here is your Costco shopping restock list:
+     - ⚠️ **Out of Stock**: Kirkland Facial Tissues (0 backup packs in cabinet)
+     - ⚠️ **Low Spares**: Brita Filter Cartridge (1 remaining, below alert threshold of 2)
+     - ⚠️ **Volume Depleted**: Kirkland Fish Oil (0 capsules in current bottle, 0 backups)
+     Recommended priority: Replenish these 3 items!"
 
-### 範例 2：自訂短期到期查詢
-**使用者**：「這 3 天內有什麼生活用品該換嗎？」  
-**Agent 行為**：
-1. 調用 \`GET /api/v1/items?status=due_soon&dueWithinDays=3\`
-2. 回報：「這 3 天內有 1 項耗材到期：
-   - 『電動牙刷刷頭』將在 2 天後到期（2026-10-09），目前家裡還有 2 支全新備品，屆時可直接更換！」
+### Example 2: Short-Term Due Countdown Query
+**User**: "Are there any household consumables due for replacement in the next 3 days?"  
+**Agent Action**:
+1. Call \`GET /api/v1/items?status=due_soon&dueWithinDays=3\`
+2. Reply:
+   - "You have 1 item due in the next 3 days:
+     - Electric Toothbrush Head: Due in 2 days (2026-10-09). You have 2 new spare heads in drawer ready to swap!"
 
-### 範例 3：查詢現存備品盤點
-**使用者**：「我家裡抽屜還有哪些現成沒開過的備品？」  
-**Agent 行為**：
-1. 調用 \`GET /api/v1/items?status=in_stock&sortBy=backupStock&sortOrder=desc\`
-2. 回報：「目前家中儲存的全新未開封備品清單如下：
-   - Brita 濾芯：剩餘 4 件全新備品
-   - 電動牙刷刷頭：剩餘 2 支全新備品
-   - 洗衣膠囊：剩餘 1 盒全新備品」
+### Example 3: Checking In-Stock Backup Inventory
+**User**: "What brand new unopened backup spares do we currently have in storage?"  
+**Agent Action**:
+1. Call \`GET /api/v1/items?status=in_stock&sortBy=backupStock&sortOrder=desc\`
+2. Reply:
+   - "Here is your current inventory of unopened backup spares:
+     - Brita Filters: 4 unopened cartridges
+     - Electric Toothbrush Heads: 2 new heads
+     - Laundry Pods: 1 full unopened box"
 
-### 範例 4：新增耗材（善用範本）
-**使用者**：「幫我加一個好市多魚油，我買了 150 顆裝，家裡還有 2 瓶備用」  
-**Agent 行為**：
-1. 調用 \`GET /api/v1/presets?q=魚油\` 找到 \`id: "costco-fish-oil"\`
-2. 調用 \`POST /api/v1/items\` 帶入：
+### Example 4: Creating Item via Preset Template
+**User**: "Add a Costco fish oil to my tracker. It's the 150-capsule bottle and I have 2 extra unopened bottles in the cabinet."  
+**Agent Action**:
+1. Call \`GET /api/v1/presets?q=魚油\` to get \`presetId: "costco-fish-oil"\`
+2. Call \`POST /api/v1/items\` with:
    \`\`\`json
    {
      "presetId": "costco-fish-oil",
      "backupStock": 2
    }
    \`\`\`
-3. 回報：「已為您建立『好市多 Kirkland 深海魚油膠囊 (150顆)』！每天 2 顆，可用約 75 天，備品庫存已登記 2 瓶。」
+3. Reply:
+   - "Added 'Kirkland Signature Omega-3 Fish Oil (150 capsules)'! Configured for 2 capsules/day (~75 days). 2 unopened backup bottles recorded in storage."
 
-### 範例 5：大賣場採購補貨
-**使用者**：「我剛剛買了 3 支牙刷備品放在抽屜了」  
-**Agent 行為**：
-1. 調用 \`GET /api/v1/items?q=牙刷\` 找到物品 ID
-2. 調用 \`POST /api/v1/items/:id/restock\` 帶入 \`{ "delta": 3, "note": "賣場採購" }\`
-3. 回報：「已為牙刷增加 3 支備品，目前備品庫存共有 4 支！」
+### Example 5: Purchasing Spares
+**User**: "I just bought 3 spare toothbrushes at the supermarket and put them in the bathroom cabinet."  
+**Agent Action**:
+1. Call \`GET /api/v1/items?q=牙刷\` to locate item ID
+2. Call \`POST /api/v1/items/:id/restock\` with \`{ "delta": 3, "note": "Supermarket restock" }\`
+3. Reply:
+   - "Added 3 spare toothbrushes! You now have a total of 4 backup toothbrushes in storage."
 
-### 範例 6：更換新耗材（自動扣減備品）
-**使用者**：「我把舊的濾芯丟掉，換了新的濾芯上去了」  
-**Agent 行為**：
-1. 調用 \`GET /api/v1/items?q=濾芯\` 找到物品 ID
-2. 調用 \`POST /api/v1/items/:id/replace\`
-3. 回報：「已記錄今天更換新濾芯！週期已重新起算（下次更換日為 2026-11-06），備品庫存已自動扣減 1 件，目前抽屜備品剩 1 件。」
+### Example 6: Replacing Consumable (Auto-Decrement Spare)
+**User**: "I just swapped in a fresh Brita water filter cartridge."  
+**Agent Action**:
+1. Call \`GET /api/v1/items?q=濾芯\` to locate item ID
+2. Call \`POST /api/v1/items/:id/replace\`
+3. Reply:
+   - "Recorded Brita filter replacement today! The 30-day countdown has reset (next due date: 2026-11-06). 1 spare cartridge was automatically deducted from your cabinet (1 remaining)."
 `;

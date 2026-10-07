@@ -7,8 +7,10 @@
 ## 2026-10-07
 
 ### Added
-- **AI Agent Skill 規範與 OpenAPI 3.1 規格（`public/skill.md`, `GET /api/v1/openapi.json`）**：
-  - 打造標準化 Agent Skill Markdown 檔案（`public/skill.md`），供 ChatGPT Actions、Claude Projects、Cursor、Open WebUI 與 Antigravity 快速掛載使用。
+- **AI Agent Skill 英文標準規範與 OpenAPI 3.1 規格（`public/skill.md`, `GET /api/v1/openapi.json`）**：
+  - 遵循業界標準，將 `skill.md` 全面改寫為高品質標準英文（English Specification），徹底消除編碼歧義，大幅提升各類大語言模型（Claude 3.7 Sonnet、GPT-4o、DeepSeek、Gemini 2.5 等）之指令遵循精準度與 Token 解析效率。
+  - 同時在規範內明訂在地化對話原則：API 與資料庫原生支援中英雙語及多語言物品名稱，Agent 針對繁體中文（`zh-TW`）家庭耗材進行自然流暢的對話。
+  - **版本號全面改用日期與尾數（CalVer：`YYYY.MM.DD.patch`，如 `2026.10.07.1`）**：包括 `skill.md`、OpenAPI 3.1 規範（`/api/v1/openapi.json`）以及 `package.json`，全面淘汰傳統語意版本號，統一以發布日期搭配次數後綴進行追蹤。
   - 提供完整 OpenAPI 3.1.0 規範（`/api/v1/openapi.json`），支援 ChatGPT Custom GPTs 一鍵匯入 Action。
   - 同步更新 `/llms.txt` 與 `public/llms-full.txt` 納入 LLM Developer APIs 與外部 Agent 連動指南。
 - **個人 API Key 管理機制（`api_keys` 表與 `/api/keys` 端點）**：
