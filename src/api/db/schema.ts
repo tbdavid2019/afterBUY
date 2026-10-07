@@ -111,7 +111,11 @@ export const notificationSettings = sqliteTable('notification_settings', {
   pushEnabled: integer('push_enabled').notNull().default(1),
   warningDaysBefore: integer('warning_days_before').notNull().default(3),
   warningDayOf: integer('warning_day_of').notNull().default(1),
-  preferredHour: integer('preferred_hour').notNull().default(8),
+  preferredHour: integer('preferred_hour').notNull().default(9),
+  cycleExpiryAlert: integer('cycle_expiry_alert').notNull().default(1),
+  stockLowAlert: integer('stock_low_alert').notNull().default(1),
+  usageLowAlert: integer('usage_low_alert').notNull().default(1),
+  expiryWarningDays: integer('expiry_warning_days').notNull().default(7),
   updatedAt: text('updated_at').notNull(),
 });
 

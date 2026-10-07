@@ -82,6 +82,7 @@ export interface ItemResponse {
   nextDueDate: string;
   totalDays: number;
   elapsedDays: number;
+  daysUntilStart?: number;
   remainingDays: number;
   percentageRemaining: number;
   remainingQuantity?: number | null;
@@ -107,4 +108,8 @@ export interface UserNotificationSettings {
   warningDaysBefore: number;
   warningDayOf: boolean;
   preferredHour: number;
+  cycleExpiryAlert: boolean;
+  stockLowAlert: boolean;
+  usageLowAlert: boolean;
+  expiryWarningDays: number;
 }

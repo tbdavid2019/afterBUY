@@ -55,10 +55,14 @@
 6. **無密碼雙軌登入（Passwordless）**：
   - **Passkey**：支援 Face ID / Touch ID / Windows Hello 生物辨識一秒極速登入。
   - **Email OTP**：6 位數一次性驗證碼，具備 Cloudflare KV 頻率限制（1 次/分、5 次/天）與新舊帳號自動 Provisioning。
-7. **全覆蓋分階段通知管道（Multi-Channel Alerts）**：
+7. **常用耗材範本庫與版本更新通知（Preset Catalog & What's New）**：
+  - **即時搜尋與分類耗材庫（Preset Catalog）**：內建 30+ 款台灣家庭最常見生活耗材（含好市多 150 顆 Kirkland 魚油、抽取式衛生紙、垃圾袋、洗衣膠囊、洗碗精、淨水濾芯、冷氣濾網、除濕盒、機車機油等），支援依名稱與備註即時搜尋，支援個人衛浴、廚房飲食、保健醫療、美妝保養等分類快速篩選，支援「一鍵直接加入」或「帶入表單微調」。
+  - **版本更新通知彈窗（What's New Modal）**：比照優質 App「這版新增」體驗，平滑彈出新功能重點摘要，並於設定頁提供回顧入口。
+8. **全覆蓋分階段通知管道與細緻偏好設定（Multi-Channel Alerts & Settings）**：
+  - **細緻化提醒偏好設定**：獨立提供「到期提醒」、「備品庫存提醒」、「用量提醒」三大開關，支援自訂派發時間（如每日 `09:00`）與預設更換前提醒天數（1 / 3 / 7 天）及有效期限提醒天數（3 / 7 / 14 / 30 天）。
   - **Phase 1 (MVP)**：
-    - **PWA Web Push**：Service Worker 背景系統通知（桌面 / Android / iOS 16.4+ 加入主畫面）。
-    - **WebCal 日曆同步（推薦）**：RFC 5545 標準 `.ics` 訂閱流，透過穩定 `UID`、遞增 `SEQUENCE`、`STATUS:CANCELLED` 墓碑機制與 **Calendar Token 安全輪替**，確保 Apple/Google 日曆精準更新，絕無舊事件殘留。
+    - **PWA Web Push**：Service Worker 背景系統通知（桌面 / Android 原生支援；iOS 16.4+ 透過 Safari「分享 → 加入主畫面」即享系統鎖定螢幕橫幅）。
+    - **WebCal 日曆同步（推薦）**：RFC 5545 標準 `.ics` 訂閱流，透過穩定 `UID`、遞增 `SEQUENCE`、`STATUS:CANCELLED` 墓碑機制與 **Calendar Token 安全輪替**，確保 Apple/Google 日曆精準更新，零耗電且無舊事件殘留。
     - **Email 提醒**：每日晨間摘要與即將到期提醒。
   - **Phase 2 (VIP 加值)**：
     - **VIP SMS**：高優先級緊急耗材缺貨與到期簡訊（排除 LINE / Telegram）。

@@ -26,11 +26,13 @@ interface DashboardViewProps {
   onOpenAuth?: () => void;
   onClearDemoItems?: () => void;
   onRestoreDemoItems?: () => void;
+  onOpenPresetCatalog?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   items, onReplace, onAdjustStock, onEdit, onDelete, onViewHistory, onOpenNewItem, onStartUsing, onSnooze, onConsume,
   onBatchReplace, onBatchStock, onBatchDelete, onRefreshItems, user, onAddGuestItems, onOpenAuth, onClearDemoItems, onRestoreDemoItems,
+  onOpenPresetCatalog,
 }) => {
   const { t, locale } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -259,6 +261,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             )}
           </button>
 
+          {onOpenPresetCatalog && (
+            <button
+              type="button"
+              onClick={onOpenPresetCatalog}
+              aria-label="常用耗材範本庫"
+              title="常用耗材範本庫"
+              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-[var(--app-accent)]/30 bg-[var(--app-surface)] text-[var(--app-accent-strong)] hover:bg-[var(--app-primary-soft)] transition-colors tactile-press shrink-0 shadow-xs"
+            >
+              <Sparkles className="h-4 w-4 text-[var(--app-accent-strong)]" />
+              <span className="hidden sm:inline">範本庫</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setIsPhotoModalOpen(true)}
@@ -388,8 +403,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </p>
             {items.length === 0 && (
               <div className="mt-4 flex flex-wrap justify-center gap-2">
-                <button type="button" onClick={onOpenNewItem} className="app-primary px-4 py-2 text-sm font-bold rounded-xl shadow-xs tactile-press flex items-center gap-1.5">
-                  <Plus className="h-4 w-4" />{locale === 'zh-TW' ? '新增第一個耗材' : 'Add first item'}
+                {onOpenPresetCatalog && (
+                  <button
+                    type="button"
+                    onClick={onOpenPresetCatalog}
+                    className="app-primary px-4 py-2 text-sm font-bold rounded-xl shadow-xs tactile-press flex items-center gap-1.5"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {locale === 'zh-TW' ? '從範本庫挑選 (30+)' : 'Browse Presets'}
+                  </button>
+                )}
+                <button type="button" onClick={onOpenNewItem} className="app-control border border-[var(--app-border)] px-4 py-2 text-sm font-bold rounded-xl tactile-press flex items-center gap-1.5">
+                  <Plus className="h-4 w-4" />{locale === 'zh-TW' ? '自訂建立耗材' : 'Add custom item'}
                 </button>
                 {!user && onRestoreDemoItems && (
                   <button type="button" onClick={onRestoreDemoItems} className="px-3.5 py-2 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press">

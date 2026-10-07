@@ -10,6 +10,9 @@ import { ItemModal } from './components/ItemModal.tsx';
 import { HistoryModal } from './components/HistoryModal.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
 import { StockSettingsModal } from './components/StockSettingsModal.tsx';
+import { PresetCatalogModal } from './components/PresetCatalogModal.tsx';
+import { VersionNoticeModal, CURRENT_APP_RELEASE_DATE } from './components/VersionNoticeModal.tsx';
+import { ItemPreset } from './utils/category.ts';
 import { api } from './api.ts';
 import { UserSession, ItemResponse, StockResponse } from '../shared/types.ts';
 import { computeItemStatus } from '../shared/lifecycle.ts';
@@ -142,7 +145,7 @@ const DEMO_ITEMS: ItemResponse[] = [
   {
     id: 'demo-5',
     userId: 'guest',
-    name: 'Kirkland 頂級深海魚油膠囊',
+    name: '好市多 Kirkland 深海魚油膠囊 (150顆)',
     category: 'health',
     trackingMode: 'quantity',
     cycleDays: null,
@@ -150,18 +153,18 @@ const DEMO_ITEMS: ItemResponse[] = [
     paoMonths: null,
     expiryDate: null,
     warrantyDate: null,
-    initialQuantity: 60,
-    currentQuantity: 38,
+    initialQuantity: 150,
+    currentQuantity: 128,
     dailyUsage: 2,
     quantityUnit: '顆',
     backupStock: 1,
     minStockAlert: 1,
     price: 699,
-    specModel: '60粒裝 / 每日2粒',
+    specModel: '好市多 150粒裝 / 每日2粒',
     location: '餐桌保健品架',
     isStored: false,
     snoozeUntil: null,
-    notes: 'Costco 經典深海魚油，飯後食用 2 顆',
+    notes: '好市多常備 Kirkland 150 粒魚油，飯後食用 2 顆',
     imageUrl: '',
     calendarSequence: 0,
     createdAt: new Date().toISOString(),
@@ -169,8 +172,8 @@ const DEMO_ITEMS: ItemResponse[] = [
     ...computeItemStatus({
       startDate: businessDate(new Date(Date.now() - 11 * 24 * 60 * 60 * 1000)),
       trackingMode: 'quantity',
-      initialQuantity: 60,
-      currentQuantity: 38,
+      initialQuantity: 150,
+      currentQuantity: 128,
       dailyUsage: 2,
       quantityUnit: '顆',
       backupStock: 1,
@@ -205,6 +208,9 @@ export const App: React.FC = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [itemToEdit, setItemToEdit] = useState<ItemResponse | null>(null);
+  const [isPresetCatalogOpen, setIsPresetCatalogOpen] = useState(false);
+  const [presetForNewItem, setPresetForNewItem] = useState<ItemPreset | null>(null);
+  const [isVersionNoticeOpen, setIsVersionNoticeOpen] = useState(false);
   const [historyItem, setHistoryItem] = useState<ItemResponse | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(() =>
     getInitialTheme(typeof window === 'undefined' ? null : window.localStorage.getItem('afterbuy-theme'))
@@ -378,6 +384,15 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     loadUserAndItems(undefined, typeof window !== 'undefined' && Boolean(localStorage.getItem('afterbuy_user')));
+    if (typeof window !== 'undefined') {
+      const lastSeen = localStorage.getItem('afterbuy_last_seen_date');
+      if (lastSeen !== CURRENT_APP_RELEASE_DATE) {
+        const timer = setTimeout(() => {
+          setIsVersionNoticeOpen(true);
+        }, 700);
+        return () => clearTimeout(timer);
+      }
+    }
   }, []);
 
   const handleSelectStock = async (stockId: string) => {
@@ -403,7 +418,87 @@ export const App: React.FC = () => {
 
   const handleOpenNewItem = () => {
     setItemToEdit(null);
+    setPresetForNewItem(null);
     setIsItemModalOpen(true);
+  };
+
+  const handleSelectPresetForModal = (preset: ItemPreset) => {
+    setItemToEdit(null);
+    setPresetForNewItem(preset);
+    setIsPresetCatalogOpen(false);
+    setIsItemModalOpen(true);
+  };
+
+  const handleDirectAddPreset = async (preset: ItemPreset) => {
+    const todayStr = businessDate();
+    const effectiveStockId = currentStockId !== 'all' ? currentStockId : (stocks[0]?.id || undefined);
+
+    if (user) {
+      await api.createItem({
+        stockId: effectiveStockId,
+        name: preset.name,
+        category: preset.category,
+        trackingMode: preset.trackingMode,
+        cycleDays: preset.trackingMode === 'cycle' ? preset.cycleDays : undefined,
+        startDate: todayStr,
+        paoMonths: preset.trackingMode === 'pao' ? preset.paoMonths : undefined,
+        initialQuantity: preset.trackingMode === 'quantity' ? (preset.initialQuantity ?? 60) : undefined,
+        currentQuantity: preset.trackingMode === 'quantity' ? (preset.initialQuantity ?? 60) : undefined,
+        dailyUsage: preset.trackingMode === 'quantity' ? (preset.dailyUsage ?? 1) : undefined,
+        quantityUnit: preset.trackingMode === 'quantity' ? (preset.quantityUnit ?? '顆') : undefined,
+        backupStock: preset.minStockAlert ?? 1,
+        minStockAlert: preset.minStockAlert ?? 1,
+        price: preset.defaultPrice ?? null,
+        specModel: preset.defaultSpecModel ?? null,
+        notes: preset.notes ?? undefined,
+        imageUrl: preset.imageUrl ?? undefined,
+        isStored: false,
+      });
+      await loadUserAndItems(currentStockId, false);
+    } else {
+      const newItem: ItemResponse = {
+        id: `guest-${crypto.randomUUID()}`,
+        userId: 'guest',
+        name: preset.name,
+        category: preset.category,
+        trackingMode: preset.trackingMode,
+        cycleDays: preset.trackingMode === 'cycle' ? preset.cycleDays ?? 90 : null,
+        startDate: todayStr,
+        paoMonths: preset.trackingMode === 'pao' ? preset.paoMonths ?? 6 : null,
+        expiryDate: null,
+        warrantyDate: null,
+        initialQuantity: preset.trackingMode === 'quantity' ? (preset.initialQuantity ?? 60) : null,
+        currentQuantity: preset.trackingMode === 'quantity' ? (preset.initialQuantity ?? 60) : null,
+        dailyUsage: preset.trackingMode === 'quantity' ? (preset.dailyUsage ?? 1) : null,
+        quantityUnit: preset.trackingMode === 'quantity' ? (preset.quantityUnit ?? '顆') : null,
+        backupStock: preset.minStockAlert ?? 1,
+        minStockAlert: preset.minStockAlert ?? 1,
+        price: preset.defaultPrice ?? null,
+        specModel: preset.defaultSpecModel ?? null,
+        location: null,
+        isStored: false,
+        snoozeUntil: null,
+        notes: preset.notes ?? null,
+        imageUrl: preset.imageUrl ?? null,
+        calendarSequence: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        ...computeItemStatus({
+          startDate: todayStr,
+          trackingMode: preset.trackingMode,
+          cycleDays: preset.trackingMode === 'cycle' ? preset.cycleDays ?? 90 : null,
+          paoMonths: preset.trackingMode === 'pao' ? preset.paoMonths ?? 6 : null,
+          initialQuantity: preset.trackingMode === 'quantity' ? (preset.initialQuantity ?? 60) : null,
+          currentQuantity: preset.trackingMode === 'quantity' ? (preset.initialQuantity ?? 60) : null,
+          dailyUsage: preset.trackingMode === 'quantity' ? (preset.dailyUsage ?? 1) : null,
+          quantityUnit: preset.trackingMode === 'quantity' ? (preset.quantityUnit ?? '顆') : null,
+          backupStock: preset.minStockAlert ?? 1,
+          minStockAlert: preset.minStockAlert ?? 1,
+          isStored: false,
+        }),
+      };
+      setGuestItems((prev) => [newItem, ...prev]);
+    }
   };
 
   const handleEditItem = (item: ItemResponse) => {
@@ -769,6 +864,7 @@ export const App: React.FC = () => {
             onOpenAuth={() => setIsAuthOpen(true)}
             onClearDemoItems={handleClearDemoItems}
             onRestoreDemoItems={handleRestoreDemoItems}
+            onOpenPresetCatalog={() => setIsPresetCatalogOpen(true)}
           />
         )}
 
@@ -799,6 +895,8 @@ export const App: React.FC = () => {
             onToggleThemeMode={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
             currentPalette={palette}
             onSelectPalette={(newPalette) => setPalette(newPalette)}
+            onOpenVersionNotice={() => setIsVersionNoticeOpen(true)}
+            onOpenPresetCatalog={() => setIsPresetCatalogOpen(true)}
           />
         )}
       </main>
@@ -876,18 +974,41 @@ export const App: React.FC = () => {
       <ItemModal
         isOpen={isItemModalOpen}
         itemToEdit={itemToEdit}
+        initialPreset={presetForNewItem}
         user={user}
         stocks={stocks}
         currentStockId={currentStockId}
         onClose={() => {
           setIsItemModalOpen(false);
           setItemToEdit(null);
+          setPresetForNewItem(null);
         }}
         onSave={() => loadUserAndItems()}
         onAddGuestItem={(newItem) => setGuestItems((prev) => [newItem, ...prev])}
         onUpdateGuestItem={(updatedItem) =>
           setGuestItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)))
         }
+        onOpenPresetCatalog={() => {
+          setIsItemModalOpen(false);
+          setIsPresetCatalogOpen(true);
+        }}
+        onDirectAdd={handleDirectAddPreset}
+      />
+
+      <PresetCatalogModal
+        isOpen={isPresetCatalogOpen}
+        onClose={() => setIsPresetCatalogOpen(false)}
+        onSelectPreset={handleSelectPresetForModal}
+        onDirectAdd={handleDirectAddPreset}
+      />
+
+      <VersionNoticeModal
+        isOpen={isVersionNoticeOpen}
+        onClose={() => setIsVersionNoticeOpen(false)}
+        onAction={() => {
+          setIsVersionNoticeOpen(false);
+          setIsPresetCatalogOpen(true);
+        }}
       />
 
       <StockSettingsModal

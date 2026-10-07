@@ -36,6 +36,13 @@
       "when": 1791194000000,
       "tag": "0004_quantity_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791351111742,
+      "tag": "0005_narrow_weapon_omega",
+      "breakpoints": true
     }
   ]
 }

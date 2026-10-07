@@ -1,15 +1,45 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Sparkles, Calendar, Package, AlertCircle, Camera, ImagePlus, Loader2, Check, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import {
+  X,
+  Sparkles,
+  Calendar,
+  Package,
+  AlertCircle,
+  Camera,
+  ImagePlus,
+  Loader2,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  SlidersHorizontal,
+  Search,
+  Plus,
+  ArrowRight,
+} from 'lucide-react';
 import { ItemResponse, ItemCategory, TrackingMode, UserSession, StockResponse } from '../../shared/types.ts';
 import { computeItemStatus } from '../../shared/lifecycle.ts';
 import { businessDate } from '../../shared/date.ts';
 import { CATEGORIES, ITEM_PRESETS, ItemPreset } from '../utils/category.ts';
+import { ItemBrandBadge } from './ItemBrandBadge.tsx';
 import { api } from '../api.ts';
 import { useTranslation } from '../i18n/index.tsx';
+
+const PRESET_CATEGORIES = [
+  { id: 'all', label: '全部' },
+  { id: 'bathroom', label: '個人衛浴' },
+  { id: 'kitchen', label: '廚房飲食' },
+  { id: 'medicine', label: '健康保健' },
+  { id: 'skincare', label: '美妝保養' },
+  { id: 'appliances', label: '家電家居' },
+  { id: 'clothing', label: '貼身穿戴' },
+  { id: 'electronics', label: '3C 數位' },
+  { id: 'general', label: '其他生活' },
+];
 
 interface ItemModalProps {
   isOpen: boolean;
   itemToEdit?: ItemResponse | null;
+  initialPreset?: ItemPreset | null;
   user?: UserSession | null;
   stocks?: StockResponse[];
   currentStockId?: string;
@@ -17,11 +47,14 @@ interface ItemModalProps {
   onSave: () => void;
   onAddGuestItem?: (item: ItemResponse) => void;
   onUpdateGuestItem?: (item: ItemResponse) => void;
+  onOpenPresetCatalog?: () => void;
+  onDirectAdd?: (preset: ItemPreset) => Promise<void> | void;
 }
 
 export const ItemModal: React.FC<ItemModalProps> = ({
   isOpen,
   itemToEdit,
+  initialPreset,
   user,
   stocks = [],
   currentStockId = 'all',
@@ -29,8 +62,15 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   onSave,
   onAddGuestItem,
   onUpdateGuestItem,
+  onOpenPresetCatalog,
+  onDirectAdd,
 }) => {
   const { t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<'presets' | 'form'>(itemToEdit ? 'form' : 'presets');
+  const [presetSearch, setPresetSearch] = useState('');
+  const [presetCategory, setPresetCategory] = useState<string>('all');
+  const [directAddingId, setDirectAddingId] = useState<string | null>(null);
+  const [directAddedIds, setDirectAddedIds] = useState<Record<string, boolean>>({});
   const [name, setName] = useState('');
   const [category, setCategory] = useState<ItemCategory>('general');
   const [trackingMode, setTrackingMode] = useState<TrackingMode>('cycle');
@@ -118,6 +158,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setNotes('');
       setImageUrl('');
       setShowAdvanced(false);
+      setActiveTab('presets');
       if (currentStockId && currentStockId !== 'all') {
         setSelectedStockId(currentStockId);
       } else if (stocks.length > 0) {
@@ -129,7 +170,47 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     setErrorMessage('');
   }, [itemToEdit, isOpen, currentStockId, stocks]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (initialPreset && !itemToEdit && isOpen) {
+      handleApplyPreset(initialPreset);
+      setActiveTab('form');
+    }
+  }, [initialPreset, itemToEdit, isOpen]);
+
+  const filteredPresets = useMemo(() => {
+    const q = presetSearch.trim().toLowerCase();
+    return ITEM_PRESETS.filter((p) => {
+      const matchCat = presetCategory === 'all' || p.category === presetCategory;
+      if (!matchCat) return false;
+      if (!q) return true;
+
+      const nameMatch = p.name.toLowerCase().includes(q);
+      const notesMatch = p.notes ? p.notes.toLowerCase().includes(q) : false;
+      const specMatch = p.defaultSpecModel ? p.defaultSpecModel.toLowerCase().includes(q) : false;
+      const catMeta = CATEGORIES[p.category as ItemCategory];
+      const catMatch = catMeta ? catMeta.label.toLowerCase().includes(q) : false;
+
+      return nameMatch || notesMatch || specMatch || catMatch;
+    });
+  }, [presetSearch, presetCategory]);
+
+  const handleDirectAddFromPreset = async (preset: ItemPreset) => {
+    if (!onDirectAdd) {
+      handleApplyPreset(preset);
+      setActiveTab('form');
+      return;
+    }
+    setDirectAddingId(preset.name);
+    try {
+      await onDirectAdd(preset);
+      setDirectAddedIds((prev) => ({ ...prev, [preset.name]: true }));
+      setTimeout(() => {
+        setDirectAddedIds((prev) => ({ ...prev, [preset.name]: false }));
+      }, 2500);
+    } finally {
+      setDirectAddingId(null);
+    }
+  };
 
   const handleApplyPreset = (preset: ItemPreset) => {
     setName(preset.name);
@@ -361,51 +442,329 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm modal-backdrop-animate">
-      <div className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[90dvh] flex flex-col shadow-2xl overflow-hidden sheet-content-animate sm:modal-content-animate">
+      <div className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden sheet-content-animate sm:modal-content-animate">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--app-border)]">
-          <h2 className="ui-section-title text-[var(--app-text)] tracking-tight">
-            {itemToEdit ? '編輯物品' : '新增追蹤物品'}
-          </h2>
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--app-border)]">
+          <div className="min-w-0 pr-2">
+            <h2 className="ui-section-title text-[var(--app-text)] tracking-tight">
+              {itemToEdit ? '編輯物品' : '新增追蹤物品'}
+            </h2>
+            {!itemToEdit && (
+              <p className="ui-meta text-[var(--app-muted)] text-xs mt-0.5 truncate">
+                {activeTab === 'presets' ? '選一個後會帶入圖片、名稱、分類與建議週期' : '自訂名稱、模式與生活週期規格'}
+              </p>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="關閉視窗"
-            className="app-control ui-button min-h-11 min-w-11 -mr-2 flex items-center justify-center rounded-xl border hover:border-[var(--app-accent)] transition-colors"
+            className="app-control ui-button min-h-11 min-w-11 -mr-2 flex items-center justify-center rounded-xl border hover:border-[var(--app-accent)] transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Scrollable Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
-          {!user && (
-            <div className="app-primary-soft border rounded-xl px-3.5 py-2.5 ui-meta flex items-center gap-2">
-              <Sparkles className="w-4 h-4 shrink-0 text-[var(--app-accent-strong)]" />
-              <span>{t('guestModeModalHint')}</span>
+        {/* Top Segmented Mode Switcher (When creating new item) */}
+        {!itemToEdit && (
+          <div className="px-5 pt-3 pb-2 border-b border-[var(--app-border)] bg-[var(--app-surface-subtle)] shrink-0">
+            <div className="grid grid-cols-2 p-1 bg-[var(--app-surface)] border border-[var(--app-border)] rounded-xl w-full shadow-xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab('presets')}
+                className={`min-h-9 rounded-lg ui-button text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  activeTab === 'presets'
+                    ? 'app-primary shadow-xs'
+                    : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                }`}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>常用耗材範本庫</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('form')}
+                className={`min-h-9 rounded-lg ui-button text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all ${
+                  activeTab === 'form'
+                    ? 'app-primary shadow-xs'
+                    : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                }`}
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>自訂填寫表單</span>
+              </button>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Preset quick pills (Only when creating new item) */}
-          {!itemToEdit && (
-            <div>
-              <span className="ui-label font-semibold text-[var(--app-accent-strong)] flex items-center gap-1.5 mb-2">
-                <Sparkles className="w-3.5 h-3.5" /> 常用耗材範本（點擊快速帶入）
-              </span>
-              <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                {ITEM_PRESETS.map((p, idx) => (
+        {/* Tab 1: Full Searchable Presets Catalog (Matching User Reference Image) */}
+        {activeTab === 'presets' && !itemToEdit ? (
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {/* Search Input & Category Pills */}
+            <div className="p-4 border-b border-[var(--app-border)] bg-[var(--app-surface-subtle)] space-y-3 shrink-0">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--app-muted-low)]" />
+                <input
+                  type="text"
+                  value={presetSearch}
+                  onChange={(e) => setPresetSearch(e.target.value)}
+                  placeholder="搜尋物品名稱或備註（如：魚油、垃圾袋、衛生紙）"
+                  className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl pl-10 pr-9 min-h-11 ui-body text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted-low)] transition-all shadow-xs"
+                />
+                {presetSearch && (
                   <button
-                    key={idx}
                     type="button"
-                    onClick={() => handleApplyPreset(p)}
-                    className="flex-shrink-0 app-control ui-button min-h-9 px-3.5 rounded-full border hover:border-[var(--app-accent)] text-[var(--app-text)] tactile-press"
+                    onClick={() => setPresetSearch('')}
+                    aria-label="清除搜尋"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--app-muted)] hover:text-[var(--app-text)] p-1 rounded-md"
                   >
-                    {p.name}
+                    <X className="w-4 h-4" />
                   </button>
-                ))}
+                )}
+              </div>
+
+              {/* Category Filter Pills */}
+              <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar text-sm">
+                {PRESET_CATEGORIES.map((cat) => {
+                  const isSelected = presetCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setPresetCategory(cat.id)}
+                      className={`flex-shrink-0 min-h-8 px-3.5 rounded-full ui-button transition-all text-xs font-bold border ${
+                        isSelected
+                          ? 'app-primary shadow-xs border-transparent'
+                          : 'app-surface border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
-          )}
+
+            {/* Presets List */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
+              <div className="flex items-center justify-between text-xs text-[var(--app-muted)] font-semibold px-1 pb-1">
+                <span>共 {filteredPresets.length} 款生活耗材範本</span>
+                <span>點擊卡片帶入表單 · 或點直接加入</span>
+              </div>
+
+              {filteredPresets.length === 0 ? (
+                <div className="text-center py-12 px-4 space-y-3">
+                  <div className="w-12 h-12 rounded-2xl app-primary-soft border mx-auto flex items-center justify-center">
+                    <SlidersHorizontal className="w-5 h-5 text-[var(--app-accent-strong)]" />
+                  </div>
+                  <p className="ui-body text-[var(--app-text)] font-semibold">找不到符合「{presetSearch}」的耗材範本</p>
+                  <p className="ui-meta text-[var(--app-muted)]">您可以自訂名稱新增物品，或嘗試更換關鍵字。</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setName(presetSearch.trim() || '自訂耗材');
+                      setActiveTab('form');
+                    }}
+                    className="app-primary ui-button min-h-10 px-4 rounded-xl text-sm font-bold shadow-xs inline-flex items-center gap-1.5"
+                  >
+                    <Plus className="w-4 h-4" />
+                    以「{presetSearch || '自訂耗材'}」開啟建立表單
+                  </button>
+                </div>
+              ) : (
+                filteredPresets.map((preset) => {
+                  const isAdded = directAddedIds[preset.name];
+                  const isAdding = directAddingId === preset.name;
+                  const catMeta = CATEGORIES[preset.category as ItemCategory];
+
+                  return (
+                    <div
+                      key={preset.name}
+                      onClick={() => {
+                        handleApplyPreset(preset);
+                        setActiveTab('form');
+                      }}
+                      className="app-surface border border-[var(--app-border)] hover:border-[var(--app-accent)] rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-xs hover:shadow-sm cursor-pointer transition-all active:scale-[0.99] group"
+                    >
+                      {/* Left: Avatar / Badge */}
+                      <div className="shrink-0">
+                        <ItemBrandBadge
+                          name={preset.name}
+                          category={preset.category}
+                          imageUrl={preset.imageUrl}
+                          specModel={preset.defaultSpecModel}
+                          size="lg"
+                          shape="rounded"
+                        />
+                      </div>
+
+                      {/* Center: Details */}
+                      <div className="min-w-0 flex-1">
+                        <h3 className="ui-item-title text-[var(--app-text)] group-hover:text-[var(--app-accent-strong)] transition-colors truncate">
+                          {preset.name}
+                        </h3>
+                        {preset.notes && (
+                          <p className="ui-meta text-[var(--app-muted)] truncate mt-0.5">
+                            {preset.notes}
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                          <span className="ui-badge bg-[var(--app-surface-subtle)] border text-[var(--app-text)] font-semibold text-[11px] px-2 py-0.5 rounded-full">
+                            {preset.trackingMode === 'cycle' && preset.cycleDays
+                              ? `${preset.cycleDays} 天週期`
+                              : preset.trackingMode === 'quantity' && preset.initialQuantity
+                              ? `${preset.initialQuantity} ${preset.quantityUnit || '顆'}`
+                              : preset.trackingMode === 'pao' && preset.paoMonths
+                              ? `PAO ${preset.paoMonths} 個月`
+                              : '週期更換'}
+                          </span>
+                          {catMeta && (
+                            <span className="ui-badge bg-[var(--app-surface-subtle)] border text-[var(--app-muted)] font-medium text-[11px] px-2 py-0.5 rounded-full">
+                              {catMeta.label}
+                            </span>
+                          )}
+                          {preset.defaultSpecModel && (
+                            <span className="ui-badge text-[var(--app-muted-low)] text-[11px] truncate max-w-[120px]">
+                              {preset.defaultSpecModel}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: Direct Add Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDirectAddFromPreset(preset);
+                        }}
+                        disabled={isAdding}
+                        className={`shrink-0 min-h-9 px-3 rounded-xl ui-button text-xs font-bold flex items-center gap-1 transition-all ${
+                          isAdded
+                            ? 'bg-emerald-500 text-white shadow-xs'
+                            : 'app-primary-soft text-[var(--app-accent-strong)] hover:app-primary border border-[var(--app-accent)]/30 active:scale-95'
+                        }`}
+                        title="點擊直接加入當前備品庫"
+                      >
+                        {isAdded ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>已加入</span>
+                          </>
+                        ) : isAdding ? (
+                          <span>加入中...</span>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>直接加入</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Bottom bar of presets tab */}
+            <div className="p-3.5 border-t border-[var(--app-border)] bg-[var(--app-surface-subtle)] flex items-center justify-between shrink-0">
+              <span className="ui-meta text-[var(--app-muted)] text-xs">
+                想要自訂特殊規格？
+              </span>
+              <button
+                type="button"
+                onClick={() => setActiveTab('form')}
+                className="app-control ui-button min-h-9 px-3.5 rounded-xl border hover:border-[var(--app-accent)] text-xs font-semibold text-[var(--app-text)] flex items-center gap-1.5"
+              >
+                <span>切換至自訂表單</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Tab 2: Custom Form Body */
+          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+            {!user && (
+              <div className="app-primary-soft border rounded-xl px-3.5 py-2.5 ui-meta flex items-center gap-2">
+                <Sparkles className="w-4 h-4 shrink-0 text-[var(--app-accent-strong)]" />
+                <span>{t('guestModeModalHint')}</span>
+              </div>
+            )}
+
+            {/* Preset quick pills with Search & Category Filters (When creating new item) */}
+            {!itemToEdit && (
+              <div className="space-y-2 bg-[var(--app-surface-subtle)] p-3.5 rounded-2xl border border-[var(--app-border)]">
+                <div className="flex items-center justify-between">
+                  <span className="ui-label font-semibold text-[var(--app-accent-strong)] flex items-center gap-1.5 text-xs sm:text-sm">
+                    <Sparkles className="w-3.5 h-3.5" /> 常用耗材範本（點擊快速帶入）
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('presets')}
+                    className="ui-meta font-bold text-xs text-[var(--app-accent-strong)] hover:underline flex items-center gap-1 shrink-0"
+                  >
+                    <span>切換卡片庫 ↗</span>
+                  </button>
+                </div>
+
+                {/* Inline Search Input */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--app-muted-low)]" />
+                  <input
+                    type="text"
+                    value={presetSearch}
+                    onChange={(e) => setPresetSearch(e.target.value)}
+                    placeholder="搜尋耗材範本（如：魚油、垃圾袋、衛生紙）"
+                    className="w-full bg-[var(--app-surface)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl pl-8.5 pr-8 min-h-9 text-xs text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted-low)]"
+                  />
+                  {presetSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setPresetSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Inline Category Filter Pills */}
+                <div className="flex gap-1 overflow-x-auto pb-0.5 no-scrollbar">
+                  {PRESET_CATEGORIES.map((cat) => {
+                    const isSelected = presetCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setPresetCategory(cat.id)}
+                        className={`flex-shrink-0 min-h-7 px-2.5 rounded-full ui-button text-[11px] font-bold border transition-all ${
+                          isSelected
+                            ? 'app-primary border-transparent'
+                            : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-muted)]'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Filtered preset pills */}
+                <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-1">
+                  {filteredPresets.slice(0, 15).map((p, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleApplyPreset(p)}
+                      className="flex-shrink-0 app-control ui-button min-h-8 px-3 rounded-full border hover:border-[var(--app-accent)] text-[var(--app-text)] tactile-press text-xs font-semibold"
+                    >
+                      {p.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
           {/* Item Name */}
           <div>
@@ -941,7 +1300,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             </button>
           </div>
         </form>
-      </div>
+      )}
     </div>
-  );
+  </div>
+);
 };

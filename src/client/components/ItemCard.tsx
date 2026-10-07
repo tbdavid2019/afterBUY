@@ -59,9 +59,11 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   const statusInfo = formatRemainingDaysText(
     item.remainingDays,
     item.healthStatus,
-    item.trackingMode === 'quantity'
-      ? { remainingQuantity: item.remainingQuantity, quantityUnit: item.quantityUnit }
-      : undefined
+    {
+      remainingQuantity: item.remainingQuantity,
+      quantityUnit: item.quantityUnit,
+      daysUntilStart: item.daysUntilStart,
+    }
   );
   const isStored = item.isStored || item.healthStatus === 'stored';
   const isQuantityMode = item.trackingMode === 'quantity';
@@ -194,6 +196,19 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 {item.remainingDays < 0 ? `已逾期 ${Math.abs(item.remainingDays)} 天` : `剩餘 ${item.remainingDays} 天`}
               </p>
             </div>
+          ) : item.daysUntilStart && item.daysUntilStart > 0 ? (
+            <div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold">距啟用</span>
+                <span className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-indigo-600 dark:text-indigo-400">
+                  {item.daysUntilStart}
+                </span>
+                <span className="text-sm text-indigo-600 dark:text-indigo-400 font-semibold">天</span>
+              </div>
+              <p className="text-xs sm:text-sm font-semibold mt-1 text-slate-500 dark:text-slate-400 truncate">
+                預計 {item.startDate.slice(5)} 開始啟用
+              </p>
+            </div>
           ) : (
             <div>
               <div className="flex items-baseline gap-1.5">
@@ -259,16 +274,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               disabled={busy}
               onClick={(e) => {
                 e.stopPropagation();
-                if (onConsume) {
-                  void runAction(() => onConsume(item.id, item.dailyUsage || 1), `已扣減 ${item.dailyUsage || 1}`);
-                } else {
-                  void runAction(() => onReplace(item.id), '已開啟新備品');
-                }
+                void runAction(() => onReplace(item.id), '已開啟新備品');
               }}
               className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1"
+              title="開新瓶：已用完，重設滿容量並扣減備品庫存"
             >
-              <Check className="w-3.5 h-3.5" />
-              <span>已用 (-{item.dailyUsage || 1})</span>
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>開新瓶</span>
             </button>
           ) : (
             <button
@@ -368,17 +380,23 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <div className="flex items-baseline justify-between gap-2">
             <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight truncate">{item.name}</h3>
             {!isStored && !dateOnly && (
-              <span className="text-sm font-bold text-slate-500 shrink-0">
-                已用 <span className="font-black tabular-nums text-slate-900 dark:text-slate-100">{item.elapsedDays}</span> 天
-              </span>
+              item.daysUntilStart && item.daysUntilStart > 0 ? (
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
+                  距啟用 <span className="font-black tabular-nums">{item.daysUntilStart}</span> 天
+                </span>
+              ) : (
+                <span className="text-sm font-bold text-slate-500 shrink-0">
+                  已用 <span className="font-black tabular-nums text-slate-900 dark:text-slate-100">{item.elapsedDays}</span> 天
+                </span>
+              )
             )}
           </div>
           <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-medium">
             {item.stockName && <span className="truncate">{item.stockName}</span>}
             {item.specModel && <span className="truncate">型號: {item.specModel}</span>}
             {isQuantityMode && (
-              <span className="tabular-nums font-bold text-emerald-600 dark:text-emerald-400">
-                每日 {item.dailyUsage || 1} {item.quantityUnit || '顆'} · 單瓶 {item.initialQuantity || 60}
+              <span className="tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
+                每日 {item.dailyUsage || 1} {item.quantityUnit || '顆'} · 每日自動倒數 · 單瓶 {item.initialQuantity || 60}
               </span>
             )}
             {item.price !== null && item.price !== undefined && <span className="tabular-nums font-semibold">NT$ {item.price.toLocaleString()}</span>}
@@ -495,27 +513,25 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     event.stopPropagation();
                     void runAction(() => onReplace(item.id), '已開啟新備品');
                   }}
-                  className="app-control ui-button min-h-11 flex items-center gap-1 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
-                >
-                  <RotateCcw className="h-4 w-4 text-slate-400" />
-                  <span>開新瓶</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (onConsume) {
-                      void runAction(() => onConsume(item.id, item.dailyUsage || 1), `已扣減 ${item.dailyUsage || 1} ${item.quantityUnit || '顆'}`);
-                    } else {
-                      void runAction(() => onReplace(item.id), '已開啟新備品');
-                    }
-                  }}
                   className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
                 >
-                  <Check className="h-4 w-4" />
-                  <span>今日已用 (-{item.dailyUsage || 1})</span>
+                  <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
+                  <span>開新瓶</span>
                 </button>
+                {onConsume && (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void runAction(() => onConsume(item.id, item.dailyUsage || 1), `已手動扣減 ${item.dailyUsage || 1} ${item.quantityUnit || '顆'}`);
+                    }}
+                    className="app-control ui-button min-h-11 flex items-center gap-1 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press"
+                    title="手動扣減（系統每日會自動隨時間扣減，免天天手動打卡）"
+                  >
+                    <span>-{item.dailyUsage || 1} {item.quantityUnit || '顆'}</span>
+                  </button>
+                )}
               </>
             ) : (
               <button

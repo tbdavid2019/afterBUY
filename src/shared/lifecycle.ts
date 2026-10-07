@@ -68,6 +68,7 @@ export function computeItemStatus(
   nextDueDate: string;
   totalDays: number;
   elapsedDays: number;
+  daysUntilStart: number;
   remainingDays: number;
   percentageRemaining: number;
   remainingQuantity?: number | null;
@@ -75,35 +76,54 @@ export function computeItemStatus(
   needsRestock: boolean;
 } {
   const refDateStr = businessDate(referenceDate);
+  const rawElapsed = businessDateDiff(item.startDate, refDateStr);
+  const isFuture = rawElapsed < 0;
+  const daysUntilStart = isFuture ? Math.abs(rawElapsed) : 0;
+  const elapsedDays = Math.max(0, rawElapsed);
+
   let nextDueDate = computeNextDueDate(item);
   let totalDays = Math.max(1, businessDateDiff(item.startDate, nextDueDate));
-  const elapsedDays = businessDateDiff(item.startDate, refDateStr);
   let remainingDays = businessDateDiff(refDateStr, nextDueDate);
   let remainingQuantity: number | null = null;
 
   if (item.trackingMode === 'quantity') {
     const initQty = item.initialQuantity || 60;
     const rate = Math.max(0.01, item.dailyUsage || 1);
-
-    if (item.currentQuantity !== null && item.currentQuantity !== undefined) {
-      remainingQuantity = Math.max(0, item.currentQuantity);
-      remainingDays = Math.ceil(remainingQuantity / rate);
-    } else {
-      const consumed = Math.max(0, elapsedDays * rate);
-      const rawRemaining = Math.max(0, initQty - consumed);
-      remainingQuantity = Math.round(rawRemaining * 100) / 100;
-      remainingDays = Math.ceil(remainingQuantity / rate);
-    }
-    nextDueDate = addBusinessDays(refDateStr, remainingDays);
     totalDays = Math.max(1, Math.ceil(initQty / rate));
+
+    if (isFuture) {
+      // Future start date: bottle is unopened/pending, full capacity
+      remainingQuantity = initQty;
+      remainingDays = totalDays + daysUntilStart;
+      nextDueDate = addBusinessDays(item.startDate, totalDays);
+    } else {
+      // Started: Auto-consume based on elapsed days!
+      // In AfterBuy, consumables automatically deplete with calendar time.
+      const autoConsumed = elapsedDays * rate;
+      const autoRemaining = Math.max(0, initQty - autoConsumed);
+
+      if (item.currentQuantity !== null && item.currentQuantity !== undefined && item.currentQuantity < initQty) {
+        remainingQuantity = Math.max(0, item.currentQuantity);
+      } else {
+        remainingQuantity = Math.round(autoRemaining * 10) / 10;
+      }
+
+      remainingDays = Math.ceil(remainingQuantity / rate);
+      nextDueDate = addBusinessDays(refDateStr, remainingDays);
+    }
+  } else if (isFuture && (item.trackingMode === 'cycle' || item.trackingMode === 'pao')) {
+    remainingDays = totalDays + daysUntilStart;
+    nextDueDate = addBusinessDays(item.startDate, totalDays);
   }
 
   let percentageRemaining = Math.max(0, Math.min(100, Math.round((remainingDays / totalDays) * 100)));
 
   let healthStatus: HealthStatus = 'healthy';
-  // A stored fixed-date item can still expire while it is unopened. Stored
-  // cycle/PAO/quantity items have no active lifespan until they are started.
-  if (item.isStored && item.trackingMode !== 'expiry' && item.trackingMode !== 'warranty') {
+  if (isFuture) {
+    // Scheduled for future activation
+    healthStatus = 'healthy';
+    percentageRemaining = 100;
+  } else if (item.isStored && item.trackingMode !== 'expiry' && item.trackingMode !== 'warranty') {
     healthStatus = 'stored';
     percentageRemaining = 100;
   } else if (item.snoozeUntil && item.snoozeUntil > refDateStr) {
@@ -124,6 +144,7 @@ export function computeItemStatus(
     nextDueDate,
     totalDays,
     elapsedDays,
+    daysUntilStart,
     remainingDays,
     percentageRemaining,
     remainingQuantity,
@@ -138,12 +159,22 @@ export function computeItemStatus(
 export function formatRemainingDaysText(
   remainingDays: number,
   healthStatus?: HealthStatus,
-  quantityMeta?: { remainingQuantity?: number | null; quantityUnit?: string | null }
+  quantityMeta?: { remainingQuantity?: number | null; quantityUnit?: string | null; daysUntilStart?: number }
 ): { text: string; color: string; badge: string; dot: string } {
+  const daysUntilStart = quantityMeta?.daysUntilStart ?? 0;
   const hasRemainingQty = quantityMeta?.remainingQuantity !== null && quantityMeta?.remainingQuantity !== undefined;
   const qtyPrefix = hasRemainingQty
     ? `約剩 ${quantityMeta.remainingQuantity} ${quantityMeta.quantityUnit || '個'} · `
     : '';
+
+  if (daysUntilStart > 0) {
+    return {
+      text: `${qtyPrefix}距啟用 ${daysUntilStart} 天`,
+      color: 'text-indigo-700 dark:text-indigo-400 font-semibold',
+      badge: 'bg-indigo-50 text-indigo-700 border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/60',
+      dot: 'bg-indigo-500',
+    };
+  }
 
   if (healthStatus === 'stored') {
     return {
