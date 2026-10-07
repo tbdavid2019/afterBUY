@@ -84,6 +84,9 @@
   - 設定頁（`SettingsView`）新增「這版新增」與「常用範本庫」入口。
 
 ### Fixed
+- **修正 `skill.md` 與 `llms.txt` 在瀏覽器中渲染為中文亂碼問題（Mojibake Fix）**：
+  - 由於 Cloudflare Workers 靜態資源預設 `Content-Type: text/markdown` 未宣告 `charset=utf-8`，導致 Chrome 在繁體中文環境下誤判編碼為 Big5，造成文字變成問號與亂碼（如 `蝟∠ afterBUY`）。
+  - 新增 `public/_headers` 規則，強制為所有 `*.md` 與 `*.txt` 附加 `Content-Type: text/markdown; charset=utf-8` 與 `Cache-Control: public, max-age=0, must-revalidate`，確保直接在瀏覽器開啟或 LLM 抓取時 100% 正確解析 UTF-8 中文。
 - **經由 Codex 深度 Code Review 發現並修復之 4 項核心安全與相容性問題**：
   1. **[P1] 嚴格限制 API Key 存取邊界**：禁止 API Key 呼叫非 `/api/v1/*` 內部路由，避免金鑰權限外溢至金鑰管理與 Session 專屬端點。
   2. **[P1] 消除 `GET /api/v1/items` 跨空間越權存取（IDOR）**：補齊 `requestedStockId` 與使用者空間成員資格（`accessibleStockIds`）之嚴格校驗，防止外部調用者透過特定 stockId 探測其他使用者之耗材。
