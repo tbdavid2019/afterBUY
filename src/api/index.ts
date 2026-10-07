@@ -8,29 +8,9 @@ import { calendarRouter } from './routes/calendar.ts';
 import { notificationsRouter, dispatchScheduledNotifications } from './routes/notifications.ts';
 import { uploadRouter } from './routes/upload.ts';
 import { stocksRouter } from './routes/stocks.ts';
-
-const LLMS_TXT = `# 補貨日記 · After Buy
-
-> **買了之後，別再忘記換！**
-> After Buy is a mobile-first Progressive Web Application (PWA) built for tracking personal item lifecycles, recurring consumable replacements (toothbrushes, water filters, contact lenses, air filters), period-after-opening (PAO) shelf life, warranty countdowns, and backup spare inventory.
-
-## Core Capabilities
-- [Item Lifecycle Tracking](https://afterbuy.app/): Interval replacement days countdown, PAO opening months, food/medicine expiry, and appliance warranties.
-- [One-Tap Replacement & Inventory Deduction](https://afterbuy.app/): One-tap "Replaced Today" action resets countdown timer, decrements backup stock, and records historical log.
-- [Passwordless Authentication](https://afterbuy.app/): WebAuthn / FIDO2 Passkey (Touch ID / Face ID / Windows Hello) and 6-digit Email OTP with rate limiting.
-- [RFC 5545 WebCal Calendar Feed](https://afterbuy.app/): Private .ics calendar subscription with deterministic UID, incrementing SEQUENCE, and 30-day STATUS:CANCELLED soft-deletion tombstones for zero stale calendar events.
-- [Multi-Channel Notifications](https://afterbuy.app/): PWA Web Push (VAPID), Daily Email Morning Digest (Resend), and Cloudflare Scheduled Cron Triggers.
-
-## Technology Stack
-- Edge Backend: Hono running on Cloudflare Workers (<15KB, ~0ms cold start).
-- Storage Tier: Cloudflare D1 (Relational SQLite), Cloudflare KV (Rate limits, OTP, Passkey challenge), Cloudflare R2 (Photos & receipts).
-- Frontend PWA: React 19 + TypeScript + Tailwind CSS + vite-plugin-pwa.
-- Database ORM: Drizzle ORM (multi-environment compatibility for Cloudflare D1, local SQLite, and PostgreSQL).
-
-## Repository & Links
-- [GitHub Repository](https://github.com/tbdavid2019/afterBUY): Source code licensed under GNU Affero General Public License v3.0 (AGPL-3.0).
-- [Full Documentation](https://afterbuy.app/llms-full.txt): Complete technical specification, API schemas, and data structures.
-`;
+import { apiKeysRouter } from './routes/apiKeys.ts';
+import { agentApiRouter } from './routes/agentApi.ts';
+import { LLMS_TXT, LLMS_FULL_TXT, SKILL_MD } from './docs/skillDoc.ts';
 
 const app = new Hono<HonoEnv>();
 
@@ -72,8 +52,40 @@ app.get('/.well-known/llms.txt', (c) => {
   });
 });
 
+// Serve full LLM system documentation
+app.get('/llms-full.txt', (c) => {
+  return c.text(LLMS_FULL_TXT, 200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
+app.get('/.well-known/llms-full.txt', (c) => {
+  return c.text(LLMS_FULL_TXT, 200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
+// Serve Agent Skill specification
+app.get('/skill.md', (c) => {
+  return c.text(SKILL_MD, 200, {
+    'Content-Type': 'text/markdown; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
+app.get('/.well-known/skill.md', (c) => {
+  return c.text(SKILL_MD, 200, {
+    'Content-Type': 'text/markdown; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+  });
+});
+
 // Mount API routes
 app.route('/api/auth', authRouter);
+app.route('/api/keys', apiKeysRouter);
+app.route('/api/v1', agentApiRouter);
 app.route('/api/stocks', stocksRouter);
 app.route('/api/items', itemsRouter);
 app.route('/api/calendar', calendarRouter);

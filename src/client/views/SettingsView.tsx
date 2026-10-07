@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Calendar,
   Bell,
@@ -26,6 +26,10 @@ import {
   Info,
   ChevronRight,
   BookOpen,
+  Bot,
+  Key,
+  Terminal,
+  Plus,
 } from 'lucide-react';
 import { UserSession, UserNotificationSettings } from '../../shared/types.ts';
 import { api } from '../api.ts';
@@ -79,6 +83,96 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const { locale, setLocale, t } = useTranslation();
 
+  // API Keys & Agent Integration State
+  const [apiKeys, setApiKeys] = useState<
+    Array<{
+      id: string;
+      name: string;
+      keyPrefix: string;
+      stockId: string | null;
+      scopes: string[];
+      createdAt: string;
+      lastUsedAt: string | null;
+      isRevoked: boolean;
+    }>
+  >([]);
+  const [loadingKeys, setLoadingKeys] = useState(false);
+  const [showCreateKeyModal, setShowCreateKeyModal] = useState(false);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyStockId, setNewKeyStockId] = useState('');
+  const [creatingKey, setCreatingKey] = useState(false);
+  const [createdSecret, setCreatedSecret] = useState<{ rawKey: string; name: string } | null>(null);
+  const [copiedRawKey, setCopiedRawKey] = useState(false);
+  const [copiedOpenApi, setCopiedOpenApi] = useState(false);
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [agentTab, setAgentTab] = useState<'chatgpt' | 'claude_cursor'>('chatgpt');
+  const [stockSpaces, setStockSpaces] = useState<Array<{ id: string; name: string; icon: string }>>([]);
+
+  const systemPromptText = useMemo(() => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://afterbuy.david888.com';
+    return `# Role & Purpose
+你是 afterBUY（補貨日記）的專屬生活耗材與週期管理助理。
+
+# ⚠️ 強制先驗對齊協定 (Pre-flight Alignment Protocol)
+在與使用者進行耗材會話或執行任何操作前，請先調用 GET 讀取最新規範對齊能力：
+- 主規範: ${origin}/skill.md (完整技能規範與搜尋表)
+- OpenAPI: ${origin}/api/v1/openapi.json (OpenAPI 3.1 規格)
+- 備援鏡像: https://afterbuy.create360.ai/skill.md
+
+# API 設定
+- Base URL: ${origin}/api/v1
+- Header: Authorization: Bearer <填入您的 API Key>
+- 時區: Asia/Taipei (所有日期皆為 YYYY-MM-DD)
+
+# 核心概念與欄位說明（重要區分）
+1. 【範本庫 Presets】: 常用台灣生活耗材預設庫（如好市多 150 顆魚油、Brita 濾芯、衛生紙 24 包、洗衣膠囊 60 顆）。
+   - 查詢範本: GET /presets?q=魚油
+   - 快速建檔: POST /items 時可直接帶入 { presetId: "costco-fish-oil" } 自動帶入預設規格與用量。
+2. 【備品庫存 backupStock】: 存放於抽屜/櫃子中「未開封的全新備用件數量」。
+   - 安全庫存警戒 (minStockAlert): 當 backupStock < minStockAlert 時，系統標記 needsRestock: true。
+   - 採購補貨: POST /items/:id/restock { delta: 2 } 增加備品庫存（亦支援直接指定 backupStock）。
+   - 換新替換: POST /items/:id/replace 會自動將 backupStock 扣減 1 並重設使用週期。
+3. 【使用中容量 currentQuantity / initialQuantity】: 當前「開啟用中」那一瓶/包的剩餘量。
+   - 記錄消耗: POST /items/:id/consume { amount: 2 } 扣減當前使用量。
+4. 【五種追蹤模式 trackingMode】:
+   - cycle: 依天數循環更換（如牙刷 cycleDays: 90 天、淨水濾芯 cycleDays: 30 天）
+   - quantity: 數量消耗倒數（如好市多魚油 initialQuantity: 150, dailyUsage: 2, quantityUnit: "顆"）
+   - pao: 開封後保期（如防曬乳 paoMonths: 12 個月、眼藥水 paoMonths: 1 個月）
+   - expiry: 固定有效日期（如成藥、食品 expiryDate: "2027-06-30"）
+   - warranty: 家電設備保固倒數（如冷氣保固 warrantyDate: "2029-05-01"）
+
+# 全維度進階特殊搜尋 (Special Search Matrix)
+端點: GET /items
+- 缺貨/備品用罄: ?status=out_of_stock 或 ?stockStatus=out_of_stock
+- 現存備品盤點: ?status=in_stock 或 ?stockStatus=in_stock&sortBy=backupStock&sortOrder=desc
+- 待採購清單: ?status=needs_restock (備品不足或當前用量見底)
+- 今天到期: ?status=due_today
+- 已逾期: ?status=overdue
+- 短期到期 (自訂天數): ?status=due_soon&dueWithinDays=3 (支援 3, 7, 14, 30 天)
+- 使用中容量已耗盡: ?status=quantity_depleted
+- 純備品存放在庫: ?isStored=true
+- 時間區間 (YYYY-MM-DD): ?dueAfter=2026-10-01&dueBefore=2026-10-31
+- 排序: ?sortBy=dueDate|backupStock|quantity|price&sortOrder=asc|desc
+- 回應 summary 涵蓋 10 項全局指標 (total, overdue, dueToday, dueSoon, lowStock, outOfStock, inStock, quantityDepleted, needsRestock, stored)
+
+# 核心端點
+1. 查詢耗材: GET /items (支援上述豐富特殊搜尋篩選)
+2. 查詢範本: GET /presets?q=關鍵字
+3. 建立耗材: POST /items (支援 presetId 或手動指定 trackingMode 各欄位)
+4. 記錄更換: POST /items/:id/replace (重設使用週期並自動扣減備品 1 件)
+5. 採購補貨: POST /items/:id/restock (增加備品庫存 { delta: 2, note: "採購備註" })
+6. 記錄用量: POST /items/:id/consume (扣減當前使用量 { amount: 2 })
+7. 空間列表: GET /stocks
+
+# 助理行為規則
+- 使用者詢問「有什麼快沒了或該換了」，調用 GET /items?status=needs_restock 或 ?status=due_soon。
+- 使用者詢問「今天有什麼要換」，調用 GET /items?status=due_today。
+- 使用者詢問「家裡抽屜還有什麼備品」，調用 GET /items?status=in_stock&sortBy=backupStock&sortOrder=desc。
+- 使用者說「買了/補貨了」，調用 POST /items/:id/restock。
+- 使用者說「剛換了新的」，調用 POST /items/:id/replace。
+- 使用者說「吃了/用了一份」，調用 POST /items/:id/consume。`;
+  }, []);
+
   useEffect(() => {
     if ('Notification' in window) {
       setPushStatus(Notification.permission);
@@ -93,8 +187,67 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       api.getSettings()
         .then((res) => setSettings((prev) => ({ ...prev, ...res.settings })))
         .catch((err) => console.error(err));
+
+      setLoadingKeys(true);
+      api.listApiKeys()
+        .then((res) => setApiKeys(res.keys || []))
+        .catch((err) => console.error('Failed to load api keys:', err))
+        .finally(() => setLoadingKeys(false));
+
+      api.getStocks()
+        .then((res) => setStockSpaces(res.stocks || []))
+        .catch(() => {});
     }
   }, [user]);
+
+  const handleCreateApiKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (creatingKey) return;
+    setCreatingKey(true);
+    try {
+      const res = await api.createApiKey(
+        newKeyName.trim() || (locale === 'zh-TW' ? '我的 AI Agent' : 'My AI Agent'),
+        newKeyStockId || undefined
+      );
+      setApiKeys((prev) => [
+        {
+          id: res.apiKey.id,
+          name: res.apiKey.name,
+          keyPrefix: res.apiKey.keyPrefix,
+          stockId: res.apiKey.stockId,
+          scopes: res.apiKey.scopes,
+          createdAt: res.apiKey.createdAt,
+          lastUsedAt: res.apiKey.lastUsedAt,
+          isRevoked: false,
+        },
+        ...prev,
+      ]);
+      setCreatedSecret({ rawKey: res.rawKey, name: res.apiKey.name });
+      setShowCreateKeyModal(false);
+      setNewKeyName('');
+      setNewKeyStockId('');
+    } catch (err: any) {
+      alert(err.message || '建立 API Key 失敗');
+    } finally {
+      setCreatingKey(false);
+    }
+  };
+
+  const handleRevokeApiKey = async (id: string, name: string) => {
+    const msg =
+      locale === 'zh-TW'
+        ? `確定要廢止金鑰「${name}」嗎？\n廢止後，所有使用此金鑰的外部 AI 助理將立即無法存取資料。`
+        : `Revoke API key "${name}"? External AI agents using this key will immediately lose access.`;
+    if (!confirm(msg)) return;
+
+    try {
+      await api.revokeApiKey(id);
+      setApiKeys((prev) => prev.filter((k) => k.id !== id));
+      alert(locale === 'zh-TW' ? '金鑰已成功廢止' : 'API Key revoked successfully');
+    } catch (err: any) {
+      alert(err.message || '廢止金鑰失敗');
+    }
+  };
 
   const handleToggleSetting = async (key: keyof UserNotificationSettings, value: any) => {
     setSettings((prev) => {
@@ -520,6 +673,325 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* 3.5. AI Agent 連動與 API Key */}
+      <div className="app-surface border p-4 rounded-2xl space-y-4 shadow-sm">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="app-primary-soft w-9 h-9 rounded-xl border flex items-center justify-center shrink-0">
+              <Bot className="w-4 h-4 text-[var(--app-accent-strong)]" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="ui-item-title text-[var(--app-text)] truncate">AI Agent 連動與 API Key</h3>
+              <p className="ui-meta text-[var(--app-muted)] truncate">串接 ChatGPT Actions、Claude、Cursor、Antigravity</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowCreateKeyModal(true)}
+            className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-3.5 rounded-xl shadow-xs text-xs font-bold transition-transform active:scale-95 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>建立新金鑰</span>
+          </button>
+        </div>
+
+        <p className="ui-body text-[var(--app-muted)] leading-relaxed text-xs sm:text-sm">
+          產生個人專屬 Bearer Token，讓外部 AI 助理直接查詢耗材狀態、新增備忘、一鍵記錄今日已換或扣減日常用量。
+        </p>
+
+        {/* API Key List */}
+        <div className="space-y-2 pt-1">
+          <div className="flex items-center justify-between px-1">
+            <span className="ui-meta text-[var(--app-muted)] font-bold text-xs">已啟用的 API 金鑰</span>
+            {loadingKeys && <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--app-muted)]" />}
+          </div>
+
+          {apiKeys.length === 0 ? (
+            <div className="bg-[var(--app-surface-subtle)] border border-dashed border-[var(--app-border)] p-4 rounded-xl text-center space-y-1">
+              <p className="ui-meta text-[var(--app-muted)] text-xs">
+                尚未建立任何 API Key。點擊右上角「建立新金鑰」開始串接！
+              </p>
+            </div>
+          ) : (
+            apiKeys.map((k) => (
+              <div
+                key={k.id}
+                className="app-surface-subtle border p-3 rounded-xl flex items-center justify-between gap-2"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Key className="w-4 h-4 text-[var(--app-accent-strong)] shrink-0" />
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="ui-item-title text-[var(--app-text)] text-sm font-semibold truncate block">
+                        {k.name}
+                      </span>
+                      <code className="text-[11px] px-1.5 py-0.5 rounded bg-[var(--app-surface)] border border-[var(--app-border)] text-[var(--app-muted)] font-mono">
+                        {k.keyPrefix}
+                      </code>
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-[var(--app-muted)]">
+                      <span>建立：{k.createdAt ? businessDate(new Date(k.createdAt)) : '-'}</span>
+                      <span>·</span>
+                      <span>{k.lastUsedAt ? `上次使用：${businessDate(new Date(k.lastUsedAt))}` : '尚未調用'}</span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRevokeApiKey(k.id, k.name)}
+                  aria-label={`廢止 ${k.name} 的 API Key`}
+                  className="app-control ui-button min-h-10 min-w-10 flex items-center justify-center rounded-xl border hover:border-rose-500 text-[var(--app-muted)] hover:text-rose-600 shrink-0 transition-colors"
+                  title="廢止此金鑰"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Integration Instructions Card with Dual Tabs */}
+        <div className="bg-[var(--app-surface-subtle)] border border-[var(--app-border)] rounded-2xl p-3.5 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="ui-meta font-bold text-[var(--app-text)] text-xs flex items-center gap-1.5">
+              <Terminal className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
+              <span>外部 AI 助理串接指引</span>
+            </span>
+            <div className="flex bg-[var(--app-surface)] border border-[var(--app-border)] rounded-lg p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setAgentTab('chatgpt')}
+                className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                  agentTab === 'chatgpt'
+                    ? 'app-primary text-xs shadow-xs font-bold'
+                    : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                }`}
+              >
+                ChatGPT Actions
+              </button>
+              <button
+                type="button"
+                onClick={() => setAgentTab('claude_cursor')}
+                className={`px-2.5 py-1 rounded-md font-medium transition-all ${
+                  agentTab === 'claude_cursor'
+                    ? 'app-primary text-xs shadow-xs font-bold'
+                    : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                }`}
+              >
+                Claude / Cursor Prompt
+              </button>
+            </div>
+          </div>
+
+          {agentTab === 'chatgpt' ? (
+            <div className="space-y-2.5 text-xs text-[var(--app-muted)]">
+              <p className="leading-relaxed">
+                在 ChatGPT「My GPTs」&gt;「Configure」&gt;「Actions」點擊 <strong>Import from URL</strong>，輸入下方 OpenAPI 網址；認證選擇 <strong>API Key</strong>（Bearer），貼入您的金鑰即可：
+              </p>
+              <div className="flex items-center gap-1.5 bg-[var(--app-surface)] border border-[var(--app-border)] p-2 rounded-xl">
+                <code className="text-[11px] font-mono select-all break-all flex-1 text-[var(--app-text)]">
+                  {typeof window !== 'undefined' ? `${window.location.origin}/api/v1/openapi.json` : 'https://afterbuy.david888.com/api/v1/openapi.json'}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = typeof window !== 'undefined' ? `${window.location.origin}/api/v1/openapi.json` : 'https://afterbuy.david888.com/api/v1/openapi.json';
+                    navigator.clipboard.writeText(url);
+                    setCopiedOpenApi(true);
+                    setTimeout(() => setCopiedOpenApi(false), 2000);
+                  }}
+                  className="app-control ui-button min-h-8 px-2.5 rounded-lg border hover:border-[var(--app-accent)] shrink-0 flex items-center gap-1"
+                >
+                  {copiedOpenApi ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedOpenApi ? '已複製' : '複製 URL'}</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2.5 text-xs text-[var(--app-muted)]">
+              <p className="leading-relaxed">
+                將以下 Prompt 貼至 Claude Projects、Cursor Rules 或自訂 Agent System Prompt，即可讓 LLM 理解 afterBUY 的資料結構與調用方式：
+              </p>
+              <div className="relative bg-[var(--app-surface)] border border-[var(--app-border)] p-3 rounded-xl max-h-56 overflow-y-auto font-mono text-[11px] leading-relaxed text-[var(--app-text)] select-all whitespace-pre-wrap">
+                {systemPromptText}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(systemPromptText);
+                  setCopiedPrompt(true);
+                  setTimeout(() => setCopiedPrompt(false), 2000);
+                }}
+                className="w-full app-control ui-button min-h-9 flex items-center justify-center gap-1.5 rounded-xl border hover:border-[var(--app-accent)] font-semibold transition-transform active:scale-95"
+              >
+                {copiedPrompt ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-[var(--app-accent-strong)]" />}
+                <span>{copiedPrompt ? 'Prompt 已複製至剪貼簿！' : '一鍵複製完整 System Prompt'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* Quick doc link */}
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--app-border)] text-[11px]">
+            <a
+              href="/skill.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--app-accent-strong)] hover:underline inline-flex items-center gap-1 font-semibold"
+            >
+              <span>Agent Skill.md</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+            <a
+              href="/llms.txt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--app-muted)] hover:text-[var(--app-text)] inline-flex items-center gap-1 font-medium"
+            >
+              <span>llms.txt</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+            <a
+              href="/api/v1/openapi.json"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[var(--app-muted)] hover:text-[var(--app-text)] inline-flex items-center gap-1"
+            >
+              <span>OpenAPI 3.1 JSON</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal: 建立新 API Key */}
+      {showCreateKeyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm modal-backdrop-animate">
+          <div className="app-surface border border-[var(--app-border)] rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-xl">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl app-primary-soft border flex items-center justify-center shrink-0">
+                <Key className="w-4 h-4 text-[var(--app-accent-strong)]" />
+              </div>
+              <div>
+                <h3 className="ui-item-title text-[var(--app-text)]">建立 AI Agent API Key</h3>
+                <p className="ui-meta text-[var(--app-muted)] text-xs">授權外部助理讀寫耗材資料</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateApiKey} className="space-y-3.5">
+              <div>
+                <label className="ui-meta text-[var(--app-muted)] text-xs block mb-1 font-medium">
+                  金鑰名稱 / 用途
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="例如：ChatGPT GPTs, Cursor, 個人助理"
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
+                  className="w-full min-h-11 px-3.5 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] placeholder-[var(--app-muted-low)] text-sm focus:outline-none focus:border-[var(--app-accent)]"
+                />
+              </div>
+
+              {stockSpaces.length > 0 && (
+                <div>
+                  <label className="ui-meta text-[var(--app-muted)] text-xs block mb-1 font-medium">
+                    綁定空間（可選）
+                  </label>
+                  <select
+                    value={newKeyStockId}
+                    onChange={(e) => setNewKeyStockId(e.target.value)}
+                    className="w-full min-h-11 px-3.5 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] text-sm focus:outline-none focus:border-[var(--app-accent)]"
+                  >
+                    <option value="">全部空間（預設無限制）</option>
+                    {stockSpaces.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.icon} {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateKeyModal(false);
+                    setNewKeyName('');
+                    setNewKeyStockId('');
+                  }}
+                  className="flex-1 app-control ui-button min-h-11 rounded-xl border text-sm font-semibold"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  disabled={creatingKey}
+                  className="flex-1 app-primary ui-button min-h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  {creatingKey ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>立即建立</span>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: 一次性金鑰顯示 */}
+      {createdSecret && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm modal-backdrop-animate">
+          <div className="app-surface border border-[var(--app-border)] rounded-2xl p-5 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="ui-item-title text-[var(--app-text)]">API Key 已建立成功！</h3>
+                <p className="ui-meta text-[var(--app-muted)] text-xs">金鑰名稱：{createdSecret.name}</p>
+              </div>
+            </div>
+
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-800 dark:text-amber-300 text-xs leading-relaxed space-y-1">
+              <div className="font-bold">⚠️ 請立即複製並保存此金鑰</div>
+              <p>
+                為了安全保護，<strong>完整金鑰只會顯示這一次</strong>。關閉此視窗後您將無法再次查看完整金鑰！
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="p-3 bg-black/90 text-emerald-400 font-mono text-xs break-all select-all rounded-xl border border-emerald-500/30 shadow-inner">
+                {createdSecret.rawKey}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(createdSecret.rawKey);
+                  setCopiedRawKey(true);
+                  setTimeout(() => setCopiedRawKey(false), 2000);
+                }}
+                className="w-full app-primary ui-button min-h-11 flex items-center justify-center gap-1.5 rounded-xl font-bold text-sm shadow-xs transition-transform active:scale-95"
+              >
+                {copiedRawKey ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                <span>{copiedRawKey ? '金鑰已成功複製！' : '複製完整金鑰'}</span>
+              </button>
+            </div>
+
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setCreatedSecret(null);
+                  setCopiedRawKey(false);
+                }}
+                className="w-full app-control ui-button min-h-11 rounded-xl border font-semibold text-sm hover:border-[var(--app-accent)]"
+              >
+                我已妥善儲存金鑰（關閉視窗）
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 4. Notification Settings (Matching Reference Design) */}
       <div className="space-y-3">

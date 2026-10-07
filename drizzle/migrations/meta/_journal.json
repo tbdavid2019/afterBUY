@@ -43,6 +43,13 @@
       "when": 1791351111742,
       "tag": "0005_narrow_weapon_omega",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791352710052,
+      "tag": "0006_narrow_patch",
+      "breakpoints": true
     }
   ]
 }

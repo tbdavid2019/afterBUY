@@ -1,4 +1,5 @@
 import { UserSession } from '../shared/types.ts';
+import type { ApiKey } from './db/schema.ts';
 
 export interface Bindings {
   DB?: D1Database;
@@ -18,6 +19,7 @@ export interface Bindings {
 
 export interface Variables {
   user?: UserSession;
+  apiKey?: ApiKey;
 }
 
 export interface HonoEnv {

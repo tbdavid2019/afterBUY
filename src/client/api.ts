@@ -398,5 +398,50 @@ export const api = {
       method: 'DELETE',
     });
   },
+
+  // --- API Keys API ---
+  async listApiKeys(): Promise<{
+    keys: Array<{
+      id: string;
+      name: string;
+      keyPrefix: string;
+      stockId: string | null;
+      scopes: string[];
+      createdAt: string;
+      lastUsedAt: string | null;
+      isRevoked: boolean;
+    }>;
+  }> {
+    return request('/keys');
+  },
+
+  async createApiKey(
+    name: string,
+    stockId?: string
+  ): Promise<{
+    apiKey: {
+      id: string;
+      name: string;
+      keyPrefix: string;
+      stockId: string | null;
+      scopes: string[];
+      createdAt: string;
+      lastUsedAt: string | null;
+    };
+    rawKey: string;
+    message: string;
+  }> {
+    return request('/keys', {
+      method: 'POST',
+      body: JSON.stringify({ name, stockId: stockId || null }),
+    });
+  },
+
+  async revokeApiKey(id: string): Promise<{ success: boolean; message: string }> {
+    return request(`/keys/${id}`, {
+      method: 'DELETE',
+    });
+  },
 };
+
 

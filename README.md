@@ -75,6 +75,19 @@
   - **語意化雙色主題系統（Theme Design Tokens）**：全站樣式全面綁定語意化 CSS 設計代碼（`--app-*`），光暗對比分明溫潤，杜絕色塊錯亂或文字辨識不清。
   - **單手舒適操作與峰值體驗反饋**：專為單手操作設計的底部導覽列（含 iOS 安全邊界 `pb-safe`）、頂層 Portal 模態抽屜、清楚的生命週期進度條，以及更換與啟用時的愉悅成就感微動效。
   - 常用物品範本提供統一的無品牌生活物品圖片，並支援在物品卡片中顯示自訂實體照片。
+9. **AI Agent Skill 整合與個人 API Key（ChatGPT Actions / Claude / Cursor / OpenAPI 3.1）**：
+  - **個人 API Key 管理**：在設定頁支援建立、檢視與撤銷加鹽 API 金鑰（`ab_live_<64hex>`，資料庫僅存 SHA-256 雜湊，建立當下一次性顯示），支援 `read_write` 與 `read_only` Scope，並可依備品空間限制存取範圍（`stockId` Scope）。
+  - **全維度特殊搜尋與過濾引擎（`GET /api/v1/items`）**：
+    - 精準狀態：`status=out_of_stock`（缺貨/備品見底）、`in_stock`（現存備品充足）、`needs_restock`（待採購清單）、`due_today`（今天到期）、`due_soon`（自訂天數窗口）、`quantity_depleted`（使用中容量已空）、`stored`、`snoozed` 等。
+    - 獨立備品庫存篩選（`stockStatus: in_stock | out_of_stock | low_stock`），可與任意到期狀態交集複合查詢。
+    - 自訂到期窗口天數（`dueWithinDays: 3 | 7 | 14 | 30`）。
+    - 台灣業務日時間區間（`dueBefore`, `dueAfter`, `startedBefore`, `startedAfter`）、多欄位排序（`sortBy`, `sortOrder`）與 10 項全局指標回應概要（`summary`）。
+  - **強制先驗對齊協定 (Pre-flight Alignment Protocol) 與固定 Canonical URLs**：
+    - 固定端點：[`/skill.md`](https://afterbuy.david888.com/skill.md)、[`/llms.txt`](https://afterbuy.david888.com/llms.txt)、[`/llms-full.txt`](https://afterbuy.david888.com/llms-full.txt)、[`/api/v1/openapi.json`](https://afterbuy.david888.com/api/v1/openapi.json)。
+    - 要求各類 LLM Agent 在每次會話啟動或操作前，必須先調用 `GET /skill.md` 或 `/openapi.json` 進行能力與搜尋參數對齊，避免使用過期欄位。
+  - **語意化 Agent REST API（`/api/v1/*`）**：提供範本庫檢索（`GET /api/v1/presets`）、新增耗材（支援 `presetId` 推薦參數自動帶入）、採購補貨（`POST /api/v1/items/:id/restock` 增減未開封備品）、今日已換（`replace` 自動扣庫存）、記錄用量（`consume` 扣減當前容量）、空間清單等高階操作。
+  - **核心概念分明**：明確區分「抽屜裡的未開封備品庫存（`backupStock`）」與「正在使用中的那罐容量（`currentQuantity`）」，支援五大追蹤模式（`cycle` 循環週期、`quantity` 用量耗用率、`pao` 開封保期、`expiry` 有效期限、`warranty` 保固）。
+  - **設定頁一鍵產生 Prompt**：提供 ChatGPT Actions 與 Claude / Cursor 專屬 System Prompt 一鍵複製功能，免去手動拼湊提示詞的繁瑣步驟。
 
 ---
 
@@ -111,10 +124,12 @@
 
 ---
 
-## 🤖 LLMs.txt 規範支援
+## 🤖 LLMs.txt 與 AI Agent 規範支援
 
-本專案原生支援 [llmstxt.org](https://llmstxt.org/) 規範，提供結構化的 Markdown 摘要與完整規格：
+本專案原生支援 [llmstxt.org](https://llmstxt.org/) 規範與標準 AI Agent Skill，提供結構化的 Markdown 摘要與完整規格：
 
+- **Agent Skill 規範**：[`/skill.md`](./public/skill.md)
+- **OpenAPI 3.1 規範**：[`/api/v1/openapi.json`](https://afterbuy.david888.com/api/v1/openapi.json)
 - **快速導覽**：[`/llms.txt`](./public/llms.txt)
 - **完整規格與 API 手冊**：[`/llms-full.txt`](./public/llms-full.txt)
 

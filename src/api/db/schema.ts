@@ -119,6 +119,19 @@ export const notificationSettings = sqliteTable('notification_settings', {
   updatedAt: text('updated_at').notNull(),
 });
 
+export const apiKeys = sqliteTable('api_keys', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id),
+  name: text('name').notNull(),
+  keyPrefix: text('key_prefix').notNull(),
+  keyHash: text('key_hash').notNull().unique(),
+  stockId: text('stock_id').references(() => stocks.id),
+  scopes: text('scopes').notNull().default('read,write'),
+  createdAt: text('created_at').notNull(),
+  lastUsedAt: text('last_used_at'),
+  revokedAt: text('revoked_at'),
+});
+
 export type User = typeof users.$inferSelect;
 export type PasskeyCredential = typeof passkeyCredentials.$inferSelect;
 export type Stock = typeof stocks.$inferSelect;
@@ -128,4 +141,6 @@ export type Item = typeof items.$inferSelect;
 export type ItemHistory = typeof itemHistory.$inferSelect;
 export type PushSubscription = typeof pushSubscriptions.$inferSelect;
 export type NotificationSettings = typeof notificationSettings.$inferSelect;
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
 

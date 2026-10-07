@@ -7,6 +7,52 @@
 ## 2026-10-07
 
 ### Added
+- **AI Agent Skill 規範與 OpenAPI 3.1 規格（`public/skill.md`, `GET /api/v1/openapi.json`）**：
+  - 打造標準化 Agent Skill Markdown 檔案（`public/skill.md`），供 ChatGPT Actions、Claude Projects、Cursor、Open WebUI 與 Antigravity 快速掛載使用。
+  - 提供完整 OpenAPI 3.1.0 規範（`/api/v1/openapi.json`），支援 ChatGPT Custom GPTs 一鍵匯入 Action。
+  - 同步更新 `/llms.txt` 與 `public/llms-full.txt` 納入 LLM Developer APIs 與外部 Agent 連動指南。
+- **個人 API Key 管理機制（`api_keys` 表與 `/api/keys` 端點）**：
+  - 產生 72 字元加鹽金鑰（`ab_live_<64hex>`），資料庫僅存放 SHA-256 單向雜湊，原始明文金鑰僅於建立當下顯示一次。
+  - 支援空間範圍隔離（`stockId` Scope），外部 Agent 可限制僅能讀寫特定空間（如「辦公室」或「客廳」）。
+  - 金鑰管理端點（`/api/keys`）嚴格限定瀏覽器 Session 操作，防止 API Key 權限自我提權與橫向越權。
+- **全維度特殊搜尋與過濾引擎（`GET /api/v1/items`）**：
+  - 支援針對自然語言對話情境的豐富特殊搜尋：
+    - `status`: `out_of_stock`（缺貨/備品用罄）、`in_stock`（現存備品充足）、`needs_restock`（待採購清單：備品不足或當前容量為 0）、`due_today`（今天到期）、`due_soon`（即將到期）、`quantity_depleted`（使用中容量已空）、`normal`、`stored`、`snoozed` 等。
+    - `stockStatus`: 獨立備品庫存篩選（`in_stock`, `out_of_stock`, `low_stock`），可與任意到期狀態複合查詢（如快到期且抽屜有備品）。
+    - `dueWithinDays`: 自訂到期天數窗口（如 `dueWithinDays=3` 查詢 3 天內到期耗材）。
+    - 時間區間：支援 `dueBefore`, `dueAfter`, `startedBefore`, `startedAfter`（以台灣業務日 `YYYY-MM-DD` 篩選）。
+    - 排序與分頁：支援 `sortBy`（`dueDate`, `backupStock`, `quantity`, `startDate`, `name`, `price`）與 `sortOrder`（`asc`, `desc`）。
+    - 全局指標概要：每筆回應頂層均包含 10 項指標之 `summary`（`total`, `overdue`, `dueToday`, `dueSoon`, `lowStock`, `outOfStock`, `inStock`, `quantityDepleted`, `needsRestock`, `stored`），Agent 單次請求即可洞察全局。
+- **固定 Canonical URLs 與強制先驗對齊協定 (Pre-flight Alignment Protocol)**：
+  - 固定存取規範：`https://afterbuy.david888.com/skill.md`（完整技能與搜尋矩陣）、`https://afterbuy.david888.com/llms.txt`（精簡速查）、`https://afterbuy.david888.com/llms-full.txt`（完整系統架構）與 `https://afterbuy.david888.com/api/v1/openapi.json`（OpenAPI 3.1 規範）。
+  - 明確要求所有 LLM Agent 在每次會話啟動或操作前，必須先調用 `GET /skill.md` 或 `/openapi.json` 進行能力與搜尋參數對齊，徹底避免使用過期欄位。
+- **安全性與權限強化（Codex 審查落實）**：
+  - **API Key Scope 嚴格阻擋**：唯讀金鑰（`read_only`）在進行任何寫入操作（`POST`, `PATCH`, `DELETE`）時立即回傳 `403 Forbidden`。
+  - **共享備品空間 RBAC 管控**：`viewer` 角色無法執行任何變更操作；`member` 角色無法刪除其他成員所建立之物品。
+- **Agent 專屬語意化 REST API（`/api/v1/*`）**：
+  - `GET /api/v1/items`：支援狀態篩選（`all`, `overdue`, `due_today`, `due_soon`, `low_stock`, `out_of_stock`, `in_stock`, `needs_restock`, `quantity_depleted`, `normal`）、關鍵字搜尋（`q`）、分類過濾，並嚴格校驗使用者所屬空間權限，防止 IDOR 跨空間洩漏。
+  - `POST /api/v1/items`：建立耗材項目，自動帶入預設空間並依台灣業務日計算到期日。
+  - `GET /api/v1/items/:id`：查詢單項詳情並附帶最近 10 筆歷史更換記錄。
+  - `PATCH /api/v1/items/:id` & `DELETE /api/v1/items/:id`：部分更新與軟刪除。
+  - `POST /api/v1/items/:id/replace`：一鍵記錄今日已換，備品庫存 > 0 時自動扣減 1；備品為 0 時仍正常刷新週期並回傳低庫存補貨警告。
+  - `POST /api/v1/items/:id/consume`：消耗用量記錄，同時支援 `amount` 與 `count` 參數，數量歸零時自動鉗制不為負數。
+  - `POST /api/v1/items/:id/restock`：採購補充備品庫存端點，支援傳入增量 `delta`（如 `{ delta: 2 }`）或指定絕對數量 `backupStock`，自動記入異動歷史並刷新庫存不足警示。
+  - `GET /api/v1/presets`：公開常用耗材範本庫端點，支援以關鍵字搜尋或分類查詢 30+ 款台灣家庭常備耗材（如好市多 150 顆魚油、Brita 濾芯、衛生紙、日拋隱眼等）。`POST /api/v1/items` 原生支援 `presetId` 一鍵帶入推薦預設值。
+  - `GET /api/v1/stocks`：安全列出使用者所屬備品空間，徹底過濾並隱藏 `calendarToken`，防止日曆金鑰洩漏。
+- **核心業務概念徹底釐清與全平台同步（`skill.md`、`llms-full.txt`、`SettingsView`）**：
+  - **備品庫存（`backupStock`）**：存放於儲藏櫃、抽屜之未拆封備用數量。更換時扣減 1；採購補貨時增加。
+  - **使用中容量（`currentQuantity` / `initialQuantity`）**：當前開啟用中那罐/包的剩餘量。日常消耗時扣減；整罐用完換新時重設為滿量。
+  - **五大追蹤模式（`trackingMode`）**：完整定義並支援 `cycle`（循環週期）、`quantity`（用量倒數，如魚油 150 顆/每日 2 顆）、`pao`（開封後保期）、`expiry`（有效期限）、`warranty`（家電保固）。
+- **雙模式認證中介層（`authMiddleware`）與嚴格邊界防護**：
+  - 支援 Cookie Session 與 `Authorization: Bearer ab_live_...` 雙軌驗證，具備 5 分鐘 Debounce 非阻塞更新 `lastUsedAt`。
+  - 嚴格限制 API Key 僅能訪問 `/api/v1/*` 外部接口，禁止存取內部端點與金鑰管理。
+- **設定頁「AI Agent 連動與 API Key」專屬面板（`SettingsView`）**：
+  - 提供 API Key 建立、列表檢視（顯示前綴遮罩與上次使用日期）與廢止撤銷功能。
+  - 具備一次性安全彈窗提示使用者複製保管原始金鑰。
+  - 內建雙分頁 Prompt 產生器：
+    - **ChatGPT GPT Actions**：一鍵複製 OpenAPI URL 與三步驟設定指引。
+    - **Claude / Cursor / 外部 Agent**：一鍵複製完整 System Prompt，直接賦予各類 LLM Agent 完整的 afterBUY 耗材管理能力。
+  - 提供 `/skill.md` 與 `/api/v1/openapi.json` 快速跳轉連結。
 - **常用耗材範本庫（`PresetCatalogModal`）**：
   - 徹底解決原先橫向列表無法搜尋與分類之痛點，打造專屬範本瀏覽與搜尋彈窗。
   - **即時全文搜尋與分類切換**：支援即時搜尋物品名稱、備註說明與規格，提供衛浴、廚房、保健、保養、家電、穿戴、3C、生活等 8 大分類快速篩選。
@@ -38,6 +84,11 @@
   - 設定頁（`SettingsView`）新增「這版新增」與「常用範本庫」入口。
 
 ### Fixed
+- **經由 Codex 深度 Code Review 發現並修復之 4 項核心安全與相容性問題**：
+  1. **[P1] 嚴格限制 API Key 存取邊界**：禁止 API Key 呼叫非 `/api/v1/*` 內部路由，避免金鑰權限外溢至金鑰管理與 Session 專屬端點。
+  2. **[P1] 消除 `GET /api/v1/items` 跨空間越權存取（IDOR）**：補齊 `requestedStockId` 與使用者空間成員資格（`accessibleStockIds`）之嚴格校驗，防止外部調用者透過特定 stockId 探測其他使用者之耗材。
+  3. **[P2] 修正金鑰列表屬性命名差異**：修復後端回傳 `{ apiKeys }` 與前端期待之 `{ keys }` 不一致問題，使前端設定頁能即時展示已建立金鑰列表。
+  4. **[P2] 統一消耗端點參數命名**：`POST /api/v1/items/:id/consume` 同時相容 `amount` 與 `count` 參數，與公開之 Agent Skill.md 規格完全吻合。
 - **修復新增物品彈窗點擊 X 無法關閉之嚴重阻礙（`ItemModal` Trapped Issue）**：
   - 補齊 `ItemModal.tsx` 遺漏之 `if (!isOpen) return null;` 判斷式，徹底解決因元件常駐 DOM 導致點擊右上角 `X` 關閉按鈕無效、遮罩阻擋無法進入看板主畫面之嚴重問題。
   - 同步支援外層半透明遮罩點擊關閉與鍵盤 `Escape` 鍵退出。
