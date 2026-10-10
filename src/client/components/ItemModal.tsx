@@ -1097,96 +1097,229 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
             {trackingMode === 'quantity' && (
               <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block ui-label font-medium text-[var(--app-text)] mb-1">
-                      單瓶 / 包總容量 *
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      placeholder="例如：60"
-                      value={initialQuantity}
-                      onChange={(e) => setInitialQuantity(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
-                    />
-                  </div>
-                  <div>
-                    <label className="block ui-label font-medium text-[var(--app-text)] mb-1">
-                      每日平均耗用率 *
-                    </label>
-                    <input
-                      type="number"
-                      min="0.01"
-                      step="any"
-                      required
-                      placeholder="例如：2"
-                      value={dailyUsage}
-                      onChange={(e) => setDailyUsage(e.target.value === '' ? '' : Math.max(0.01, parseFloat(e.target.value) || 1))}
-                      className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
-                    />
-                  </div>
-                </div>
+                {(() => {
+                  const capacityLabel = quantityUnit === '抽'
+                    ? '單包總抽數 *'
+                    : quantityUnit === '蓋'
+                    ? '單瓶總量 (瓶蓋次數) *'
+                    : quantityUnit === '次'
+                    ? '單件總使用次數 *'
+                    : quantityUnit === '片'
+                    ? '單盒總片數 *'
+                    : ['顆', '錠'].includes(quantityUnit)
+                    ? '單瓶 / 單盒總量 *'
+                    : '單瓶 / 包總容量 *';
 
-                {/* Unit picker & Custom input */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="ui-label font-medium text-[var(--app-text)]">計算單位</label>
-                    <span className="ui-meta text-[var(--app-muted)]">點擊快選或自訂</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 items-center">
-                    {['顆', '錠', '包', '個', '片', '入', '抽', '次', '捲'].map((u) => (
-                      <button
-                        key={u}
-                        type="button"
-                        onClick={() => setQuantityUnit(u)}
-                        className={`min-h-8 px-2.5 ui-button rounded-lg border text-xs ${
-                          quantityUnit === u ? 'app-primary font-bold shadow-sm' : 'app-control'
-                        }`}
-                      >
-                        {u}
-                      </button>
-                    ))}
-                    <input
-                      type="text"
-                      placeholder="自訂"
-                      value={['顆', '錠', '包', '個', '片', '入', '抽', '次', '捲'].includes(quantityUnit) ? '' : quantityUnit}
-                      onChange={(e) => setQuantityUnit(e.target.value)}
-                      className="w-16 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg px-2 min-h-8 text-xs text-[var(--app-text)] outline-none text-center"
-                    />
-                  </div>
-                </div>
+                  const usageLabel = quantityUnit === '抽'
+                    ? '每日平均耗用 (抽) *'
+                    : quantityUnit === '蓋'
+                    ? '每日平均耗用 (蓋) *'
+                    : quantityUnit === '次'
+                    ? '每日平均次數 *'
+                    : '每日平均耗用率 *';
 
-                {/* Current remaining override (optional) */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="ui-label font-medium text-[var(--app-text)]">
-                      目前開瓶現存剩餘（選填）
-                    </label>
-                    <span className="ui-meta text-[var(--app-muted)]">留空則依起始日天數自動扣減</span>
-                  </div>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder={`預設自動計算（新開即滿 ${initialQuantity || 60} ${quantityUnit}）`}
-                    value={currentQuantity}
-                    onChange={(e) => setCurrentQuantity(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
-                    className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums placeholder:text-[var(--app-muted-low)]"
-                  />
-                </div>
+                  const containerWord = ['抽', '包'].includes(quantityUnit)
+                    ? '單包'
+                    : ['蓋', 'ml', '毫升'].includes(quantityUnit)
+                    ? '單瓶'
+                    : ['顆', '錠', '片'].includes(quantityUnit)
+                    ? '單盒'
+                    : '單件';
 
-                {/* Live estimation hint */}
-                {Number(initialQuantity) > 0 && Number(dailyUsage) > 0 && (
-                  <div className="app-primary-soft border border-[var(--app-accent)]/20 rounded-xl px-3 py-2 ui-meta flex items-center justify-between">
-                    <span className="text-[var(--app-text)]">
-                      💡 單盒 {initialQuantity} {quantityUnit} ÷ 每天 {dailyUsage} {quantityUnit}
-                    </span>
-                    <span className="font-bold text-[var(--app-accent-strong)] tabular-nums">
-                      約可使用 {Math.ceil(Number(initialQuantity) / Number(dailyUsage))} 天
-                    </span>
-                  </div>
-                )}
+                  const isTissue = quantityUnit === '抽' || name.includes('衛生紙') || name.includes('面紙');
+                  const isDetergent = quantityUnit === '蓋' || name.includes('洗衣精') || name.includes('洗碗精');
+
+                  return (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block ui-label font-medium text-[var(--app-text)] mb-1">
+                            {capacityLabel}
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            required
+                            placeholder={quantityUnit === '抽' ? '例如：120' : quantityUnit === '蓋' ? '例如：30' : '例如：60'}
+                            value={initialQuantity}
+                            onChange={(e) => setInitialQuantity(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
+                          />
+                          {isTissue && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {[
+                                { label: '100抽', val: 100 },
+                                { label: '120抽 (好市多/一般)', val: 120 },
+                                { label: '250抽 (懸掛式)', val: 250 },
+                                { label: '1100抽 (大包懸掛)', val: 1100 },
+                              ].map((chip) => (
+                                <button
+                                  key={chip.val}
+                                  type="button"
+                                  onClick={() => {
+                                    setInitialQuantity(chip.val);
+                                    setQuantityUnit('抽');
+                                  }}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] sm:text-xs border transition-colors ${
+                                    initialQuantity === chip.val ? 'app-primary font-bold shadow-xs' : 'app-control'
+                                  }`}
+                                >
+                                  {chip.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {isDetergent && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {[
+                                { label: '30蓋 (約30次)', val: 30 },
+                                { label: '40蓋', val: 40 },
+                                { label: '50蓋 (大容量)', val: 50 },
+                              ].map((chip) => (
+                                <button
+                                  key={chip.val}
+                                  type="button"
+                                  onClick={() => {
+                                    setInitialQuantity(chip.val);
+                                    setQuantityUnit('蓋');
+                                  }}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] sm:text-xs border transition-colors ${
+                                    initialQuantity === chip.val ? 'app-primary font-bold shadow-xs' : 'app-control'
+                                  }`}
+                                >
+                                  {chip.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block ui-label font-medium text-[var(--app-text)] mb-1">
+                            {usageLabel}
+                          </label>
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="any"
+                            required
+                            placeholder={quantityUnit === '抽' ? '例如：10' : quantityUnit === '蓋' ? '例如：1' : '例如：2'}
+                            value={dailyUsage}
+                            onChange={(e) => setDailyUsage(e.target.value === '' ? '' : Math.max(0.01, parseFloat(e.target.value) || 1))}
+                            className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
+                          />
+                          {isTissue && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {[
+                                { label: '5抽/天', val: 5 },
+                                { label: '10抽/天 (常規)', val: 10 },
+                                { label: '15抽/天', val: 15 },
+                              ].map((chip) => (
+                                <button
+                                  key={chip.val}
+                                  type="button"
+                                  onClick={() => setDailyUsage(chip.val)}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] sm:text-xs border transition-colors ${
+                                    dailyUsage === chip.val ? 'app-primary font-bold shadow-xs' : 'app-control'
+                                  }`}
+                                >
+                                  {chip.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                          {isDetergent && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {[
+                                { label: '0.5蓋 (兩天洗一次)', val: 0.5 },
+                                { label: '1蓋 (每天洗一槽)', val: 1 },
+                                { label: '2蓋 (每天洗兩槽)', val: 2 },
+                              ].map((chip) => (
+                                <button
+                                  key={chip.val}
+                                  type="button"
+                                  onClick={() => setDailyUsage(chip.val)}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] sm:text-xs border transition-colors ${
+                                    dailyUsage === chip.val ? 'app-primary font-bold shadow-xs' : 'app-control'
+                                  }`}
+                                >
+                                  {chip.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Unit picker & Custom input */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="ui-label font-medium text-[var(--app-text)]">計算單位</label>
+                          <span className="ui-meta text-[var(--app-muted)]">點擊快選或自訂</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5 items-center">
+                          {['顆', '錠', '包', '個', '片', '入', '抽', '次', '蓋', '捲'].map((u) => (
+                            <button
+                              key={u}
+                              type="button"
+                              onClick={() => {
+                                setQuantityUnit(u);
+                                if (u === '抽' && (initialQuantity === 60 || initialQuantity === '')) {
+                                  setInitialQuantity(120);
+                                  setDailyUsage(10);
+                                } else if (u === '蓋' && (initialQuantity === 60 || initialQuantity === '')) {
+                                  setInitialQuantity(30);
+                                  setDailyUsage(1);
+                                }
+                              }}
+                              className={`min-h-8 px-2.5 ui-button rounded-lg border text-xs ${
+                                quantityUnit === u ? 'app-primary font-bold shadow-sm' : 'app-control'
+                              }`}
+                            >
+                              {u}
+                            </button>
+                          ))}
+                          <input
+                            type="text"
+                            placeholder="自訂"
+                            value={['顆', '錠', '包', '個', '片', '入', '抽', '次', '蓋', '捲'].includes(quantityUnit) ? '' : quantityUnit}
+                            onChange={(e) => setQuantityUnit(e.target.value)}
+                            className="w-16 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-lg px-2 min-h-8 text-xs text-[var(--app-text)] outline-none text-center"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Current remaining override (optional) */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="ui-label font-medium text-[var(--app-text)]">
+                            目前開瓶現存剩餘（選填）
+                          </label>
+                          <span className="ui-meta text-[var(--app-muted)]">留空則依起始日天數自動扣減</span>
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          placeholder={`預設自動計算（新開即滿 ${initialQuantity || (quantityUnit === '抽' ? 120 : quantityUnit === '蓋' ? 30 : 60)} ${quantityUnit}）`}
+                          value={currentQuantity}
+                          onChange={(e) => setCurrentQuantity(e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0))}
+                          className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums placeholder:text-[var(--app-muted-low)]"
+                        />
+                      </div>
+
+                      {/* Live estimation hint */}
+                      {Number(initialQuantity) > 0 && Number(dailyUsage) > 0 && (
+                        <div className="app-primary-soft border border-[var(--app-accent)]/20 rounded-xl px-3 py-2 ui-meta flex items-center justify-between">
+                          <span className="text-[var(--app-text)]">
+                            💡 {containerWord} {initialQuantity} {quantityUnit} ÷ 每天 {dailyUsage} {quantityUnit}
+                          </span>
+                          <span className="font-bold text-[var(--app-accent-strong)] tabular-nums">
+                            約可使用 {Math.ceil(Number(initialQuantity) / Number(dailyUsage))} 天
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
 
