@@ -173,6 +173,7 @@ itemsRouter.get('/', async (c) => {
     return a.remainingDays - b.remainingDays;
   });
 
+  c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
   return c.json({ items: computedItems });
 });
 
@@ -367,7 +368,11 @@ itemsRouter.post('/batch-delete', async (c) => {
     const access = await checkItemAccess(db, id, user.id, 'delete');
     if (!access) continue;
 
-    await db.update(items).set({ deletedAt: nowIso, updatedAt: nowIso }).where(eq(items.id, id));
+    await db.update(items).set({
+      deletedAt: nowIso,
+      calendarSequence: access.item.calendarSequence + 1,
+      updatedAt: nowIso,
+    }).where(eq(items.id, id));
     deletedCount++;
   }
 

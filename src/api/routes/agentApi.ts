@@ -780,6 +780,7 @@ agentApiRouter.get('/items', async (c) => {
   const total = filtered.length;
   const pagedItems = filtered.slice(offset, offset + limit);
 
+  c.header('Cache-Control', 'no-cache, no-store, must-revalidate');
   return c.json({
     items: pagedItems,
     total,
@@ -1068,7 +1069,11 @@ agentApiRouter.delete('/items/:id', async (c) => {
   }
 
   const now = new Date().toISOString();
-  await db.update(items).set({ deletedAt: now, updatedAt: now }).where(eq(items.id, itemId));
+  await db.update(items).set({
+    deletedAt: now,
+    calendarSequence: access.item.calendarSequence + 1,
+    updatedAt: now,
+  }).where(eq(items.id, itemId));
 
   return c.json({ success: true, message: '物品已成功刪除' });
 });

@@ -5,13 +5,14 @@ import { ItemCard } from '../components/ItemCard.tsx';
 import { BatchPhotoModal } from '../components/BatchPhotoModal.tsx';
 import { CATEGORIES } from '../utils/category.ts';
 import { useTranslation } from '../i18n/index.tsx';
+import { DEMO_ITEM_IDS } from '../utils/guestStorage.ts';
 
 interface DashboardViewProps {
   items: ItemResponse[];
   onReplace: (id: string) => void | Promise<void>;
   onAdjustStock: (id: string, delta: number) => void | Promise<void>;
   onEdit: (item: ItemResponse) => void;
-  onDelete: (id: string) => void | Promise<void>;
+  onDelete: (id: string) => boolean | Promise<boolean | void> | void;
   onViewHistory: (item: ItemResponse) => void;
   onOpenNewItem: () => void;
   onStartUsing?: (id: string) => void | Promise<void>;
@@ -19,7 +20,7 @@ interface DashboardViewProps {
   onConsume?: (id: string, amount: number) => void | Promise<void>;
   onBatchReplace?: (ids: string[]) => Promise<void>;
   onBatchStock?: (ids: string[], delta: number) => Promise<void>;
-  onBatchDelete?: (ids: string[]) => Promise<void>;
+  onBatchDelete?: (ids: string[]) => boolean | Promise<boolean | void> | void;
   onRefreshItems?: () => void;
   user?: UserSession | null;
   onAddGuestItems?: (items: ItemResponse[]) => void;
@@ -86,9 +87,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const toggleSelected = (id: string) => setSelectedIds((current) => { const next = new Set(current); next.has(id) ? next.delete(id) : next.add(id); return next; });
   const selectAll = () => setSelectedIds(selectedIds.size === filteredItems.length ? new Set() : new Set(filteredItems.map((item) => item.id)));
 
-  const runBatch = async (action: () => Promise<void>, onSuccess?: () => void) => {
+  const runBatch = async (action: () => Promise<any> | any, onSuccess?: () => void) => {
     setBatchActionLoading(true);
-    try { await action(); onSuccess?.(); }
+    try {
+      const res = await action();
+      if (res !== false) {
+        onSuccess?.();
+      }
+    }
     catch (error) { alert(error instanceof Error ? error.message : (locale === 'zh-TW' ? '操作失敗' : 'Action failed')); }
     finally { setBatchActionLoading(false); }
   };
@@ -165,12 +171,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="mt-2.5 border-t border-slate-100 dark:border-slate-800 pt-2 text-slate-600 dark:text-slate-400 leading-relaxed">
             <p>{t('guestModeBannerDesc')}</p>
             <div className="mt-2.5 flex flex-wrap gap-2">
-              {items.length > 0 && onClearDemoItems && (
+              {items.some((i) => DEMO_ITEM_IDS.has(i.id)) && onClearDemoItems && (
                 <button type="button" onClick={onClearDemoItems} className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press">
                   {t('guestModeClearDemoBtn')}
                 </button>
               )}
-              {items.length === 0 && onRestoreDemoItems && (
+              {!items.some((i) => DEMO_ITEM_IDS.has(i.id)) && onRestoreDemoItems && (
                 <button type="button" onClick={onRestoreDemoItems} className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press flex items-center gap-1.5">
                   <RotateCcw className="h-4 w-4" />{t('guestModeRestoreDemoBtn')}
                 </button>

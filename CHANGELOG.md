@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-10-10
+
+### Fixed
+- **訪客模式刪除物品與補貨提醒持久化修復 (Guest Persistence & Restock Reminder Bug Fix)**：
+  - 修復訪客體驗中刪除物品後，預設示範耗材（如備品不足需補貨的 `Brita 淨水器 MAXTRA+ 濾芯`）在重新整理網頁、分頁可見性切換（Visibility Change）或 60 秒定時檢查時會被強制重載，導致「提醒補充庫存」、「要補貨」標籤與導覽列採購袋紅色計數角標持續殘留的 Bug。
+  - 升級 `guestStorage` 儲存機制，獨立記錄訪客已刪除的示範項目 ID (`afterbuy_guest_deleted_demos_v1`)、自訂修改內容 (`afterbuy_guest_modified_demos_v1`) 與清空旗標 (`afterbuy_guest_demos_cleared_v1`)，確保刪除後跨重新整理與跨工作階段永久生效。
+  - 補齊 `demo-5`（Kirkland 魚油膠囊）納入 `DEMO_ITEM_IDS` 集合追蹤。
+  - **儲存空間配額與遷移防護 (Storage Quota Resilience & Demo Edits Preservation)**：
+    - `readGuestItems` 讀取時安全過濾並遷移歷史遺留的示範資料，寫入失敗時不遺失任何自訂筆記或照片。
+    - `writeGuestItems` 於儲存配額緊縮時優先釋放空間重試，重試失敗時完整還原原始儲存內容，避免資料損毀。
+    - 刪除示範項目時優先釋放既有儲存空間再寫入墓碑標記，確保在空間額滿時刪除操作仍能順利釋放容量。
+    - 訪客自訂物品匯入登入帳號時，保留未完成遷移的示範項目資料。
+- **採購清單與物品編輯視窗快捷操作補齊 (Shopping View & Modal Actions)**：
+  - 採購與備品頁面（`ShoppingView`）在「急需採購補貨」與「全部物品備品概況」中為每項物品新增獨立「編輯」與「刪除」操作按鈕，使用者可在檢視補貨提醒時直接調整警戒門檻或刪除不再使用的物品。
+  - 物品編輯彈窗（`ItemModal`）於編輯既有物品時新增「刪除物品」按鈕，解決使用者在編輯視窗中無法直接刪除物品的痛點。
+  - 儀表板示範項目清除與恢復按鈕依據畫面上是否存在示範項目決定顯示，即使使用者已建立自訂物品也能隨時恢復範例資料。
+- **樂觀刪除響應與跨工作階段防護 (Optimistic Deletion & Session-Guarded Rollback)**：
+  - 實作前端刪除物品（單項刪除與批次刪除）之樂觀更新（Optimistic UI Update），點擊確認刪除時立即自狀態中剔除並更新儀表板與補貨計數角標。
+  - 刪除失敗回滾時嚴格校驗使用者 Session 身份與空間 ID，防止刪除請求發送期間登出導致私有物品洩漏至訪客模式。
+  - 後端 `GET /api/items` 與 `GET /api/v1/items` 端點全面加入 `Cache-Control: no-cache, no-store, must-revalidate` 標頭，防止瀏覽器快取造成刪除後依然取回快取資料。
+  - 補齊批次刪除（`POST /api/items/batch-delete`）與 Agent API 刪除（`DELETE /api/v1/items/:id`）之 `calendarSequence` 遞增，確保日曆訂閱端即時同步軟刪除狀態。
+- **回歸測試套件擴充 (Behavior Regressions Test Suite)**：
+  - 新增並擴充 12 組涵蓋訪客持久化、多分頁防復活、儲存配額邊界、時區邊界與工作階段防護之回歸測試案例，全套件 64 項測試全數綠燈通過。
+
 ## 2026-10-07
 
 ### Added

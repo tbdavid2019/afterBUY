@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { businessDate, addBusinessDays } from '../src/shared/date.ts';
 import { computeItemStatus, formatRemainingDaysText } from '../src/shared/lifecycle.ts';
-import { DEMO_ITEM_IDS, readGuestItems, writeGuestItems } from '../src/client/utils/guestStorage.ts';
+import { DEMO_ITEM_IDS, readGuestItems, writeGuestItems, mergeGuestItems, setDemoCleared, restoreGuestDemoItems, deleteGuestDemoItem, readModifiedDemoItems } from '../src/client/utils/guestStorage.ts';
 
 test('business dates use Taiwan time and are timezone stable', () => {
   assert.equal(businessDate(new Date('2026-09-05T16:30:00.000Z')), '2026-09-06');
@@ -225,3 +225,383 @@ test('calendar timeline tracks both purchase milestone dates and replacement due
   assert.equal(dueEvents[0].date, '2027-01-04');
   assert.equal(dueEvents[0].itemId, 'toothbrush-1');
 });
+
+test('guest persistence tracks deleted demo items so deleted restock reminder does not reappear', () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  const demoItems: any[] = [
+    { id: 'demo-1', name: 'Toothbrush', trackingMode: 'cycle', cycleDays: 90, startDate: '2026-09-01', backupStock: 2, minStockAlert: 1, needsRestock: false },
+    { id: 'demo-2', name: 'Brita filter', trackingMode: 'cycle', cycleDays: 30, startDate: '2026-09-01', backupStock: 0, minStockAlert: 1, needsRestock: true },
+    { id: 'demo-3', name: 'Sunscreen', trackingMode: 'pao', paoMonths: 6, startDate: '2026-09-01', backupStock: 1, minStockAlert: 1, needsRestock: false },
+    { id: 'demo-4', name: 'Dehumidifier', trackingMode: 'warranty', warrantyDate: '2027-01-01', startDate: '2026-09-01', backupStock: 0, minStockAlert: 0, needsRestock: false },
+    { id: 'demo-5', name: 'Fish oil', trackingMode: 'quantity', startDate: '2026-09-01', backupStock: 1, minStockAlert: 1, needsRestock: false },
+  ];
+
+  // Initially, all demo items are shown
+  let currentItems = mergeGuestItems(demoItems);
+  assert.equal(currentItems.length, 5);
+  assert.ok(currentItems.some((i) => i.id === 'demo-2' && i.needsRestock));
+
+  // User deletes demo-2 (the restock item)
+  currentItems = currentItems.filter((i) => i.id !== 'demo-2');
+  writeGuestItems(currentItems);
+
+  // When page reloads or tabs switch, mergeGuestItems is re-called with demo items
+  const reloadedItems = mergeGuestItems(demoItems);
+  assert.equal(reloadedItems.length, 4);
+  assert.ok(!reloadedItems.some((i) => i.id === 'demo-2'), 'Deleted demo-2 should not reappear');
+
+  // Clearing all demo items
+  setDemoCleared(true);
+  const clearedItems = mergeGuestItems(demoItems);
+  assert.equal(clearedItems.length, 0, 'No demo items when demos cleared');
+
+  // Restoring demo items
+  restoreGuestDemoItems();
+  const restoredItems = mergeGuestItems(demoItems);
+  assert.equal(restoredItems.length, 5, 'All original demo items restored');
+});
+
+test('guest import leftover persistence preserves demo items and modified demo state', () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  const demoItems: any[] = [
+    { id: 'demo-1', name: 'demo-1', trackingMode: 'cycle', cycleDays: 90, startDate: '2026-09-01', backupStock: 2, minStockAlert: 1 },
+    { id: 'demo-2', name: 'demo-2', trackingMode: 'cycle', cycleDays: 30, startDate: '2026-09-01', backupStock: 0, minStockAlert: 1 },
+  ];
+
+  // User has demos + one custom guest item
+  writeGuestItems([...demoItems, { id: 'guest-custom-1', name: 'My Custom Soap' } as any]);
+  assert.equal(readGuestItems().length, 1);
+
+  // When importing guest items, only user items are saved back with preserveDemos: true
+  writeGuestItems(readGuestItems().filter((i) => i.id !== 'guest-custom-1'), { preserveDemos: true });
+
+  // Demos should remain intact after import
+  const afterImport = mergeGuestItems(demoItems);
+  assert.equal(afterImport.length, 2, 'Demos must not be removed by importing custom items');
+  assert.ok(afterImport.some((i) => i.id === 'demo-1'));
+  assert.ok(afterImport.some((i) => i.id === 'demo-2'));
+});
+
+test('mergeGuestItems recomputes derived date statuses with current time', () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  // An item created long ago whose saved status was "healthy"
+  const item: any = {
+    id: 'demo-1',
+    name: 'Toothbrush',
+    startDate: '2025-01-01',
+    cycleDays: 30,
+    trackingMode: 'cycle',
+    backupStock: 1,
+    minStockAlert: 1,
+    healthStatus: 'healthy', // stale snapshot from past
+    remainingDays: 20,       // stale snapshot from past
+  };
+
+  const merged = mergeGuestItems([item]);
+  assert.equal(merged[0].healthStatus, 'overdue', 'Status must be recomputed to overdue on later date');
+  assert.ok(merged[0].remainingDays < 0, 'Remaining days must be negative');
+});
+
+test('writeGuestItems propagates quota errors when modified demos exceed quota', () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      if (key === 'afterbuy_guest_modified_demos_v1') {
+        throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
+      }
+      values.set(key, value);
+    },
+    removeItem: (key: string) => values.delete(key),
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  assert.throws(
+    () => writeGuestItems([{ id: 'demo-1', name: 'edited', startDate: '2026-09-01' } as any]),
+    /本機儲存空間不足/
+  );
+});
+
+test('multi-tab stale saves do not resurrect deleted demo items', () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  const demos = ['demo-1', 'demo-2', 'demo-3', 'demo-4', 'demo-5'].map((id) => ({
+    id,
+    startDate: '2026-10-01',
+    trackingMode: 'cycle' as const,
+    cycleDays: 30,
+    backupStock: 0,
+    minStockAlert: 1,
+  }));
+
+  const staleTab = mergeGuestItems(demos);
+  // Tab 1 deletes demo-2
+  deleteGuestDemoItem('demo-2');
+  writeGuestItems(staleTab.filter((i) => i.id !== 'demo-2'));
+  assert.ok(!mergeGuestItems(demos).some((i) => i.id === 'demo-2'));
+
+  // Tab 2 (opened before deletion) updates demo-1 without knowing demo-2 was deleted
+  writeGuestItems(staleTab.map((i) => (i.id === 'demo-1' ? { ...i, backupStock: 2 } : i)));
+  // demo-2 must remain deleted!
+  const afterOtherTabUpdate = mergeGuestItems(demos);
+  assert.ok(!afterOtherTabUpdate.some((i) => i.id === 'demo-2'), 'demo-2 must not be resurrected by stale tab save');
+});
+
+test('readGuestItems filters legacy demo items and migrates them safely', () => {
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  // Simulate returning guest who previously had demo-5 saved directly in GUEST_ITEMS_KEY
+  values.set('afterbuy_guest_items_v1', JSON.stringify([
+    { id: 'custom-item-1', name: 'My Own Shampoo', backupStock: 3 },
+    { id: 'demo-5', name: 'Legacy Fish Oil', backupStock: 0, minStockAlert: 1 },
+  ]));
+
+  // readGuestItems should only return non-demo items
+  const ownItems = readGuestItems();
+  assert.equal(ownItems.length, 1);
+  assert.equal(ownItems[0].id, 'custom-item-1');
+
+  // GUEST_ITEMS_KEY should be cleaned up
+  const cleanedGUEST_ITEMS = JSON.parse(values.get('afterbuy_guest_items_v1') || '[]');
+  assert.equal(cleanedGUEST_ITEMS.length, 1);
+  assert.equal(cleanedGUEST_ITEMS[0].id, 'custom-item-1');
+
+  // Legacy demo-5 should be migrated into modified demos
+  const modified = readModifiedDemoItems();
+  assert.equal(modified.length, 1);
+  assert.equal(modified[0].id, 'demo-5');
+  assert.equal(modified[0].name, 'Legacy Fish Oil');
+
+  // If user clears demos, legacy demo-5 must not reappear
+  setDemoCleared(true);
+  const demos = [{ id: 'demo-5', name: 'Default Fish Oil', backupStock: 1 }];
+  const afterCleared = mergeGuestItems(demos as any);
+  assert.equal(afterCleared.length, 1);
+  assert.equal(afterCleared[0].id, 'custom-item-1', 'Only user items returned when demos cleared');
+  assert.ok(!afterCleared.some((i) => i.id === 'demo-5'), 'Legacy demo-5 must not appear when demos cleared');
+});
+
+test('legacy demo data is preserved in GUEST_ITEMS_KEY if writing modified demos throws quota error', () => {
+  const values = new Map<string, string>();
+  const legacyContent = JSON.stringify([{ id: 'demo-5', name: 'Edited fish oil', backupStock: 7 }]);
+  values.set('afterbuy_guest_items_v1', legacyContent);
+
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      if (key === 'afterbuy_guest_modified_demos_v1') {
+        throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
+      }
+      values.set(key, value);
+    },
+    removeItem: (key: string) => values.delete(key),
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  // Call readGuestItems; migration write will fail due to quota
+  const own = readGuestItems();
+  assert.equal(own.length, 0, 'Demo item is not returned as user item');
+
+  // GUEST_ITEMS_KEY must NOT have been overwritten/truncated, keeping the user edit safe
+  assert.equal(values.get('afterbuy_guest_items_v1'), legacyContent, 'Legacy data must not be wiped when migration write fails');
+});
+
+test('mergeGuestItems and subsequent writeGuestItems preserve failed-migration legacy demo edits', () => {
+  const legacy = { id: 'demo-5', name: 'Edited fish oil', backupStock: 7, notes: 'x'.repeat(1000) };
+  const values = new Map<string, string>([['afterbuy_guest_items_v1', JSON.stringify([legacy])]]);
+  const limit = 1600;
+
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    removeItem: (key: string) => values.delete(key),
+    setItem: (key: string, val: string) => {
+      let size = val.length;
+      for (const [k, v] of values) {
+        if (k !== key) size += v.length;
+      }
+      if (size > limit) {
+        throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
+      }
+      values.set(key, val);
+    },
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  const demos = [{ id: 'demo-5', name: 'Default fish oil', backupStock: 1 }];
+  const merged = mergeGuestItems(demos as any);
+
+  // Merged items must retain the edited data, not revert to default
+  assert.equal(merged[0].name, 'Edited fish oil');
+  assert.equal(merged[0].backupStock, 7);
+
+  // Saving merged items must safely preserve the edits (migrated into modified key)
+  writeGuestItems(merged);
+  assert.ok([...values.values()].some((x) => x.includes('Edited fish oil')), 'Saved edits must remain persisted');
+});
+
+test('writeGuestItems restores original stored data when quota retry fails', () => {
+  const original = [{ id: 'demo-5', name: 'previous edit', notes: 'x'.repeat(1000) }];
+  const values = new Map<string, string>([['afterbuy_guest_items_v1', JSON.stringify(original)]]);
+
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    removeItem: (key: string) => values.delete(key),
+    setItem: (key: string, s: string) => {
+      let n = s.length;
+      for (const [k, val] of values) {
+        if (key !== k) n += val.length;
+      }
+      if (n > 1600) {
+        throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
+      }
+      values.set(key, s);
+    },
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  assert.throws(
+    () => writeGuestItems([{ ...(original[0] as any), notes: 'x'.repeat(2000) }]),
+    /本機儲存空間不足/
+  );
+
+  // Original edit must remain intact, not erased to []
+  const restored = values.get('afterbuy_guest_items_v1');
+  assert.ok(restored && restored.includes('previous edit'), 'Original edit must be preserved on retry failure');
+});
+
+test('deleteGuestDemoItem preserves modified demo edits if saving deleted IDs fails', () => {
+  const v = new Map([['afterbuy_guest_modified_demos_v1', JSON.stringify([{ id: 'demo-2', name: 'My edited filter', backupStock: 9 }])]]);
+
+  const storage = {
+    getItem: (k: string) => v.get(k) ?? null,
+    removeItem: (k: string) => v.delete(k),
+    setItem: (k: string, s: string) => {
+      if (k === 'afterbuy_guest_deleted_demos_v1') {
+        throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
+      }
+      v.set(k, s);
+    },
+  };
+  (globalThis as any).window = { localStorage: storage };
+
+  assert.throws(
+    () => deleteGuestDemoItem('demo-2'),
+    /本機儲存空間不足/
+  );
+
+  // The modified demo edit must remain saved and mergeable
+  const merged = mergeGuestItems([{ id: 'demo-2', name: 'Default filter', backupStock: 0 }] as any);
+  assert.equal(merged[0].name, 'My edited filter', 'Original demo edits must be restored on deletion failure');
+  assert.equal(merged[0].backupStock, 9);
+});
+
+test('writeGuestItems with preserveDemos preserves unmigrated legacy demo items when importing custom items', () => {
+  const demo = { id: 'demo-5', name: 'My edited fish oil', notes: 'x'.repeat(1000) };
+  const own = { id: 'guest-1', name: 'My soap' };
+  const values = new Map([['afterbuy_guest_items_v1', JSON.stringify([demo, own])]]);
+
+  globalThis.window = {
+    localStorage: {
+      getItem: (k: string) => values.get(k) ?? null,
+      removeItem: (k: string) => values.delete(k),
+      setItem: (k: string, v: string) => {
+        let size = v.length;
+        for (const [key, value] of values) {
+          if (key !== k) size += value.length;
+        }
+        if (size > 1600) throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
+        values.set(k, v);
+      },
+    },
+  } as any;
+
+  // Before import: merged includes custom soap and edited fish oil
+  const before = mergeGuestItems([{ id: 'demo-5', name: 'Default fish oil' }] as any);
+  assert.ok(before.some((x) => x.name === 'My edited fish oil'));
+  assert.ok(before.some((x) => x.name === 'My soap'));
+
+  // User imports custom soap: localItems are saved with preserveDemos: true
+  const local = readGuestItems();
+  writeGuestItems(local.filter((i) => i.id !== 'guest-1'), { preserveDemos: true });
+
+  // After import: edited fish oil must still be preserved
+  const after = mergeGuestItems([{ id: 'demo-5', name: 'Default fish oil' }] as any);
+  assert.ok(after.some((x) => x.name === 'My edited fish oil'), 'Edited fish oil must not be lost after importing custom items');
+});
+
+test('demo restore is available even when custom guest items remain', () => {
+  const customItem = { id: 'custom-1', name: 'My Custom Toothpaste' };
+  const demoItem = { id: 'demo-1', name: 'Toothbrush' };
+
+  // When demo item is present, hasDemoItems is true
+  const listWithDemos = [customItem, demoItem];
+  assert.equal(listWithDemos.some((i) => DEMO_ITEM_IDS.has(i.id)), true);
+
+  // When demo is cleared but custom items remain, hasDemoItems is false (restore should be visible)
+  const listWithoutDemos = [customItem];
+  assert.equal(listWithoutDemos.some((i) => DEMO_ITEM_IDS.has(i.id)), false);
+});
+
+test('deleteGuestDemoItem frees storage before writing tombstones when storage is at quota', () => {
+  const v = new Map([['afterbuy_guest_modified_demos_v1', JSON.stringify([{ id: 'demo-2', imageUrl: 'x'.repeat(1000) }])]]);
+  const max = [...v.values()].reduce((s, x) => s + x.length, 0);
+
+  globalThis.window = {
+    localStorage: {
+      getItem: (k: string) => v.get(k) ?? null,
+      removeItem: (k: string) => v.delete(k),
+      setItem: (k: string, s: string) => {
+        let total = s.length;
+        for (const [key, val] of v) {
+          if (key !== k) total += val.length;
+        }
+        if (total > max) throw Object.assign(new Error('full'), { name: 'QuotaExceededError' });
+        v.set(k, s);
+      },
+    },
+  } as any;
+
+  deleteGuestDemoItem('demo-2');
+  assert.equal(v.get('afterbuy_guest_modified_demos_v1')?.includes('demo-2'), false);
+  assert.ok(v.get('afterbuy_guest_deleted_demos_v1')?.includes('demo-2'));
+});
+
+
+
+
+
+
+

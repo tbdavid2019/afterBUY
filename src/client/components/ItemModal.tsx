@@ -15,6 +15,7 @@ import {
   Search,
   Plus,
   ArrowRight,
+  Trash2,
 } from 'lucide-react';
 import { ItemResponse, ItemCategory, TrackingMode, UserSession, StockResponse } from '../../shared/types.ts';
 import { computeItemStatus } from '../../shared/lifecycle.ts';
@@ -46,6 +47,7 @@ interface ItemModalProps {
   currentStockId?: string;
   onClose: () => void;
   onSave: () => void;
+  onDelete?: (id: string) => boolean | Promise<boolean | void> | void;
   onAddGuestItem?: (item: ItemResponse) => void;
   onUpdateGuestItem?: (item: ItemResponse) => void;
   onOpenPresetCatalog?: () => void;
@@ -62,6 +64,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   currentStockId = 'all',
   onClose,
   onSave,
+  onDelete,
   onAddGuestItem,
   onUpdateGuestItem,
   onOpenPresetCatalog,
@@ -285,6 +288,14 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setErrorMessage(err.message || '圖片上傳失敗');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!itemToEdit || !onDelete) return;
+    const result = await onDelete(itemToEdit.id);
+    if (result !== false) {
+      onClose();
     }
   };
 
@@ -1289,12 +1300,22 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             </div>
           )}
 
-          {/* Submit Button */}
-          <div className="pt-2">
+          {/* Submit / Delete Buttons */}
+          <div className="pt-2 flex items-center gap-3">
+            {itemToEdit && onDelete && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="ui-button min-h-12 px-4 flex items-center justify-center gap-1.5 text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 font-semibold rounded-xl tactile-press transition-all shrink-0"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>刪除物品</span>
+              </button>
+            )}
             <button
               type="submit"
               disabled={saving}
-              className="app-primary ui-button w-full min-h-12 flex items-center justify-center gap-2 hover:brightness-105 font-bold rounded-xl shadow-lg shadow-[var(--app-accent)]/20 active:scale-[0.98] transition-all disabled:opacity-50"
+              className="app-primary ui-button flex-1 min-h-12 flex items-center justify-center gap-2 hover:brightness-105 font-bold rounded-xl shadow-lg shadow-[var(--app-accent)]/20 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>{itemToEdit ? '儲存變更' : '建立物品'}</span>}
             </button>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Copy, Check, Plus, Minus, Package, CheckCircle2, RotateCw } from 'lucide-react';
+import { ShoppingBag, Copy, Check, Plus, Minus, Package, CheckCircle2, RotateCw, Edit2, Trash2 } from 'lucide-react';
 import { ItemResponse } from '../../shared/types.ts';
 import { CATEGORIES } from '../utils/category.ts';
 import { useTranslation } from '../i18n/index.tsx';
@@ -8,9 +8,17 @@ interface ShoppingViewProps {
   items: ItemResponse[];
   onAdjustStock: (id: string, delta: number) => void;
   onBatchStock?: (ids: string[], delta: number) => Promise<void>;
+  onEdit?: (item: ItemResponse) => void;
+  onDelete?: (id: string) => boolean | Promise<boolean | void> | void;
 }
 
-export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock, onBatchStock }) => {
+export const ShoppingView: React.FC<ShoppingViewProps> = ({
+  items,
+  onAdjustStock,
+  onBatchStock,
+  onEdit,
+  onDelete,
+}) => {
   const { t, locale } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [batchLoading, setBatchLoading] = useState(false);
@@ -134,28 +142,51 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
                     {item.notes && <p className="ui-meta text-[var(--app-muted)] truncate mt-0.5">{item.notes}</p>}
                   </div>
 
-                  {/* Stock Quick Adjustment with 44px touch targets */}
-                  <div className="app-surface-subtle flex min-h-10 items-center gap-1 rounded-lg border px-1.5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => onAdjustStock(item.id, -1)}
-                      disabled={item.backupStock <= 0}
-                      aria-label={`減少 ${item.name} 備品庫存`}
-                      className="min-h-10 min-w-8 rounded text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-30 flex items-center justify-center tactile-press"
-                    >
-                      <Minus className="h-3.5 w-3.5" />
-                    </button>
-                    <span className="min-w-6 text-center text-sm font-semibold tabular-nums text-[var(--app-text)]">
-                      {item.backupStock}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onAdjustStock(item.id, 1)}
-                      aria-label={`增加 ${item.name} 備品庫存`}
-                      className="min-h-10 min-w-8 rounded text-[var(--app-accent-strong)] hover:bg-[var(--app-surface)] flex items-center justify-center tactile-press"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
+                  {/* Stock Quick Adjustment and Actions */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="app-surface-subtle flex min-h-10 items-center gap-1 rounded-lg border px-1.5">
+                      <button
+                        type="button"
+                        onClick={() => onAdjustStock(item.id, -1)}
+                        disabled={item.backupStock <= 0}
+                        aria-label={`減少 ${item.name} 備品庫存`}
+                        className="min-h-10 min-w-8 rounded text-[var(--app-muted)] hover:bg-[var(--app-surface)] disabled:opacity-30 flex items-center justify-center tactile-press"
+                      >
+                        <Minus className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="min-w-6 text-center text-sm font-semibold tabular-nums text-[var(--app-text)]">
+                        {item.backupStock}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onAdjustStock(item.id, 1)}
+                        aria-label={`增加 ${item.name} 備品庫存`}
+                        className="min-h-10 min-w-8 rounded text-[var(--app-accent-strong)] hover:bg-[var(--app-surface)] flex items-center justify-center tactile-press"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    {onEdit && (
+                      <button
+                        type="button"
+                        onClick={() => onEdit(item)}
+                        aria-label={`編輯 ${item.name}`}
+                        className="app-control min-h-10 min-w-9 flex items-center justify-center rounded-lg border hover:border-[var(--app-accent)] text-[var(--app-muted)] hover:text-[var(--app-text)] tactile-press"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                    {onDelete && (
+                      <button
+                        type="button"
+                        onClick={() => onDelete(item.id)}
+                        aria-label={`刪除 ${item.name}`}
+                        className="app-control min-h-10 min-w-9 flex items-center justify-center rounded-lg border hover:border-rose-500/50 text-[var(--app-muted)] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 tactile-press"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                 </article>
               );
@@ -173,7 +204,7 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
           {items.map((item) => (
             <div key={item.id} className="min-h-12 px-4 py-2 flex items-center justify-between gap-3">
               <span className="ui-body text-[var(--app-text)] font-medium truncate flex-1 pr-2">{item.name}</span>
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2 shrink-0">
                 <span className="ui-meta text-[var(--app-muted)]">
                   庫存: <strong className="ui-body font-semibold text-[var(--app-text)] tabular-nums">{item.backupStock}</strong>
                 </span>
@@ -185,6 +216,26 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({ items, onAdjustStock
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
+                {onEdit && (
+                  <button
+                    type="button"
+                    onClick={() => onEdit(item)}
+                    aria-label={`編輯 ${item.name}`}
+                    className="app-control min-h-9 min-w-9 flex items-center justify-center rounded-md border hover:border-[var(--app-accent)] text-[var(--app-muted)] hover:text-[var(--app-text)] tactile-press"
+                  >
+                    <Edit2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(item.id)}
+                    aria-label={`刪除 ${item.name}`}
+                    className="app-control min-h-9 min-w-9 flex items-center justify-center rounded-md border hover:border-rose-500/50 text-[var(--app-muted)] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 tactile-press"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
               </div>
             </div>
           ))}

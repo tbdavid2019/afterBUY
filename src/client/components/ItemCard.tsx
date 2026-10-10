@@ -25,7 +25,7 @@ interface ItemCardProps {
   onReplace: (id: string) => void | Promise<void>;
   onAdjustStock: (id: string, delta: number) => void | Promise<void>;
   onEdit: (item: ItemResponse) => void;
-  onDelete: (id: string) => void | Promise<void>;
+  onDelete: (id: string) => boolean | Promise<boolean | void> | void;
   onViewHistory: (item: ItemResponse) => void;
   onStartUsing?: (id: string) => void | Promise<void>;
   onSnooze?: (id: string, days: number) => void | Promise<void>;
@@ -69,7 +69,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   const isQuantityMode = item.trackingMode === 'quantity';
   const dateOnly = item.trackingMode === 'expiry' || item.trackingMode === 'warranty';
 
-  const runAction = async (action: () => void | Promise<void>, successMessage?: string) => {
+  const runAction = async (action: () => any, successMessage?: string) => {
     setBusy(true);
     setFeedback(null);
     try {

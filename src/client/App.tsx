@@ -18,7 +18,7 @@ import { UserSession, ItemResponse, StockResponse } from '../shared/types.ts';
 import { computeItemStatus } from '../shared/lifecycle.ts';
 import { addBusinessDays, businessDate } from '../shared/date.ts';
 import { getInitialTheme, getInitialPalette, type ThemeMode, type ThemePalette, THEME_PALETTES } from './utils/theme.ts';
-import { DEMO_ITEM_IDS, mergeGuestItems, readGuestItems, writeGuestItems } from './utils/guestStorage.ts';
+import { DEMO_ITEM_IDS, mergeGuestItems, readGuestItems, writeGuestItems, setDemoCleared, restoreGuestDemoItems, deleteGuestDemoItem, deleteGuestDemoItems } from './utils/guestStorage.ts';
 
 // Initial demo items for guest preview
 const DEMO_ITEMS: ItemResponse[] = [
@@ -203,6 +203,10 @@ export const App: React.FC = () => {
   });
   const [stocks, setStocks] = useState<StockResponse[]>([]);
   const [currentStockId, setCurrentStockId] = useState<string>('all');
+  const currentStockIdRef = useRef(currentStockId);
+  currentStockIdRef.current = currentStockId;
+  const currentUserRef = useRef<UserSession | null>(user);
+  currentUserRef.current = user;
   const [settingsStockId, setSettingsStockId] = useState<string | null>(null);
   const [isStockSettingsOpen, setIsStockSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -307,7 +311,7 @@ export const App: React.FC = () => {
 
     if (importedIds.size > 0) {
       try {
-        writeGuestItems(localItems.filter((item) => !importedIds.has(item.id)));
+        writeGuestItems(localItems.filter((item) => !importedIds.has(item.id)), { preserveDemos: true });
       } catch (error: any) {
         window.alert(error.message);
       }
@@ -651,18 +655,39 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleDeleteItem = async (id: string) => {
-    if (!confirm('確定要刪除此物品？')) return;
+  const handleDeleteItem = async (id: string): Promise<boolean> => {
+    if (!confirm('確定要刪除此物品？')) return false;
     if (!user) {
+      try {
+        deleteGuestDemoItem(id);
+      } catch (error: any) {
+        alert(error.message || '訪客資料無法保存到本機');
+        return false;
+      }
       setGuestItems((prev) => prev.filter((i) => i.id !== id));
-      return;
+      return true;
     }
 
+    const sessionUserId = user.id;
+    const itemToDelete = items.find((i) => i.id === id);
+    setItems((prev) => prev.filter((i) => i.id !== id));
     try {
       await api.deleteItem(id);
       await loadUserAndItems();
+      return true;
     } catch (err: any) {
+      if (itemToDelete) {
+        setItems((prev) => {
+          if (currentUserRef.current?.id !== sessionUserId) return prev;
+          const activeStock = currentStockIdRef.current;
+          const shouldShow = activeStock === 'all' || itemToDelete.stockId === activeStock;
+          if (!shouldShow) return prev;
+          if (prev.some((i) => i.id === id)) return prev;
+          return [...prev, itemToDelete];
+        });
+      }
       alert(err.message || '刪除失敗');
+      return false;
     }
   };
 
@@ -715,13 +740,38 @@ export const App: React.FC = () => {
     await loadUserAndItems();
   };
 
-  const handleBatchDelete = async (ids: string[]) => {
+  const handleBatchDelete = async (ids: string[]): Promise<boolean> => {
     if (!user) {
+      try {
+        deleteGuestDemoItems(ids);
+      } catch (error: any) {
+        alert(error.message || '訪客資料無法保存到本機');
+        return false;
+      }
       setGuestItems((prev) => prev.filter((i) => !ids.includes(i.id)));
-      return;
+      return true;
     }
-    await api.batchDelete(ids);
-    await loadUserAndItems();
+    const sessionUserId = user.id;
+    const itemsToDelete = items.filter((i) => ids.includes(i.id));
+    setItems((prev) => prev.filter((i) => !ids.includes(i.id)));
+    try {
+      await api.batchDelete(ids);
+      await loadUserAndItems();
+      return true;
+    } catch (err: any) {
+      setItems((prev) => {
+        if (currentUserRef.current?.id !== sessionUserId) return prev;
+        const activeStock = currentStockIdRef.current;
+        const existingIds = new Set(prev.map((i) => i.id));
+        const toRestore = itemsToDelete.filter(
+          (i) => !existingIds.has(i.id) && (activeStock === 'all' || i.stockId === activeStock)
+        );
+        if (toRestore.length === 0) return prev;
+        return [...prev, ...toRestore];
+      });
+      alert(err.message || '批次刪除失敗');
+      return false;
+    }
   };
 
   const handleStartUsing = async (id: string) => {
@@ -797,10 +847,12 @@ export const App: React.FC = () => {
   };
 
   const handleClearDemoItems = () => {
+    setDemoCleared(true);
     setItems(readGuestItems());
   };
 
   const handleRestoreDemoItems = () => {
+    restoreGuestDemoItems();
     setItems(mergeGuestItems(DEMO_ITEMS));
   };
 
@@ -891,6 +943,8 @@ export const App: React.FC = () => {
             items={items}
             onAdjustStock={handleAdjustStock}
             onBatchStock={handleBatchStock}
+            onEdit={handleEditItem}
+            onDelete={handleDeleteItem}
           />
         )}
 
@@ -995,6 +1049,7 @@ export const App: React.FC = () => {
           setPresetForNewItem(null);
         }}
         onSave={() => loadUserAndItems()}
+        onDelete={handleDeleteItem}
         onAddGuestItem={(newItem) => setGuestItems((prev) => [newItem, ...prev])}
         onUpdateGuestItem={(updatedItem) =>
           setGuestItems((prev) => prev.map((i) => (i.id === updatedItem.id ? updatedItem : i)))
