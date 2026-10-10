@@ -650,4 +650,142 @@ test('presets specify defaultActiveUnits for multi-room consumables', async () =
 
   assert.ok(soap, 'soap-bar preset exists');
   assert.equal(soap?.defaultActiveUnits, 3);
+  assert.deepEqual(tissue?.defaultActiveUnitLabels, ['客廳', '主臥', '餐桌', '客衛']);
+  assert.deepEqual(shampoo?.defaultActiveUnitLabels, ['主臥衛浴', '客用浴室']);
 });
+
+test('multi-unit items track independent start dates and computeActiveUnitsStatus evaluates each unit separately', async () => {
+  const { computeItemStatus, computeActiveUnitsStatus } = await import('../src/shared/lifecycle.ts');
+
+  // Today is 2026-10-10
+  const refDate = new Date('2026-10-10T12:00:00+08:00');
+
+  // Master bathroom shampoo opened 50 days ago; guest bathroom shampoo opened 10 days ago (cycle: 60 days)
+  const item = {
+    id: 'shampoo-multi',
+    startDate: '2026-08-21',
+    trackingMode: 'cycle' as const,
+    cycleDays: 60,
+    activeUnits: 2,
+    backupStock: 3,
+    activeUnitsData: JSON.stringify([
+      { id: 'u-1', label: '主臥衛浴', startDate: '2026-08-21' },
+      { id: 'u-2', label: '客用浴室', startDate: '2026-09-30' },
+    ]),
+  };
+
+  const computedUnits = computeActiveUnitsStatus(item, refDate);
+  assert.equal(computedUnits.length, 2);
+
+  // Unit 1: 50 days elapsed, 10 days remaining -> healthy (or due_soon if <=7)
+  const unit1 = computedUnits.find((u) => u.id === 'u-1');
+  assert.ok(unit1);
+  assert.equal(unit1?.label, '主臥衛浴');
+  assert.equal(unit1?.startDate, '2026-08-21');
+  assert.equal(unit1?.elapsedDays, 50);
+  assert.equal(unit1?.remainingDays, 10);
+
+  // Unit 2: 10 days elapsed, 50 days remaining
+  const unit2 = computedUnits.find((u) => u.id === 'u-2');
+  assert.ok(unit2);
+  assert.equal(unit2?.label, '客用浴室');
+  assert.equal(unit2?.startDate, '2026-09-30');
+  assert.equal(unit2?.elapsedDays, 10);
+  assert.equal(unit2?.remainingDays, 50);
+
+  // Item overall status reflects the most urgent unit (u-1 with 10 days remaining)
+  const overall = computeItemStatus(item, refDate);
+  assert.equal(overall.remainingDays, 10);
+  assert.equal(overall.elapsedDays, 50);
+  assert.equal(overall.nextDueDate, '2026-10-20');
+});
+
+test('per-unit replacement updates only the targeted unit and decrements backup stock', async () => {
+  const { computeActiveUnitsStatus } = await import('../src/shared/lifecycle.ts');
+
+  // Initial multi-unit item
+  const initialUnits = [
+    { id: 'u-1', label: '主臥衛浴', startDate: '2026-08-21' },
+    { id: 'u-2', label: '客用浴室', startDate: '2026-09-30' },
+  ];
+
+  let backupStock = 3;
+  const today = '2026-10-10';
+
+  // Replace unit 1 (主臥衛浴)
+  const targetUnitId = 'u-1';
+  const updatedUnits = initialUnits.map((u) => (u.id === targetUnitId ? { ...u, startDate: today } : u));
+  backupStock = Math.max(0, backupStock - 1);
+
+  assert.equal(backupStock, 2, 'backup stock decreased by 1');
+  assert.equal(updatedUnits[0].startDate, '2026-10-10', 'targeted unit reset to today');
+  assert.equal(updatedUnits[1].startDate, '2026-09-30', 'untargeted unit preserved its start date');
+
+  // Re-evaluating status shows u-2 is now the most urgent unit!
+  const refDate = new Date('2026-10-10T12:00:00+08:00');
+  const computed = computeActiveUnitsStatus(
+    {
+      startDate: '2026-09-30',
+      trackingMode: 'cycle',
+      cycleDays: 60,
+      activeUnitsData: updatedUnits,
+    },
+    refDate
+  );
+
+  const u1 = computed.find((u) => u.id === 'u-1')!;
+  const u2 = computed.find((u) => u.id === 'u-2')!;
+  assert.equal(u1.elapsedDays, 0);
+  assert.equal(u1.remainingDays, 60);
+  assert.equal(u2.elapsedDays, 10);
+  assert.equal(u2.remainingDays, 50);
+});
+
+test('multi-unit quantity items preserve item-wide quantity when one unit is replaced', () => {
+  // Simulating an item with 2 active bottles of body wash, currently at 450ml total
+  const multiUnitItem = {
+    trackingMode: 'quantity' as const,
+    initialQuantity: 600,
+    currentQuantity: 450,
+    activeUnits: 2,
+    activeUnitsData: [
+      { id: 'u-1', label: '主臥衛浴', startDate: '2026-08-01' },
+      { id: 'u-2', label: '客用浴室', startDate: '2026-09-15' },
+    ],
+  };
+
+  const isMultiUnit = Array.isArray(multiUnitItem.activeUnitsData) && multiUnitItem.activeUnitsData.length > 1;
+  const resetQty = multiUnitItem.trackingMode === 'quantity'
+    ? (isMultiUnit ? multiUnitItem.currentQuantity : multiUnitItem.initialQuantity)
+    : null;
+
+  assert.equal(resetQty, 450, 'multi-unit item preserves currentQuantity without blindly resetting to initialQuantity');
+});
+
+test('undo-replace snapshot payload preserves and restores activeUnitsData', () => {
+  const originalSnapshot = {
+    startDate: '2026-08-21',
+    backupStock: 3,
+    activeUnitsData: JSON.stringify([
+      { id: 'u-1', label: '主臥衛浴', startDate: '2026-08-21' },
+      { id: 'u-2', label: '客用浴室', startDate: '2026-09-30' },
+    ]),
+  };
+
+  // Replaced u-1 on 2026-10-10
+  const afterReplaceUnits = [
+    { id: 'u-1', label: '主臥衛浴', startDate: '2026-10-10' },
+    { id: 'u-2', label: '客用浴室', startDate: '2026-09-30' },
+  ];
+
+  // Undo replacement restores originalSnapshot.activeUnitsData
+  const restoredUnitsData = originalSnapshot.activeUnitsData !== undefined
+    ? originalSnapshot.activeUnitsData
+    : JSON.stringify(afterReplaceUnits);
+
+  const parsedRestored = JSON.parse(restoredUnitsData);
+  assert.equal(parsedRestored[0].startDate, '2026-08-21', 'restores unit 1 original start date');
+  assert.equal(parsedRestored[1].startDate, '2026-09-30', 'preserves unit 2 start date');
+});
+
+

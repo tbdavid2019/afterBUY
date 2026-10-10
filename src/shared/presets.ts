@@ -31,6 +31,7 @@ export interface ItemPreset {
   dailyUsage?: number;
   quantityUnit?: string;
   defaultActiveUnits?: number;
+  defaultActiveUnitLabels?: string[];
   minStockAlert: number;
   notes?: string;
   imageUrl?: string;
@@ -39,11 +40,11 @@ export interface ItemPreset {
 }
 
 export const ITEM_PRESETS: ItemPreset[] = [
-  { id: 'shampoo', name: '洗髮精 / 洗髮乳', category: 'bathroom', trackingMode: 'cycle', cycleDays: 60, defaultActiveUnits: 2, minStockAlert: 1, notes: '先以 60 天作為補貨週期，可依浴室數量（如多間浴室各放 1 瓶）與實際用量調整；保存期限請依包裝標示。' },
-  { id: 'body-wash', name: '沐浴乳 / 沐浴露', category: 'bathroom', trackingMode: 'cycle', cycleDays: 60, defaultActiveUnits: 2, minStockAlert: 1, notes: '居家衛浴洗沐常備，可依家中浴室數量設定同時在用罐數，庫存為未拆封備品數。', defaultSpecModel: '1000ml / 瓶', defaultPrice: 280 },
-  { id: 'soap-bar', name: '香皂 / 肥皂', category: 'bathroom', trackingMode: 'cycle', cycleDays: 45, defaultActiveUnits: 3, minStockAlert: 2, notes: '洗手台與各浴室香皂，依洗手間間數設定同時使用塊數，隨時掌控未拆封庫存。', defaultSpecModel: '3入 / 組', defaultPrice: 99 },
+  { id: 'shampoo', name: '洗髮精 / 洗髮乳', category: 'bathroom', trackingMode: 'cycle', cycleDays: 60, defaultActiveUnits: 2, defaultActiveUnitLabels: ['主臥衛浴', '客用浴室'], minStockAlert: 1, notes: '先以 60 天作為補貨週期，可依浴室數量（如多間浴室各放 1 瓶）與實際用量調整；保存期限請依包裝標示。' },
+  { id: 'body-wash', name: '沐浴乳 / 沐浴露', category: 'bathroom', trackingMode: 'cycle', cycleDays: 60, defaultActiveUnits: 2, defaultActiveUnitLabels: ['主臥衛浴', '客用浴室'], minStockAlert: 1, notes: '居家衛浴洗沐常備，可依家中浴室數量設定同時在用罐數，庫存為未拆封備品數。', defaultSpecModel: '1000ml / 瓶', defaultPrice: 280 },
+  { id: 'soap-bar', name: '香皂 / 肥皂', category: 'bathroom', trackingMode: 'cycle', cycleDays: 45, defaultActiveUnits: 3, defaultActiveUnitLabels: ['主臥衛浴', '客用浴室', '洗手台'], minStockAlert: 2, notes: '洗手台與各浴室香皂，依洗手間間數設定同時使用塊數，隨時掌控未拆封庫存。', defaultSpecModel: '3入 / 組', defaultPrice: 99 },
   { id: 'costco-fish-oil', name: '好市多 Kirkland 深海魚油膠囊 (150顆)', category: 'medicine', trackingMode: 'quantity', initialQuantity: 150, dailyUsage: 2, quantityUnit: '顆', minStockAlert: 1, notes: '好市多常備 Kirkland 150 粒魚油，每天 2 顆隨餐食用，約 75 天份', defaultSpecModel: '150顆/瓶', defaultPrice: 699 },
-  { id: 'tissue-paper', name: '抽取式衛生紙 / 面紙', category: 'general', trackingMode: 'quantity', initialQuantity: 24, dailyUsage: 0.2, quantityUnit: '包', defaultActiveUnits: 4, minStockAlert: 3, notes: '好市多 24 包一串，客廳、房間、餐桌同時開封使用，未拆封放置備品櫃，耗盡換新自動扣庫存。', defaultSpecModel: '24包/串', defaultPrice: 389 },
+  { id: 'tissue-paper', name: '抽取式衛生紙 / 面紙', category: 'general', trackingMode: 'quantity', initialQuantity: 24, dailyUsage: 0.2, quantityUnit: '包', defaultActiveUnits: 4, defaultActiveUnitLabels: ['客廳', '主臥', '餐桌', '客衛'], minStockAlert: 3, notes: '好市多 24 包一串，客廳、房間、餐桌同時開封使用，未拆封放置備品櫃，耗盡換新自動扣庫存。', defaultSpecModel: '24包/串', defaultPrice: 389 },
   { id: 'garbage-bags', name: '環保抽取垃圾袋', category: 'kitchen', trackingMode: 'quantity', initialQuantity: 50, dailyUsage: 1, quantityUnit: '個', minStockAlert: 2, notes: '居家日用品，中型 20L 環保袋，每天 1 個約 50 天份', defaultSpecModel: '50入/包', defaultPrice: 120 },
   { id: 'laundry-pods', name: '洗衣膠囊 / 洗衣精補充包', category: 'kitchen', trackingMode: 'quantity', initialQuantity: 60, dailyUsage: 1, quantityUnit: '顆', minStockAlert: 1, notes: '洗衣常備耗材，每天 1 顆洗滌使用，約 60 天份', defaultSpecModel: '60顆/盒', defaultPrice: 399 },
   { id: 'dish-soap-refill', name: '洗碗精補充包', category: 'kitchen', trackingMode: 'cycle', cycleDays: 60, minStockAlert: 1, notes: '廚房洗滌常備耗材，約每 2 個月用完補充', defaultSpecModel: '1000ml 補充包', defaultPrice: 139 },

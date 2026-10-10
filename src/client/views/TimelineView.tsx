@@ -31,7 +31,7 @@ export interface TimelineEvent {
 
 interface TimelineViewProps {
   items: ItemResponse[];
-  onReplace: (id: string) => void | Promise<void>;
+  onReplace: (id: string, unitId?: string) => void | Promise<void>;
   onEdit: (item: ItemResponse) => void;
 }
 

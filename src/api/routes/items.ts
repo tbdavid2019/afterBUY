@@ -3,8 +3,8 @@ import { eq, and, isNull, desc, inArray } from 'drizzle-orm';
 import { HonoEnv } from '../types.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { getDb, items, itemHistory, stocks, stockMembers, users } from '../db/index.ts';
-import { computeItemStatus } from '../../shared/lifecycle.ts';
-import { ItemCategory, TrackingMode, HealthStatus, StockRole } from '../../shared/types.ts';
+import { computeItemStatus, computeActiveUnitsStatus } from '../../shared/lifecycle.ts';
+import { ItemCategory, TrackingMode, HealthStatus, StockRole, ActiveUnitInstance } from '../../shared/types.ts';
 import { ensureUserDefaultStock } from './stocks.ts';
 import { addBusinessDays, businessDate } from '../../shared/date.ts';
 import { hashString } from '../utils/auth.ts';
@@ -126,6 +126,38 @@ itemsRouter.get('/', async (c) => {
 
   const now = new Date();
   const computedItems = rawItems.map((item) => {
+    let parsedActiveUnitsData: ActiveUnitInstance[] | null = null;
+    if (item.activeUnitsData) {
+      try {
+        parsedActiveUnitsData = typeof item.activeUnitsData === 'string' ? JSON.parse(item.activeUnitsData) : item.activeUnitsData;
+      } catch {
+        parsedActiveUnitsData = null;
+      }
+    }
+
+    if (parsedActiveUnitsData && parsedActiveUnitsData.length > 0) {
+      parsedActiveUnitsData = computeActiveUnitsStatus(
+        {
+          startDate: item.startDate,
+          trackingMode: item.trackingMode as TrackingMode,
+          cycleDays: item.cycleDays,
+          paoMonths: item.paoMonths,
+          expiryDate: item.expiryDate,
+          warrantyDate: item.warrantyDate,
+          initialQuantity: item.initialQuantity,
+          currentQuantity: item.currentQuantity,
+          dailyUsage: item.dailyUsage,
+          quantityUnit: item.quantityUnit,
+          backupStock: item.backupStock,
+          minStockAlert: item.minStockAlert,
+          isStored: Boolean(item.isStored),
+          snoozeUntil: item.snoozeUntil,
+          activeUnitsData: parsedActiveUnitsData,
+        },
+        now
+      );
+    }
+
     const status = computeItemStatus(
       {
         startDate: item.startDate,
@@ -138,6 +170,8 @@ itemsRouter.get('/', async (c) => {
         currentQuantity: item.currentQuantity,
         dailyUsage: item.dailyUsage,
         quantityUnit: item.quantityUnit,
+        activeUnits: item.activeUnits,
+        activeUnitsData: parsedActiveUnitsData,
         backupStock: item.backupStock,
         minStockAlert: item.minStockAlert,
         isStored: Boolean(item.isStored),
@@ -154,6 +188,7 @@ itemsRouter.get('/', async (c) => {
       stockIcon: meta?.icon || '🏠',
       category: item.category as ItemCategory,
       trackingMode: item.trackingMode as TrackingMode,
+      activeUnitsData: parsedActiveUnitsData,
       isStored: Boolean(item.isStored),
       ...status,
     };
@@ -197,6 +232,7 @@ itemsRouter.post('/', async (c) => {
     dailyUsage?: number;
     quantityUnit?: string;
     activeUnits?: number;
+    activeUnitsData?: ActiveUnitInstance[] | string;
     backupStock?: number;
     minStockAlert?: number;
     price?: number;
@@ -247,6 +283,46 @@ itemsRouter.post('/', async (c) => {
     ? (body.currentQuantity !== undefined && body.currentQuantity !== null ? Math.max(0, body.currentQuantity) : null)
     : null;
 
+  const MAX_ACTIVE_UNITS = 30;
+  let activeUnitsCount = body.activeUnits ? Math.min(MAX_ACTIVE_UNITS, Math.max(1, Math.floor(Number(body.activeUnits) || 1))) : 1;
+  let finalActiveUnitsDataStr: string | null = null;
+  let computedStartDate = body.startDate || todayStr;
+
+  if (body.activeUnitsData) {
+    let parsed: any[] = [];
+    try {
+      parsed = typeof body.activeUnitsData === 'string' ? JSON.parse(body.activeUnitsData) : body.activeUnitsData;
+    } catch {
+      parsed = [];
+    }
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const bounded = parsed.slice(0, MAX_ACTIVE_UNITS);
+      activeUnitsCount = bounded.length;
+      finalActiveUnitsDataStr = JSON.stringify(
+        bounded.map((u, i) => ({
+          id: u.id || `u-${crypto.randomUUID().slice(0, 8)}`,
+          label: typeof u.label === 'string' && u.label.trim() ? u.label.trim() : `位置 ${i + 1}`,
+          startDate: typeof u.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(u.startDate) ? u.startDate : todayStr,
+        }))
+      );
+      const validDates = bounded
+        .map((u) => u.startDate)
+        .filter((d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d))
+        .sort();
+      if (validDates.length > 0) {
+        computedStartDate = validDates[0];
+      }
+    }
+  } else if (activeUnitsCount > 1) {
+    const defaultLabels = ['位置 1', '位置 2', '位置 3', '位置 4', '位置 5', '位置 6', '位置 7', '位置 8'];
+    const generated = Array.from({ length: activeUnitsCount }, (_, i) => ({
+      id: `u-${crypto.randomUUID().slice(0, 8)}`,
+      label: defaultLabels[i] || `位置 ${i + 1}`,
+      startDate: computedStartDate,
+    }));
+    finalActiveUnitsDataStr = JSON.stringify(generated);
+  }
+
   const newItem = {
     id: itemId,
     stockId: targetStockId,
@@ -262,7 +338,7 @@ itemsRouter.post('/', async (c) => {
           ? Math.ceil(initialQty / dailyRate)
           : null
     ),
-    startDate: body.startDate || todayStr,
+    startDate: computedStartDate,
     paoMonths: body.paoMonths ?? (body.trackingMode === 'pao' ? 6 : null),
     expiryDate: body.expiryDate || null,
     warrantyDate: body.warrantyDate || null,
@@ -270,7 +346,8 @@ itemsRouter.post('/', async (c) => {
     currentQuantity: currentQty,
     dailyUsage: dailyRate,
     quantityUnit: isQuantityMode ? (body.quantityUnit?.trim() || '顆') : null,
-    activeUnits: Math.max(1, Math.floor(Number(body.activeUnits) || 1)),
+    activeUnits: activeUnitsCount,
+    activeUnitsData: finalActiveUnitsDataStr,
     backupStock: Math.max(0, body.backupStock ?? 0),
     minStockAlert: Math.max(0, body.minStockAlert ?? 1),
     price: body.price !== undefined && body.price !== null ? Math.max(0, Math.round(body.price)) : null,
@@ -413,6 +490,36 @@ itemsRouter.put('/:id', async (c) => {
 
   const existing = access.item;
   const nowIso = new Date().toISOString();
+
+  let activeUnitsCount = body.activeUnits !== undefined ? Math.min(30, Math.max(1, Math.floor(Number(body.activeUnits) || 1))) : (existing.activeUnits ?? 1);
+  let finalActiveUnitsDataStr = existing.activeUnitsData;
+
+  if (body.activeUnitsData !== undefined) {
+    if (body.activeUnitsData === null) {
+      finalActiveUnitsDataStr = null;
+    } else {
+      let parsed: any[] = [];
+      try {
+        parsed = typeof body.activeUnitsData === 'string' ? JSON.parse(body.activeUnitsData) : body.activeUnitsData;
+      } catch {
+        parsed = [];
+      }
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const bounded = parsed.slice(0, 30);
+        activeUnitsCount = bounded.length;
+        finalActiveUnitsDataStr = JSON.stringify(
+          bounded.map((u, i) => ({
+            id: u.id || `u-${crypto.randomUUID().slice(0, 8)}`,
+            label: typeof u.label === 'string' && u.label.trim() ? u.label.trim() : `位置 ${i + 1}`,
+            startDate: typeof u.startDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(u.startDate) ? u.startDate : (body.startDate || existing.startDate),
+          }))
+        );
+      } else {
+        finalActiveUnitsDataStr = null;
+      }
+    }
+  }
+
   const updatedData: any = {
     name: body.name !== undefined ? body.name.trim() : existing.name,
     category: body.category || existing.category,
@@ -426,7 +533,8 @@ itemsRouter.put('/:id', async (c) => {
     currentQuantity: body.currentQuantity !== undefined ? (body.currentQuantity !== null ? Math.max(0, body.currentQuantity) : null) : existing.currentQuantity,
     dailyUsage: body.dailyUsage !== undefined ? (body.dailyUsage !== null ? Math.max(0.01, body.dailyUsage) : null) : existing.dailyUsage,
     quantityUnit: body.quantityUnit !== undefined ? (body.quantityUnit?.trim() || null) : existing.quantityUnit,
-    activeUnits: body.activeUnits !== undefined ? Math.max(1, Math.floor(Number(body.activeUnits) || 1)) : (existing.activeUnits ?? 1),
+    activeUnits: activeUnitsCount,
+    activeUnitsData: finalActiveUnitsDataStr,
     backupStock: body.backupStock !== undefined ? Math.max(0, body.backupStock) : existing.backupStock,
     minStockAlert: body.minStockAlert !== undefined ? Math.max(0, body.minStockAlert) : existing.minStockAlert,
     price: body.price !== undefined ? (body.price === null ? null : Math.max(0, Math.round(body.price))) : existing.price,
@@ -552,10 +660,11 @@ itemsRouter.delete('/:id', async (c) => {
   return c.json({ success: true, message: '物品已刪除' });
 });
 
-// 10. One-tap "Mark Replaced Today" action
+// 10. One-tap "Mark Replaced Today" action (Supports targeted unit replacement via { unitId })
 itemsRouter.post('/:id/replace', async (c) => {
   const user = c.get('user')!;
   const itemId = c.req.param('id');
+  const body = await c.req.json<{ unitId?: string }>().catch(() => ({ unitId: undefined }));
   const db = getDb(c.env.DB);
 
   const access = await checkItemAccess(db, itemId, user.id, 'edit');
@@ -569,14 +678,54 @@ itemsRouter.post('/:id/replace', async (c) => {
   const nowIso = new Date().toISOString();
   const todayStr = businessDate();
   const newStock = Math.max(0, existing.backupStock - 1);
-  const resetQty = existing.trackingMode === 'quantity' ? (existing.initialQuantity ?? 60) : null;
+  let existingUnits: ActiveUnitInstance[] = [];
+  if (existing.activeUnitsData) {
+    try {
+      existingUnits = typeof existing.activeUnitsData === 'string' ? JSON.parse(existing.activeUnitsData) : existing.activeUnitsData;
+    } catch {
+      existingUnits = [];
+    }
+  }
+
+  const isMultiUnit = Array.isArray(existingUnits) && existingUnits.length > 1;
+  const resetQty = existing.trackingMode === 'quantity'
+    ? (isMultiUnit ? existing.currentQuantity : (existing.initialQuantity ?? 60))
+    : null;
+
+  let replacedUnitLabel: string | null = null;
+  let updatedUnitsDataStr: string | null = existing.activeUnitsData;
+  let newStartDate = todayStr;
+
+  if (Array.isArray(existingUnits) && existingUnits.length > 0) {
+    let targetIndex = -1;
+    if (body?.unitId) {
+      targetIndex = existingUnits.findIndex((u) => u.id === body.unitId);
+    }
+    if (targetIndex === -1) {
+      // If unitId was not given or not found, target the unit with the earliest startDate (most overdue)
+      const sortedWithIndex = existingUnits.map((u, i) => ({ u, i })).sort((a, b) => (a.u.startDate || '').localeCompare(b.u.startDate || ''));
+      targetIndex = sortedWithIndex[0]?.i ?? -1;
+    }
+
+    if (targetIndex !== -1) {
+      replacedUnitLabel = existingUnits[targetIndex].label;
+      existingUnits[targetIndex] = {
+        ...existingUnits[targetIndex],
+        startDate: todayStr,
+      };
+      updatedUnitsDataStr = JSON.stringify(existingUnits);
+      const sortedDates = existingUnits.map((u) => u.startDate).sort();
+      newStartDate = sortedDates[0] || todayStr;
+    }
+  }
 
   await db
     .update(items)
     .set({
-      startDate: todayStr,
+      startDate: newStartDate,
       backupStock: newStock,
       currentQuantity: resetQty,
+      activeUnitsData: updatedUnitsDataStr,
       snoozeUntil: null,
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
@@ -592,27 +741,32 @@ itemsRouter.post('/:id/replace', async (c) => {
     replacedAt: nowIso,
     previousStartDate: existing.startDate,
     stockAfterReplace: newStock,
-    notes: existing.trackingMode === 'quantity'
-      ? (existing.backupStock > 0
-          ? (existing.activeUnits && existing.activeUnits > 1
-              ? `已開啟新備品替換 1 ${existing.quantityUnit === '顆' ? '瓶' : (existing.quantityUnit || '包')}（維持 ${existing.activeUnits} ${existing.quantityUnit || '包'}在用），備品扣減 1`
-              : `已開啟新一${existing.quantityUnit === '顆' ? '瓶' : '包'}，備品扣減 1`)
-          : '已重置數量，備品已耗盡')
-      : (existing.backupStock > 0
-          ? (existing.activeUnits && existing.activeUnits > 1
-              ? `已開封新備品替換 1 件（維持 ${existing.activeUnits} 件在用），備品扣減 1`
-              : '已扣減 1 個備品庫存')
-          : '無備品庫存（需採購）'),
+    notes: replacedUnitLabel
+      ? `已換新【${replacedUnitLabel}】（維持 ${existing.activeUnits || existingUnits.length} 在用），備品扣減 1`
+      : (existing.trackingMode === 'quantity'
+        ? (existing.backupStock > 0
+            ? (existing.activeUnits && existing.activeUnits > 1
+                ? `已開啟新備品替換 1 ${existing.quantityUnit === '顆' ? '瓶' : (existing.quantityUnit || '包')}（維持 ${existing.activeUnits} ${existing.quantityUnit || '包'}在用），備品扣減 1`
+                : `已開啟新一${existing.quantityUnit === '顆' ? '瓶' : '包'}，備品扣減 1`)
+            : '已重置數量，備品已耗盡')
+        : (existing.backupStock > 0
+            ? (existing.activeUnits && existing.activeUnits > 1
+                ? `已開封新備品替換 1 件（維持 ${existing.activeUnits} 件在用），備品扣減 1`
+                : '已扣減 1 個備品庫存')
+            : '無備品庫存（需採購）')),
   };
   await db.insert(itemHistory).values(historyRecord);
 
   return c.json({
     success: true,
-    message: existing.activeUnits && existing.activeUnits > 1
-      ? (existing.trackingMode === 'quantity' ? `已開啟新備品（維持 ${existing.activeUnits} 在用）！` : `已開封新備品（維持 ${existing.activeUnits} 在用）！`)
-      : (existing.trackingMode === 'quantity' ? '已開啟新備品！容量已重置' : '已記錄更換！計時器已重置'),
+    message: replacedUnitLabel
+      ? `已換新【${replacedUnitLabel}】！`
+      : (existing.activeUnits && existing.activeUnits > 1
+          ? (existing.trackingMode === 'quantity' ? `已開啟新備品（維持 ${existing.activeUnits} 在用）！` : `已開封新備品（維持 ${existing.activeUnits} 在用）！`)
+          : (existing.trackingMode === 'quantity' ? '已開啟新備品！容量已重置' : '已記錄更換！計時器已重置')),
     newStock,
-    startDate: todayStr,
+    startDate: newStartDate,
+    activeUnitsData: existingUnits.length > 0 ? existingUnits : null,
     currentQuantity: resetQty,
   });
 });
@@ -664,6 +818,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
     previousBackupStock?: number;
     previousSnoozeUntil?: string | null;
     previousCurrentQuantity?: number | null;
+    previousActiveUnitsData?: string | null;
   }>().catch(() => ({}));
   const db = getDb(c.env.DB);
 
@@ -695,6 +850,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
 
   const restoredSnooze = body.previousSnoozeUntil !== undefined ? body.previousSnoozeUntil : existing.snoozeUntil;
   const restoredQuantity = body.previousCurrentQuantity !== undefined ? body.previousCurrentQuantity : existing.currentQuantity;
+  const restoredActiveUnitsData = body.previousActiveUnitsData !== undefined ? body.previousActiveUnitsData : existing.activeUnitsData;
 
   await db
     .update(items)
@@ -702,6 +858,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
       startDate: restoredStartDate,
       backupStock: restoredStock,
       currentQuantity: restoredQuantity,
+      activeUnitsData: restoredActiveUnitsData,
       snoozeUntil: restoredSnooze,
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,

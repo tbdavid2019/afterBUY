@@ -46,6 +46,20 @@ export interface UserSession {
   isVip: boolean;
 }
 
+export interface ActiveUnitInstance {
+  id: string;
+  label: string;
+  startDate: string; // YYYY-MM-DD
+  nextDueDate?: string;
+  totalDays?: number;
+  elapsedDays?: number;
+  daysUntilStart?: number;
+  remainingDays?: number;
+  percentageRemaining?: number;
+  remainingQuantity?: number | null;
+  healthStatus?: HealthStatus;
+}
+
 export interface ItemResponse {
   id: string;
   userId: string;
@@ -66,6 +80,7 @@ export interface ItemResponse {
   dailyUsage?: number | null;
   quantityUnit?: string | null;
   activeUnits?: number | null;
+  activeUnitsData?: ActiveUnitInstance[] | string | null;
   backupStock: number;
   minStockAlert: number;
   price: number | null;

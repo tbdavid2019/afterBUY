@@ -165,8 +165,11 @@ export const api = {
     return request(`/items/${id}`, { method: 'DELETE' });
   },
 
-  async markReplaced(id: string): Promise<{ success: boolean; newStock: number; startDate: string; currentQuantity?: number | null }> {
-    return request(`/items/${id}/replace`, { method: 'POST' });
+  async markReplaced(id: string, unitId?: string): Promise<{ success: boolean; newStock: number; startDate: string; currentQuantity?: number | null; activeUnitsData?: any }> {
+    return request(`/items/${id}/replace`, {
+      method: 'POST',
+      body: unitId ? JSON.stringify({ unitId }) : undefined,
+    });
   },
 
   async consumeItem(id: string, amount?: number): Promise<{ success: boolean; message: string; currentQuantity: number }> {
@@ -178,7 +181,13 @@ export const api = {
 
   async undoReplace(
     id: string,
-    snapshot?: { previousStartDate?: string; previousBackupStock?: number; previousSnoozeUntil?: string | null; previousCurrentQuantity?: number | null }
+    snapshot?: {
+      previousStartDate?: string;
+      previousBackupStock?: number;
+      previousSnoozeUntil?: string | null;
+      previousCurrentQuantity?: number | null;
+      previousActiveUnitsData?: string | null;
+    }
   ): Promise<{ success: boolean; message: string; item?: any }> {
     return request(`/items/${id}/undo-replace`, {
       method: 'POST',

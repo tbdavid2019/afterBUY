@@ -1,4 +1,4 @@
-import type { TrackingMode, HealthStatus } from './types.ts';
+import type { TrackingMode, HealthStatus, ActiveUnitInstance } from './types.ts';
 import { addBusinessDays, businessDate, businessDateDiff, parseBusinessDate } from './date.ts';
 
 /**
@@ -44,6 +44,73 @@ export function computeNextDueDate(item: {
 }
 
 /**
+ * Computes health status and remaining days for each individual active unit instance.
+ */
+export function computeActiveUnitsStatus(
+  item: {
+    startDate?: string;
+    trackingMode: TrackingMode;
+    cycleDays?: number | null;
+    paoMonths?: number | null;
+    expiryDate?: string | null;
+    warrantyDate?: string | null;
+    initialQuantity?: number | null;
+    currentQuantity?: number | null;
+    dailyUsage?: number | null;
+    quantityUnit?: string | null;
+    backupStock: number;
+    minStockAlert?: number;
+    isStored?: boolean | null;
+    snoozeUntil?: string | null;
+    activeUnitsData?: ActiveUnitInstance[] | string | null;
+  },
+  referenceDate: Date = new Date()
+): ActiveUnitInstance[] {
+  let units: ActiveUnitInstance[] = [];
+  if (Array.isArray(item.activeUnitsData)) {
+    units = item.activeUnitsData;
+  } else if (typeof item.activeUnitsData === 'string' && item.activeUnitsData.trim()) {
+    try {
+      units = JSON.parse(item.activeUnitsData);
+    } catch {
+      units = [];
+    }
+  }
+
+  if (!Array.isArray(units) || units.length === 0) {
+    return [];
+  }
+
+  const todayStr = businessDate(referenceDate);
+
+  return units.map((u, idx) => {
+    const unitStartDate = u.startDate || item.startDate || todayStr;
+    const unitStatus = computeItemStatus(
+      {
+        ...item,
+        startDate: unitStartDate,
+        activeUnitsData: null,
+      },
+      referenceDate
+    );
+
+    return {
+      id: u.id || `u-${idx + 1}`,
+      label: u.label || `位置 ${idx + 1}`,
+      startDate: unitStartDate,
+      nextDueDate: unitStatus.nextDueDate,
+      totalDays: unitStatus.totalDays,
+      elapsedDays: unitStatus.elapsedDays,
+      daysUntilStart: unitStatus.daysUntilStart,
+      remainingDays: unitStatus.remainingDays,
+      percentageRemaining: unitStatus.percentageRemaining,
+      remainingQuantity: unitStatus.remainingQuantity,
+      healthStatus: unitStatus.healthStatus,
+    };
+  });
+}
+
+/**
  * Computes health status, remaining days, and percentage of lifespan left.
  */
 export function computeItemStatus(
@@ -59,6 +126,7 @@ export function computeItemStatus(
     dailyUsage?: number | null;
     quantityUnit?: string | null;
     activeUnits?: number | null;
+    activeUnitsData?: ActiveUnitInstance[] | string | null;
     backupStock: number;
     minStockAlert?: number;
     isStored?: boolean | null;
@@ -79,8 +147,8 @@ export function computeItemStatus(
   const refDateStr = businessDate(referenceDate);
   const rawElapsed = businessDateDiff(item.startDate, refDateStr);
   const isFuture = rawElapsed < 0;
-  const daysUntilStart = isFuture ? Math.abs(rawElapsed) : 0;
-  const elapsedDays = Math.max(0, rawElapsed);
+  let daysUntilStart = isFuture ? Math.abs(rawElapsed) : 0;
+  let elapsedDays = Math.max(0, rawElapsed);
 
   let nextDueDate = computeNextDueDate(item);
   let totalDays = Math.max(1, businessDateDiff(item.startDate, nextDueDate));
@@ -136,6 +204,26 @@ export function computeItemStatus(
     healthStatus = 'due_soon';
   } else {
     healthStatus = 'healthy';
+  }
+
+  if (item.activeUnitsData && !item.isStored) {
+    const computedUnits = computeActiveUnitsStatus(item, referenceDate);
+    if (computedUnits.length > 0) {
+      const sorted = [...computedUnits].sort((a, b) => (a.remainingDays ?? 0) - (b.remainingDays ?? 0));
+      const mostUrgent = sorted[0];
+      if (mostUrgent) {
+        nextDueDate = mostUrgent.nextDueDate ?? nextDueDate;
+        totalDays = mostUrgent.totalDays ?? totalDays;
+        elapsedDays = mostUrgent.elapsedDays ?? elapsedDays;
+        daysUntilStart = mostUrgent.daysUntilStart ?? daysUntilStart;
+        remainingDays = mostUrgent.remainingDays ?? remainingDays;
+        percentageRemaining = mostUrgent.percentageRemaining ?? percentageRemaining;
+        healthStatus = mostUrgent.healthStatus ?? healthStatus;
+        if (mostUrgent.remainingQuantity !== undefined) {
+          remainingQuantity = mostUrgent.remainingQuantity;
+        }
+      }
+    }
   }
 
   const minStock = item.minStockAlert ?? 1;

@@ -3,9 +3,9 @@ import { eq, and, isNull, desc } from 'drizzle-orm';
 import { HonoEnv } from '../types.ts';
 import { requireAuth } from '../middleware/auth.ts';
 import { getDb, items, itemHistory, stocks, stockMembers } from '../db/index.ts';
-import { computeItemStatus, computeNextDueDate } from '../../shared/lifecycle.ts';
+import { computeItemStatus, computeNextDueDate, computeActiveUnitsStatus } from '../../shared/lifecycle.ts';
 import { businessDate } from '../../shared/date.ts';
-import { ItemCategory, TrackingMode, StockRole } from '../../shared/types.ts';
+import { ItemCategory, TrackingMode, StockRole, ActiveUnitInstance } from '../../shared/types.ts';
 import { ensureUserDefaultStock } from './stocks.ts';
 import { ITEM_PRESETS } from '../../shared/presets.ts';
 
@@ -610,7 +610,18 @@ agentApiRouter.get('/items', async (c) => {
   };
 
   const processed = rawItems.map((raw: any) => {
-    const status = computeItemStatus(raw, now);
+    let parsedActiveUnits: ActiveUnitInstance[] | null = null;
+    if (raw.activeUnitsData) {
+      try {
+        parsedActiveUnits = typeof raw.activeUnitsData === 'string' ? JSON.parse(raw.activeUnitsData) : raw.activeUnitsData;
+      } catch {
+        parsedActiveUnits = null;
+      }
+    }
+    if (parsedActiveUnits && parsedActiveUnits.length > 0) {
+      parsedActiveUnits = computeActiveUnitsStatus({ ...raw, activeUnitsData: parsedActiveUnits }, now);
+    }
+    const status = computeItemStatus({ ...raw, activeUnitsData: parsedActiveUnits }, now);
     const isOverdue = status.healthStatus === 'overdue';
     const isDueToday = !raw.isStored && status.remainingDays === 0;
     const isDueSoon = status.healthStatus === 'due_soon';
@@ -648,6 +659,7 @@ agentApiRouter.get('/items', async (c) => {
       dailyUsage: raw.dailyUsage,
       quantityUnit: raw.quantityUnit,
       activeUnits: raw.activeUnits ?? 1,
+      activeUnitsData: parsedActiveUnits,
       backupStock: raw.backupStock,
       minStockAlert: raw.minStockAlert,
       price: raw.price,
@@ -919,7 +931,7 @@ agentApiRouter.post('/items', async (c) => {
     currentQuantity,
     dailyUsage,
     quantityUnit,
-    activeUnits: Math.max(1, Math.floor(Number(body.activeUnits) || 1)),
+    activeUnits: Math.min(30, Math.max(1, Math.floor(Number(body.activeUnits) || 1))),
     backupStock: Number(body.backupStock) || 0,
     minStockAlert,
     price,
@@ -1027,7 +1039,7 @@ agentApiRouter.patch('/items/:id', async (c) => {
   if (body.currentQuantity !== undefined) updates.currentQuantity = Number(body.currentQuantity);
   if (body.dailyUsage !== undefined) updates.dailyUsage = Number(body.dailyUsage);
   if (body.quantityUnit !== undefined) updates.quantityUnit = body.quantityUnit;
-  if (body.activeUnits !== undefined) updates.activeUnits = Math.max(1, Math.floor(Number(body.activeUnits) || 1));
+  if (body.activeUnits !== undefined) updates.activeUnits = Math.min(30, Math.max(1, Math.floor(Number(body.activeUnits) || 1)));
   if (body.backupStock !== undefined) updates.backupStock = Number(body.backupStock);
   if (body.minStockAlert !== undefined) updates.minStockAlert = Number(body.minStockAlert);
   if (body.price !== undefined) updates.price = body.price !== null ? Number(body.price) : null;
@@ -1102,7 +1114,7 @@ agentApiRouter.post('/items/:id/replace', async (c) => {
     return c.json({ error: access.error }, access.status as any);
   }
   const item = access.item;
-
+  const body = await c.req.json<{ unitId?: string }>().catch(() => ({ unitId: undefined }));
   const todayStr = businessDate();
   const now = new Date().toISOString();
 
@@ -1115,16 +1127,55 @@ agentApiRouter.post('/items/:id/replace', async (c) => {
     stockDeducted = true;
   }
 
-  // If quantity mode, reset current quantity to initialQuantity
-  const resetQty = item.trackingMode === 'quantity' && item.initialQuantity ? item.initialQuantity : item.currentQuantity;
+  let existingUnits: ActiveUnitInstance[] = [];
+  if (item.activeUnitsData) {
+    try {
+      existingUnits = typeof item.activeUnitsData === 'string' ? JSON.parse(item.activeUnitsData) : item.activeUnitsData;
+    } catch {
+      existingUnits = [];
+    }
+  }
+
+  // If quantity mode, reset current quantity only if single-unit item
+  const isMultiUnit = Array.isArray(existingUnits) && existingUnits.length > 1;
+  const resetQty = item.trackingMode === 'quantity'
+    ? (isMultiUnit ? item.currentQuantity : (item.initialQuantity || item.currentQuantity))
+    : item.currentQuantity;
+
+  let replacedUnitLabel: string | null = null;
+  let updatedUnitsDataStr: string | null = item.activeUnitsData;
+  let newStartDate = todayStr;
+
+  if (Array.isArray(existingUnits) && existingUnits.length > 0) {
+    let targetIndex = -1;
+    if (body?.unitId) {
+      targetIndex = existingUnits.findIndex((u) => u.id === body.unitId);
+    }
+    if (targetIndex === -1) {
+      const sortedWithIndex = existingUnits.map((u, i) => ({ u, i })).sort((a, b) => (a.u.startDate || '').localeCompare(b.u.startDate || ''));
+      targetIndex = sortedWithIndex[0]?.i ?? -1;
+    }
+
+    if (targetIndex !== -1) {
+      replacedUnitLabel = existingUnits[targetIndex].label;
+      existingUnits[targetIndex] = {
+        ...existingUnits[targetIndex],
+        startDate: todayStr,
+      };
+      updatedUnitsDataStr = JSON.stringify(existingUnits);
+      const sortedDates = existingUnits.map((u) => u.startDate).sort();
+      newStartDate = sortedDates[0] || todayStr;
+    }
+  }
 
   // Atomically update item and insert replacement history
   await db
     .update(items)
     .set({
-      startDate: todayStr,
+      startDate: newStartDate,
       backupStock: newBackupStock,
       currentQuantity: resetQty,
+      activeUnitsData: updatedUnitsDataStr,
       isStored: 0,
       snoozeUntil: null,
       updatedAt: now,
@@ -1139,14 +1190,17 @@ agentApiRouter.post('/items/:id/replace', async (c) => {
     replacedAt: now,
     previousStartDate: item.startDate,
     stockAfterReplace: newBackupStock,
-    notes: stockDeducted ? '透過 AI Agent 記錄「今天已換」並自動扣減備品' : '透過 AI Agent 記錄「今天已換」（備品為 0 無法扣減）',
+    notes: replacedUnitLabel
+      ? `透過 AI Agent 換新【${replacedUnitLabel}】（備品扣減 1）`
+      : (stockDeducted ? '透過 AI Agent 記錄「今天已換」並自動扣減備品' : '透過 AI Agent 記錄「今天已換」（備品為 0 無法扣減）'),
   });
 
   const updatedItem = {
     ...item,
-    startDate: todayStr,
+    startDate: newStartDate,
     backupStock: newBackupStock,
     currentQuantity: resetQty,
+    activeUnitsData: existingUnits.length > 0 ? existingUnits : null,
     isStored: 0,
     snoozeUntil: null,
     updatedAt: now,

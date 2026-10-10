@@ -18,7 +18,7 @@ import { PresetCatalogModal } from './components/PresetCatalogModal.tsx';
 import { VersionNoticeModal, CURRENT_APP_RELEASE_DATE } from './components/VersionNoticeModal.tsx';
 import { ItemPreset } from './utils/category.ts';
 import { api } from './api.ts';
-import { UserSession, ItemResponse, StockResponse } from '../shared/types.ts';
+import { UserSession, ItemResponse, StockResponse, ActiveUnitInstance } from '../shared/types.ts';
 import { computeItemStatus } from '../shared/lifecycle.ts';
 import { addBusinessDays, businessDate } from '../shared/date.ts';
 import { getInitialTheme, getInitialPalette, type ThemeMode, type ThemePalette, THEME_PALETTES } from './utils/theme.ts';
@@ -511,6 +511,15 @@ export const App: React.FC = () => {
   const handleDirectAddPreset = async (preset: ItemPreset) => {
     const todayStr = businessDate();
     const effectiveStockId = currentStockId !== 'all' ? currentStockId : (stocks[0]?.id || undefined);
+    let initialUnitsData: ActiveUnitInstance[] | null = null;
+    if (preset.defaultActiveUnits && preset.defaultActiveUnits > 1) {
+      const labels = preset.defaultActiveUnitLabels || ['位置 1', '位置 2', '位置 3', '位置 4'];
+      initialUnitsData = Array.from({ length: preset.defaultActiveUnits }, (_, i) => ({
+        id: `u-${i + 1}`,
+        label: labels[i] || `位置 ${i + 1}`,
+        startDate: todayStr,
+      }));
+    }
 
     if (user) {
       await api.createItem({
@@ -526,6 +535,7 @@ export const App: React.FC = () => {
         dailyUsage: preset.trackingMode === 'quantity' ? (preset.dailyUsage ?? 1) : undefined,
         quantityUnit: preset.trackingMode === 'quantity' ? (preset.quantityUnit ?? '顆') : undefined,
         activeUnits: preset.defaultActiveUnits ?? 1,
+        activeUnitsData: initialUnitsData ? JSON.stringify(initialUnitsData) : undefined,
         backupStock: preset.minStockAlert ?? 1,
         minStockAlert: preset.minStockAlert ?? 1,
         price: preset.defaultPrice ?? null,
@@ -552,6 +562,7 @@ export const App: React.FC = () => {
         dailyUsage: preset.trackingMode === 'quantity' ? (preset.dailyUsage ?? 1) : null,
         quantityUnit: preset.trackingMode === 'quantity' ? (preset.quantityUnit ?? '顆') : null,
         activeUnits: preset.defaultActiveUnits ?? 1,
+        activeUnitsData: initialUnitsData,
         backupStock: preset.minStockAlert ?? 1,
         minStockAlert: preset.minStockAlert ?? 1,
         price: preset.defaultPrice ?? null,
@@ -574,6 +585,7 @@ export const App: React.FC = () => {
           dailyUsage: preset.trackingMode === 'quantity' ? (preset.dailyUsage ?? 1) : null,
           quantityUnit: preset.trackingMode === 'quantity' ? (preset.quantityUnit ?? '顆') : null,
           activeUnits: preset.defaultActiveUnits ?? 1,
+          activeUnitsData: initialUnitsData,
           backupStock: preset.minStockAlert ?? 1,
           minStockAlert: preset.minStockAlert ?? 1,
           isStored: false,
@@ -588,7 +600,7 @@ export const App: React.FC = () => {
     setIsItemModalOpen(true);
   };
 
-  const handleReplace = async (id: string) => {
+  const handleReplace = async (id: string, unitId?: string) => {
     const target = items.find((i) => i.id === id);
     if (!target) return;
     if (target.isStored || (target.trackingMode !== 'cycle' && target.trackingMode !== 'pao' && target.trackingMode !== 'quantity')) return;
@@ -597,18 +609,58 @@ export const App: React.FC = () => {
     const snapshot: ItemResponse = { ...target };
     const todayStr = businessDate();
     const newStock = Math.max(0, target.backupStock - 1);
-    const newCurrentQty = target.trackingMode === 'quantity' ? (target.initialQuantity || 60) : target.currentQuantity;
+
+    let existingUnits: ActiveUnitInstance[] = [];
+    if (target.activeUnitsData) {
+      try {
+        existingUnits = typeof target.activeUnitsData === 'string' ? JSON.parse(target.activeUnitsData) : [...target.activeUnitsData];
+      } catch {
+        existingUnits = [];
+      }
+    }
+
+    const isMultiUnit = existingUnits.length > 1;
+    const newCurrentQty = target.trackingMode === 'quantity'
+      ? (isMultiUnit ? target.currentQuantity : (target.initialQuantity || 60))
+      : target.currentQuantity;
+
+    let updatedUnits: ActiveUnitInstance[] | null = null;
+    let newStartDate = todayStr;
+
+    if (existingUnits.length > 0) {
+        let targetIndex = -1;
+        if (unitId) {
+          targetIndex = existingUnits.findIndex((u) => u.id === unitId);
+        }
+        if (targetIndex === -1) {
+          const sorted = existingUnits.map((u, i) => ({ u, i })).sort((a, b) => (a.u.startDate || '').localeCompare(b.u.startDate || ''));
+          targetIndex = sorted[0]?.i ?? -1;
+        }
+
+        if (targetIndex !== -1) {
+          existingUnits[targetIndex] = {
+            ...existingUnits[targetIndex],
+            startDate: todayStr,
+          };
+          updatedUnits = existingUnits;
+          const sortedDates = existingUnits.map((u) => u.startDate).sort();
+          newStartDate = sortedDates[0] || todayStr;
+        }
+      }
+
     const updatedTarget: ItemResponse = {
       ...target,
-      startDate: todayStr,
+      startDate: newStartDate,
       backupStock: newStock,
       currentQuantity: newCurrentQty,
+      activeUnitsData: updatedUnits ?? target.activeUnitsData,
       snoozeUntil: null,
       ...computeItemStatus({
         ...target,
-        startDate: todayStr,
+        startDate: newStartDate,
         backupStock: newStock,
         currentQuantity: newCurrentQty,
+        activeUnitsData: updatedUnits ?? target.activeUnitsData,
         snoozeUntil: null,
       }),
     };
@@ -619,7 +671,7 @@ export const App: React.FC = () => {
       // Optimistic update for instant mobile feedback
       setItems((prev) => prev.map((i) => (i.id === id ? updatedTarget : i)));
       try {
-        await api.markReplaced(id);
+        await api.markReplaced(id, unitId);
       } catch (err: any) {
         alert(err.message || '更新失敗');
         setItems((prev) => prev.map((i) => (i.id === id ? snapshot : i)));
@@ -691,6 +743,12 @@ export const App: React.FC = () => {
           previousStartDate: snapshot.startDate,
           previousBackupStock: snapshot.backupStock,
           previousSnoozeUntil: snapshot.snoozeUntil,
+          previousCurrentQuantity: snapshot.currentQuantity,
+          previousActiveUnitsData: snapshot.activeUnitsData
+            ? (typeof snapshot.activeUnitsData === 'string'
+              ? snapshot.activeUnitsData
+              : JSON.stringify(snapshot.activeUnitsData))
+            : null,
         });
         await loadUserAndItems();
       } catch (err: any) {

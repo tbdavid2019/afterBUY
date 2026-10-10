@@ -71,6 +71,7 @@ export const items = sqliteTable('items', {
   dailyUsage: real('daily_usage'), // Units consumed per day (e.g. 2 or 0.5)
   quantityUnit: text('quantity_unit'), // Unit: 顆, 錠, 包, 個, 片, 入, 抽, 次
   activeUnits: integer('active_units').notNull().default(1), // In-use units concurrently opened (e.g. 3 bottles in 3 bathrooms, 5 tissue packs)
+  activeUnitsData: text('active_units_data'), // JSON string representing ActiveUnitInstance[] (locations and individual startDates)
   backupStock: integer('backup_stock').notNull().default(0),
   minStockAlert: integer('min_stock_alert').notNull().default(1),
   price: integer('price'), // Purchase price / cost (e.g. NT$ integer or cents)

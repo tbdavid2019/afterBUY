@@ -17,7 +17,7 @@ import {
   ArrowRight,
   Trash2,
 } from 'lucide-react';
-import { ItemResponse, ItemCategory, TrackingMode, UserSession, StockResponse } from '../../shared/types.ts';
+import { ItemResponse, ItemCategory, TrackingMode, UserSession, StockResponse, ActiveUnitInstance } from '../../shared/types.ts';
 import { computeItemStatus } from '../../shared/lifecycle.ts';
 import { businessDate } from '../../shared/date.ts';
 import { CATEGORIES, ITEM_PRESETS, ItemPreset } from '../utils/category.ts';
@@ -81,18 +81,21 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [name, setName] = useState('');
   const [category, setCategory] = useState<ItemCategory>('general');
   const [trackingMode, setTrackingMode] = useState<TrackingMode>('cycle');
-  const [cycleDays, setCycleDays] = useState(90);
+  const [cycleDays, setCycleDays] = useState<number | ''>(90);
   const [startDate, setStartDate] = useState(businessDate());
-  const [paoMonths, setPaoMonths] = useState(6);
+  const [paoMonths, setPaoMonths] = useState<number | ''>(6);
   const [expiryDate, setExpiryDate] = useState('');
   const [warrantyDate, setWarrantyDate] = useState('');
   const [initialQuantity, setInitialQuantity] = useState<number | ''>(60);
   const [currentQuantity, setCurrentQuantity] = useState<number | ''>('');
   const [dailyUsage, setDailyUsage] = useState<number | ''>(2);
   const [quantityUnit, setQuantityUnit] = useState('顆');
-  const [activeUnits, setActiveUnits] = useState(1);
-  const [backupStock, setBackupStock] = useState(1);
-  const [minStockAlert, setMinStockAlert] = useState(1);
+  const [activeUnits, setActiveUnits] = useState<number | ''>(1);
+  const [activeUnitsList, setActiveUnitsList] = useState<ActiveUnitInstance[]>([
+    { id: 'u-1', label: '位置 1', startDate: businessDate() },
+  ]);
+  const [backupStock, setBackupStock] = useState<number | ''>(1);
+  const [minStockAlert, setMinStockAlert] = useState<number | ''>(1);
   const [price, setPrice] = useState<number | ''>('');
   const [specModel, setSpecModel] = useState('');
   const [location, setLocation] = useState('');
@@ -150,7 +153,32 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setCurrentQuantity(itemToEdit.currentQuantity !== null && itemToEdit.currentQuantity !== undefined ? itemToEdit.currentQuantity : '');
       setDailyUsage(itemToEdit.dailyUsage ?? 2);
       setQuantityUnit(itemToEdit.quantityUnit || '顆');
-      setActiveUnits(itemToEdit.activeUnits && itemToEdit.activeUnits >= 1 ? itemToEdit.activeUnits : 1);
+      const count = itemToEdit.activeUnits && itemToEdit.activeUnits >= 1 ? itemToEdit.activeUnits : 1;
+      setActiveUnits(count);
+
+      let parsedUnits: ActiveUnitInstance[] = [];
+      if (itemToEdit.activeUnitsData) {
+        try {
+          parsedUnits = typeof itemToEdit.activeUnitsData === 'string'
+            ? JSON.parse(itemToEdit.activeUnitsData)
+            : itemToEdit.activeUnitsData;
+        } catch {
+          parsedUnits = [];
+        }
+      }
+      if (Array.isArray(parsedUnits) && parsedUnits.length > 0) {
+        setActiveUnitsList(parsedUnits);
+      } else {
+        const defaultLabels = ['位置 1', '位置 2', '位置 3', '位置 4'];
+        setActiveUnitsList(
+          Array.from({ length: count }, (_, i) => ({
+            id: `u-${i + 1}`,
+            label: defaultLabels[i] || `位置 ${i + 1}`,
+            startDate: itemToEdit.startDate || businessDate(),
+          }))
+        );
+      }
+
       setBackupStock(itemToEdit.backupStock);
       setMinStockAlert(itemToEdit.minStockAlert);
       setPrice(itemToEdit.price !== null && itemToEdit.price !== undefined ? itemToEdit.price : '');
@@ -187,6 +215,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setDailyUsage(2);
       setQuantityUnit('顆');
       setActiveUnits(1);
+      setActiveUnitsList([{ id: 'u-1', label: '位置 1', startDate: businessDate() }]);
       setBackupStock(1);
       setMinStockAlert(1);
       setPrice('');
@@ -268,14 +297,79 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     if (preset.currentQuantity !== undefined) setCurrentQuantity(preset.currentQuantity);
     if (preset.dailyUsage !== undefined) setDailyUsage(preset.dailyUsage);
     if (preset.quantityUnit) setQuantityUnit(preset.quantityUnit);
-    if (preset.defaultActiveUnits !== undefined) setActiveUnits(preset.defaultActiveUnits);
-    else setActiveUnits(1);
+    const todayStr = businessDate();
+    if (preset.defaultActiveUnits !== undefined && preset.defaultActiveUnits > 1) {
+      setActiveUnits(preset.defaultActiveUnits);
+      const labels = preset.defaultActiveUnitLabels || ['位置 1', '位置 2', '位置 3', '位置 4'];
+      setActiveUnitsList(
+        Array.from({ length: preset.defaultActiveUnits }, (_, i) => ({
+          id: `u-${i + 1}`,
+          label: labels[i] || `位置 ${i + 1}`,
+          startDate: todayStr,
+        }))
+      );
+    } else {
+      setActiveUnits(1);
+      setActiveUnitsList([{ id: 'u-1', label: '位置 1', startDate: todayStr }]);
+    }
     if (preset.minStockAlert !== undefined) setMinStockAlert(preset.minStockAlert);
     if (preset.defaultPrice !== undefined) setPrice(preset.defaultPrice);
     if (preset.defaultSpecModel !== undefined) setSpecModel(preset.defaultSpecModel);
     if (preset.notes) setNotes(preset.notes);
     setImageUrl(preset.imageUrl || '');
     setActiveTab('form');
+  };
+
+  const handleActiveUnitsCountChange = (newCount: number | '') => {
+    if (newCount === '') {
+      setActiveUnits('');
+      return;
+    }
+    const validCount = Math.max(1, newCount);
+    setActiveUnits(validCount);
+    setActiveUnitsList((prev) => {
+      if (validCount === prev.length) return prev;
+      if (validCount > prev.length) {
+        const added: ActiveUnitInstance[] = Array.from(
+          { length: validCount - prev.length },
+          (_, i) => ({
+            id: `u-${prev.length + i + 1}`,
+            label: `位置 ${prev.length + i + 1}`,
+            startDate: startDate || businessDate(),
+          })
+        );
+        return [...prev, ...added];
+      }
+      return prev.slice(0, validCount);
+    });
+  };
+
+  const handleUpdateUnit = (index: number, patch: Partial<ActiveUnitInstance>) => {
+    setActiveUnitsList((prev) => {
+      const copy = [...prev];
+      if (copy[index]) {
+        copy[index] = { ...copy[index], ...patch };
+      }
+      return copy;
+    });
+  };
+
+  const handleAddUnit = () => {
+    const nextIdx = activeUnitsList.length + 1;
+    setActiveUnits(nextIdx);
+    setActiveUnitsList((prev) => [
+      ...prev,
+      { id: `u-${nextIdx}`, label: `位置 ${nextIdx}`, startDate: businessDate() },
+    ]);
+  };
+
+  const handleRemoveUnit = (index: number) => {
+    if (activeUnitsList.length <= 1) return;
+    setActiveUnitsList((prev) => {
+      const filtered = prev.filter((_, i) => i !== index);
+      setActiveUnits(filtered.length);
+      return filtered;
+    });
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -333,6 +427,20 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       : null;
     const parsedQtyUnit = trackingMode === 'quantity' ? quantityUnit.trim() || '顆' : null;
 
+    const finalActiveUnits = Math.max(1, Number(activeUnits) || 1);
+    let finalStartDate = startDate;
+    let finalActiveUnitsData: ActiveUnitInstance[] | null = null;
+    if (finalActiveUnits > 1 && activeUnitsList.length > 0) {
+      finalActiveUnitsData = activeUnitsList.slice(0, finalActiveUnits);
+      const sortedDates = finalActiveUnitsData
+        .map((u) => u.startDate)
+        .filter((d) => Boolean(d))
+        .sort();
+      if (sortedDates.length > 0) {
+        finalStartDate = sortedDates[0];
+      }
+    }
+
     try {
       if (!user) {
         // Guest mode: local state update
@@ -343,7 +451,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             category,
             trackingMode,
             cycleDays: trackingMode === 'cycle' ? Number(cycleDays) : null,
-            startDate,
+            startDate: finalStartDate,
             paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null,
             expiryDate: trackingMode === 'expiry' ? expiryDate : null,
             warrantyDate: trackingMode === 'warranty' ? warrantyDate : null,
@@ -351,7 +459,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             currentQuantity: parsedCurrentQty,
             dailyUsage: parsedDailyUsage,
             quantityUnit: parsedQtyUnit,
-            activeUnits: Math.max(1, Number(activeUnits) || 1),
+            activeUnits: finalActiveUnits,
+            activeUnitsData: finalActiveUnitsData,
             backupStock: Number(backupStock),
             minStockAlert: Number(minStockAlert),
             price: price === '' ? null : Number(price),
@@ -363,7 +472,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             imageUrl: imageUrl || null,
             updatedAt: new Date().toISOString(),
             ...computeItemStatus({
-              startDate,
+              startDate: finalStartDate,
               trackingMode,
               cycleDays: trackingMode === 'cycle' ? Number(cycleDays) : null,
               paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null,
@@ -373,7 +482,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               currentQuantity: parsedCurrentQty,
               dailyUsage: parsedDailyUsage,
               quantityUnit: parsedQtyUnit,
-              activeUnits: Math.max(1, Number(activeUnits) || 1),
+              activeUnits: finalActiveUnits,
+              activeUnitsData: finalActiveUnitsData,
               backupStock: Number(backupStock),
               minStockAlert: Number(minStockAlert),
               isStored,
@@ -389,7 +499,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             category,
             trackingMode,
             cycleDays: trackingMode === 'cycle' ? Number(cycleDays) : null,
-            startDate,
+            startDate: finalStartDate,
             paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null,
             expiryDate: trackingMode === 'expiry' ? expiryDate : null,
             warrantyDate: trackingMode === 'warranty' ? warrantyDate : null,
@@ -397,7 +507,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             currentQuantity: parsedCurrentQty,
             dailyUsage: parsedDailyUsage,
             quantityUnit: parsedQtyUnit,
-            activeUnits: Math.max(1, Number(activeUnits) || 1),
+            activeUnits: finalActiveUnits,
+            activeUnitsData: finalActiveUnitsData,
             backupStock: Number(backupStock),
             minStockAlert: Number(minStockAlert),
             price: price === '' ? null : Number(price),
@@ -411,7 +522,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             ...computeItemStatus({
-              startDate,
+              startDate: finalStartDate,
               trackingMode,
               cycleDays: trackingMode === 'cycle' ? Number(cycleDays) : null,
               paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null,
@@ -421,7 +532,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               currentQuantity: parsedCurrentQty,
               dailyUsage: parsedDailyUsage,
               quantityUnit: parsedQtyUnit,
-              activeUnits: Math.max(1, Number(activeUnits) || 1),
+              activeUnits: finalActiveUnits,
+              activeUnitsData: finalActiveUnitsData,
               backupStock: Number(backupStock),
               minStockAlert: Number(minStockAlert),
               isStored,
@@ -440,7 +552,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           category,
           trackingMode,
           cycleDays: trackingMode === 'cycle' ? Number(cycleDays) : null as any,
-          startDate,
+          startDate: finalStartDate,
           paoMonths: trackingMode === 'pao' ? Number(paoMonths) : null as any,
           expiryDate: trackingMode === 'expiry' ? expiryDate : null as any,
           warrantyDate: trackingMode === 'warranty' ? warrantyDate : null as any,
@@ -448,7 +560,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           currentQuantity: parsedCurrentQty as any,
           dailyUsage: parsedDailyUsage as any,
           quantityUnit: parsedQtyUnit as any,
-          activeUnits: Math.max(1, Number(activeUnits) || 1),
+          activeUnits: finalActiveUnits,
+          activeUnitsData: finalActiveUnitsData ? JSON.stringify(finalActiveUnitsData) : (null as any),
           backupStock: Number(backupStock),
           minStockAlert: Number(minStockAlert),
           price: price === '' ? null : Number(price),
@@ -465,7 +578,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           category,
           trackingMode,
           cycleDays: trackingMode === 'cycle' ? Number(cycleDays) : undefined,
-          startDate,
+          startDate: finalStartDate,
           paoMonths: trackingMode === 'pao' ? Number(paoMonths) : undefined,
           expiryDate: trackingMode === 'expiry' ? expiryDate : undefined,
           warrantyDate: trackingMode === 'warranty' ? warrantyDate : undefined,
@@ -473,7 +586,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           currentQuantity: parsedCurrentQty ?? undefined,
           dailyUsage: parsedDailyUsage ?? undefined,
           quantityUnit: parsedQtyUnit ?? undefined,
-          activeUnits: Math.max(1, Number(activeUnits) || 1),
+          activeUnits: finalActiveUnits,
+          activeUnitsData: finalActiveUnitsData ? JSON.stringify(finalActiveUnitsData) : undefined,
           backupStock: Number(backupStock),
           minStockAlert: Number(minStockAlert),
           price: price === '' ? null : Number(price),
@@ -883,7 +997,18 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                     type="number"
                     min="1"
                     value={cycleDays}
-                    onChange={(e) => setCycleDays(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setCycleDays('');
+                      } else {
+                        const num = parseInt(val, 10);
+                        if (!isNaN(num)) setCycleDays(Math.max(1, num));
+                      }
+                    }}
+                    onBlur={() => {
+                      if (cycleDays === '' || cycleDays < 1) setCycleDays(90);
+                    }}
                     className="w-28 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
                   />
                   <div className="flex gap-1.5">
@@ -912,7 +1037,18 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                     type="number"
                     min="1"
                     value={paoMonths}
-                    onChange={(e) => setPaoMonths(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setPaoMonths('');
+                      } else {
+                        const num = parseInt(val, 10);
+                        if (!isNaN(num)) setPaoMonths(Math.max(1, num));
+                      }
+                    }}
+                    onBlur={() => {
+                      if (paoMonths === '' || paoMonths < 1) setPaoMonths(6);
+                    }}
                     className="w-28 bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
                   />
                   <div className="flex gap-1.5">
@@ -1085,7 +1221,20 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                   min="1"
                   required
                   value={activeUnits}
-                  onChange={(e) => setActiveUnits(Math.max(1, parseInt(e.target.value) || 1))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      handleActiveUnitsCountChange('');
+                    } else {
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num)) handleActiveUnitsCountChange(num);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (activeUnits === '' || activeUnits < 1) {
+                      handleActiveUnitsCountChange(1);
+                    }
+                  }}
                   className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
                   title="多處同時在用數量（如多間浴室各放 1 瓶洗髮精，或客廳、房間同時開 4 包衛生紙）"
                 />
@@ -1106,7 +1255,20 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                   type="number"
                   min="0"
                   value={backupStock}
-                  onChange={(e) => setBackupStock(Math.max(0, parseInt(e.target.value) || 0))}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '') {
+                      setBackupStock('');
+                    } else {
+                      const num = parseInt(val, 10);
+                      if (!isNaN(num)) setBackupStock(Math.max(0, num));
+                    }
+                  }}
+                  onBlur={() => {
+                    if (backupStock === '') {
+                      setBackupStock(0);
+                    }
+                  }}
                   className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
                 />
                 <p className="ui-meta text-[var(--app-muted)] mt-1 text-[11px] leading-tight">
@@ -1119,12 +1281,79 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] text-xs text-[var(--app-muted)]">
               <span className="truncate">
                 庫存彙總：
-                <strong className="text-[var(--app-accent-strong)] font-bold">{activeUnits}</strong> {trackingMode === 'quantity' ? (quantityUnit || '件') : '件'}使用中 + <strong className="text-[var(--app-text)] font-bold">{backupStock}</strong> 件備品
+                <strong className="text-[var(--app-accent-strong)] font-bold">{activeUnits || 1}</strong> {trackingMode === 'quantity' ? (quantityUnit || '件') : '件'}使用中 + <strong className="text-[var(--app-text)] font-bold">{backupStock === '' ? 0 : backupStock}</strong> 件備品
               </span>
               <span className="shrink-0 font-bold text-[var(--app-text)] ml-2">
-                共 {activeUnits + backupStock} 件
+                共 {(Number(activeUnits) || 1) + (Number(backupStock) || 0)} 件
               </span>
             </div>
+
+            {/* Multi-Unit Concurrent Breakdown Editor */}
+            {(Number(activeUnits) || 1) > 1 && (
+              <div className="p-3.5 sm:p-4 rounded-2xl border border-[var(--app-accent)]/30 bg-[var(--app-surface-subtle)] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold text-[var(--app-text)] flex items-center gap-1.5">
+                      <span>同時在用各處設置 ({activeUnitsList.length} 處現役)</span>
+                    </h4>
+                    <p className="ui-meta text-[var(--app-muted)] text-[11px] mt-0.5">
+                      各處記錄名稱與獨立啟用時間，日後可針對各位置個別換新
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddUnit}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-[var(--app-accent)] text-[var(--app-accent-strong)] text-xs font-bold hover:bg-[var(--app-accent)]/10 tactile-press shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>新增位置</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  {activeUnitsList.map((unit, idx) => (
+                    <div
+                      key={unit.id || idx}
+                      className="flex items-center gap-2 p-2 sm:p-2.5 rounded-xl border border-[var(--app-border)] bg-[var(--app-bg)] shadow-2xs"
+                    >
+                      <span className="w-5 text-center text-xs font-black text-slate-400 shrink-0">
+                        #{idx + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <input
+                          type="text"
+                          required
+                          value={unit.label}
+                          onChange={(e) => handleUpdateUnit(idx, { label: e.target.value })}
+                          placeholder="例如：主臥浴室、客廳"
+                          className="w-full bg-transparent border-none text-xs sm:text-sm font-bold text-[var(--app-text)] outline-none"
+                        />
+                      </div>
+                      <div className="w-36 sm:w-40 shrink-0">
+                        <input
+                          type="date"
+                          required
+                          value={unit.startDate}
+                          onChange={(e) => handleUpdateUnit(idx, { startDate: e.target.value })}
+                          className="w-full bg-[var(--app-surface-subtle)] border border-[var(--app-border)] rounded-lg px-2 py-1 text-xs text-[var(--app-text)] outline-none tabular-nums"
+                          title="該處開始使用或開封日期"
+                        />
+                      </div>
+                      {activeUnitsList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveUnit(idx)}
+                          className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 shrink-0 tactile-press"
+                          title="移除此位置"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Progressive Disclosure: Advanced / Optional Fields Accordion */}
@@ -1281,7 +1510,20 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                     type="number"
                     min="0"
                     value={minStockAlert}
-                    onChange={(e) => setMinStockAlert(Math.max(0, parseInt(e.target.value) || 0))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '') {
+                        setMinStockAlert('');
+                      } else {
+                        const num = parseInt(val, 10);
+                        if (!isNaN(num)) setMinStockAlert(Math.max(0, num));
+                      }
+                    }}
+                    onBlur={() => {
+                      if (minStockAlert === '') {
+                        setMinStockAlert(1);
+                      }
+                    }}
                     className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] rounded-xl px-3 min-h-11 text-[var(--app-text)] outline-none ui-body tabular-nums"
                   />
                 </div>

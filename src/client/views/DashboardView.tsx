@@ -9,7 +9,7 @@ import { DEMO_ITEM_IDS } from '../utils/guestStorage.ts';
 
 interface DashboardViewProps {
   items: ItemResponse[];
-  onReplace: (id: string) => void | Promise<void>;
+  onReplace: (id: string, unitId?: string) => void | Promise<void>;
   onAdjustStock: (id: string, delta: number) => void | Promise<void>;
   onEdit: (item: ItemResponse) => void;
   onDelete: (id: string) => boolean | Promise<boolean | void> | void;
