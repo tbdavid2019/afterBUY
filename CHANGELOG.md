@@ -7,6 +7,25 @@
 ## 2026-10-10
 
 ### Added
+- **原生支援同時現役在用數量 / 開封數（`activeUnits`，方案 C）**：
+  - 完美解決家庭中多處同時拆封使用同一耗材的需求（例如：好市多 24 包一串抽取式衛生紙，客廳、房間、餐桌、浴室同時開封 4 包使用，備品櫃存放 19 包；全家 3 間浴室各自開封使用 1 罐洗髮精／沐浴乳／肥皂，備品櫃存放 2 罐）。
+  - **資料模型與資料庫遷移**：`items` 表新增 `active_units` 欄位（預設 1，最小 1），並加入相應 Drizzle 遷移檔案（`0007_active_units.sql`）。
+  - **API 與 Agent 協同**：
+    - 後端 API（`POST /api/items`、`PUT /api/items/:id`、`POST /api/v1/items`、`PUT /api/v1/items/:id`）全面支援 `activeUnits` 參數讀取、寫入與校驗。
+    - OpenAPI 3.1 規格同步擴充 `activeUnits` 屬性定義與範例，供 AI Agent 識別並管理家庭中多處開封的耗材。
+  - **更換與備品扣減語意（Smart Replacement Semantics）**：
+    - 點擊「今天已換」或「開新備品」時，精準替換 1 件耗盡的在用單位，扣減 1 件 `backupStock` 備品，同時維持全家 `activeUnits` 總在用數量不變，並更新最近一次換新日期與記錄詳細歷程。
+  - **物品編輯與建立視窗雙欄控制項（Item Modal Dual Control & Total Pill）**：
+    - 將原本單一備品輸入升級為「同時在用數量（開封現役）」與「未拆封備品庫存（櫃中儲備）」雙欄輸入控制項，並即時顯示「庫存彙總：X 件使用中 + Y 件備品 = 共 Z 件」資訊膠囊，介面一目了然。
+  - **物品卡片與採購清單即時動態標籤（Adaptive Item Card & Shopping View）**：
+    - 網格（Grid）與清單（List）卡片當 `activeUnits > 1` 時自動標示「X 件使用中」，操作按鈕智慧切換為「換新 1 件」或「開新備品」。
+    - 採購清單（Shopping View）清晰呈現「X 在用 · 備品: Y (門檻: Z · 共 N 件)」，複製清單與批次補貨同步納入在用數量。
+  - **多處在用預設範本（Multi-Room Presets Expansion）**：
+    - `tissue-paper`（抽取式衛生紙）：預設 `defaultActiveUnits: 4`，符合客廳、房間、餐桌等多處同時開封習慣。
+    - `shampoo`（洗髮精 / 洗髮乳）：預設 `defaultActiveUnits: 2`，可依家中衛浴數自由增減。
+    - `body-wash`（沐浴乳 / 沐浴露）：新增範本，預設 `defaultActiveUnits: 2`。
+    - `soap-bar`（香皂 / 肥皂）：新增範本，預設 `defaultActiveUnits: 3`。
+  - **回歸測試**：新增多處在用耗材（衛生紙、洗髮精）庫存與更換連動、預設範本設定之自動化測試案例，全套件 78 項測試全數通過。
 - Luna subagent 複查通過（無 P1／P2）；兩個正式站 afterbuy.create360.ai 與 afterbuy.david888.com 已部署，線上新版資源、Service Worker、未登入 API、手機試用提示與洗髮精範本驗證通過。
 - 發布說明更新為試用資料帶入、手機手勢、輸入穩定性及洗沐／口腔範本，發布日期同步更新。
 - 手機觸控手勢：物品右滑「今天已換」並沿用復原提示、左滑開啟操作選單；頁面空白區左右滑切換導覽；新增／編輯視窗標題區下滑關閉，未儲存內容先確認。原生上下捲動與雙指縮放保留，手勢取消、多指觸控與失去焦點會重設。

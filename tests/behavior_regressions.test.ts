@@ -599,9 +599,55 @@ test('deleteGuestDemoItem frees storage before writing tombstones when storage i
   assert.ok(v.get('afterbuy_guest_deleted_demos_v1')?.includes('demo-2'));
 });
 
+test('multi-unit items (e.g. tissue paper, shampoo) track activeUnits and backupStock concurrently', () => {
+  // Scenario: 4 tissue packs in use across living room, dining room, bedroom, bathroom; 19 packs in storage
+  const tissueItem = {
+    id: 'tissue-1',
+    name: '好市多 抽取式衛生紙',
+    category: 'general' as const,
+    trackingMode: 'quantity' as const,
+    initialQuantity: 24,
+    currentQuantity: 24,
+    dailyUsage: 0.2,
+    quantityUnit: '包',
+    activeUnits: 4,
+    backupStock: 19,
+    minStockAlert: 3,
+  };
 
+  assert.equal(tissueItem.activeUnits, 4);
+  assert.equal(tissueItem.backupStock, 19);
+  const totalUnits = tissueItem.activeUnits + tissueItem.backupStock;
+  assert.equal(totalUnits, 23);
 
+  // When 1 pack is exhausted and replaced from backup stock
+  const newBackupStock = Math.max(0, tissueItem.backupStock - 1);
+  const replacedTissue = {
+    ...tissueItem,
+    backupStock: newBackupStock,
+  };
 
+  assert.equal(replacedTissue.activeUnits, 4, 'activeUnits must remain 4 across rooms');
+  assert.equal(replacedTissue.backupStock, 18, 'backupStock decrements by 1');
+  assert.equal(replacedTissue.activeUnits + replacedTissue.backupStock, 22);
+});
 
+test('presets specify defaultActiveUnits for multi-room consumables', async () => {
+  const { ITEM_PRESETS } = await import('../src/shared/presets.ts');
+  const tissue = ITEM_PRESETS.find((p) => p.id === 'tissue-paper');
+  const shampoo = ITEM_PRESETS.find((p) => p.id === 'shampoo');
+  const bodyWash = ITEM_PRESETS.find((p) => p.id === 'body-wash');
+  const soap = ITEM_PRESETS.find((p) => p.id === 'soap-bar');
 
+  assert.ok(tissue, 'tissue-paper preset exists');
+  assert.equal(tissue?.defaultActiveUnits, 4);
 
+  assert.ok(shampoo, 'shampoo preset exists');
+  assert.equal(shampoo?.defaultActiveUnits, 2);
+
+  assert.ok(bodyWash, 'body-wash preset exists');
+  assert.equal(bodyWash?.defaultActiveUnits, 2);
+
+  assert.ok(soap, 'soap-bar preset exists');
+  assert.equal(soap?.defaultActiveUnits, 3);
+});

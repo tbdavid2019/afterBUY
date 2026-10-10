@@ -259,11 +259,18 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
         {/* Bottom: Stock Count & Quick Action */}
         <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
-          <div className="flex items-center text-sm text-slate-600 dark:text-slate-400 font-medium">
-            <span>備品:</span>
-            <span className={`ml-1.5 text-base font-black tabular-nums ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
-              {item.backupStock}
-            </span>
+          <div className="flex flex-col text-xs text-slate-600 dark:text-slate-400 font-medium min-w-0">
+            {item.activeUnits && item.activeUnits > 1 ? (
+              <span className="text-[11px] font-bold text-[var(--app-accent-strong)] truncate">
+                {item.activeUnits} {isQuantityMode ? (item.quantityUnit || '包') : '件'}使用中
+              </span>
+            ) : null}
+            <div className="flex items-center text-sm">
+              <span>備品:</span>
+              <span className={`ml-1 text-base font-black tabular-nums ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
+                {item.backupStock}
+              </span>
+            </div>
           </div>
 
           {/* Action CTA */}
@@ -294,10 +301,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 void runAction(() => onReplace(item.id), '已開啟新備品');
               }}
               className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1"
-              title="開新瓶：已用完，重設滿容量並扣減備品庫存"
+              title={item.activeUnits && item.activeUnits > 1 ? `目前 ${item.activeUnits} 在用。開啟 1 件新備品並扣減庫存` : '開新瓶：已用完，重設滿容量並扣減備品庫存'}
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>開新瓶</span>
+              <span>{item.activeUnits && item.activeUnits > 1 ? '開新備品' : '開新瓶'}</span>
             </button>
           ) : (
             <button
@@ -305,9 +312,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               disabled={busy}
               onClick={(e) => { e.stopPropagation(); void runAction(() => onReplace(item.id), '已更新更換！'); }}
               className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1"
+              title={item.activeUnits && item.activeUnits > 1 ? `目前 ${item.activeUnits} 件在用。換新 1 件並從備品扣 1` : '記錄更換'}
             >
               <RotateCcw className="w-3.5 h-3.5" />
-              <span>已換</span>
+              <span>{item.activeUnits && item.activeUnits > 1 ? '換新 1 件' : '已換'}</span>
             </button>
           )}
         </div>
@@ -455,9 +463,18 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       {/* Bottom Row: Minimalist Stock Stepper & Primary CTA */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800/80 pt-3">
-        {/* Stock Stepper */}
-        <div className="flex items-center border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/80 dark:bg-slate-800/50">
-          <span className="text-sm text-slate-600 dark:text-slate-400 px-3 font-bold">備品</span>
+        {/* Stock Stepper & In-Use Badge */}
+        <div className="flex items-center gap-2">
+          {item.activeUnits && item.activeUnits > 1 ? (
+            <div
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-[var(--app-accent-strong)]"
+              title={`目前有 ${item.activeUnits} ${isQuantityMode ? (item.quantityUnit || '包') : '件'}在不同處同時使用中`}
+            >
+              <span>{item.activeUnits} {isQuantityMode ? (item.quantityUnit || '包') : '件'}使用中</span>
+            </div>
+          ) : null}
+          <div className="flex items-center border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/80 dark:bg-slate-800/50">
+            <span className="text-sm text-slate-600 dark:text-slate-400 px-3 font-bold">備品</span>
           <button
             type="button"
             disabled={busy || item.backupStock <= 0}
@@ -480,6 +497,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             <Plus className="h-4 w-4" />
           </button>
         </div>
+      </div>
 
         {/* Action Button */}
         {isStored ? (
@@ -538,7 +556,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
                 >
                   <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
-                  <span>開新瓶</span>
+                  <span>{item.activeUnits && item.activeUnits > 1 ? '開新備品' : '開新瓶'}</span>
                 </button>
                 {onConsume && (
                   <button
@@ -599,9 +617,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               disabled={busy}
               onClick={(event) => { event.stopPropagation(); void runAction(() => onReplace(item.id), '耗材已完成更換'); }}
               className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+              title={item.activeUnits && item.activeUnits > 1 ? `目前 ${item.activeUnits} 件在用。換新 1 件並從備品扣 1` : '耗材已完成更換'}
             >
               <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
-              <span>今天已換</span>
+              <span>{item.activeUnits && item.activeUnits > 1 ? '換新 1 件' : '今天已換'}</span>
             </button>
           </div>
         )}

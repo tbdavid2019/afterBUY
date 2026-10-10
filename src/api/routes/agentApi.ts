@@ -89,6 +89,7 @@ agentApiRouter.get('/openapi.json', (c) => {
             currentQuantity: { type: 'number', example: 120 },
             dailyUsage: { type: 'number', example: 2 },
             quantityUnit: { type: 'string', example: '顆' },
+            activeUnits: { type: 'integer', example: 1, description: 'Number of active units concurrently opened/in-use across rooms' },
             backupStock: { type: 'integer', example: 2 },
             minStockAlert: { type: 'integer', example: 1 },
             price: { type: 'number', example: 699 },
@@ -292,6 +293,7 @@ agentApiRouter.get('/openapi.json', (c) => {
                     currentQuantity: { type: 'number', description: 'Current remaining count in active package (for quantity mode)' },
                     dailyUsage: { type: 'number', description: 'Estimated daily consumed amount (for quantity mode, e.g. 2)' },
                     quantityUnit: { type: 'string', description: 'Unit name (e.g. 顆, 錠, 包, 片)' },
+                    activeUnits: { type: 'integer', description: 'Active units concurrently opened and in use across rooms (default 1)' },
                     backupStock: { type: 'integer', description: 'Unopened spare units in stock cabinet (e.g. 2)' },
                     minStockAlert: { type: 'integer', description: 'Safety stock warning threshold (default 1)' },
                     price: { type: 'number' },
@@ -645,6 +647,7 @@ agentApiRouter.get('/items', async (c) => {
       currentQuantity: status.remainingQuantity ?? raw.currentQuantity,
       dailyUsage: raw.dailyUsage,
       quantityUnit: raw.quantityUnit,
+      activeUnits: raw.activeUnits ?? 1,
       backupStock: raw.backupStock,
       minStockAlert: raw.minStockAlert,
       price: raw.price,
@@ -916,6 +919,7 @@ agentApiRouter.post('/items', async (c) => {
     currentQuantity,
     dailyUsage,
     quantityUnit,
+    activeUnits: Math.max(1, Math.floor(Number(body.activeUnits) || 1)),
     backupStock: Number(body.backupStock) || 0,
     minStockAlert,
     price,
@@ -1023,6 +1027,7 @@ agentApiRouter.patch('/items/:id', async (c) => {
   if (body.currentQuantity !== undefined) updates.currentQuantity = Number(body.currentQuantity);
   if (body.dailyUsage !== undefined) updates.dailyUsage = Number(body.dailyUsage);
   if (body.quantityUnit !== undefined) updates.quantityUnit = body.quantityUnit;
+  if (body.activeUnits !== undefined) updates.activeUnits = Math.max(1, Math.floor(Number(body.activeUnits) || 1));
   if (body.backupStock !== undefined) updates.backupStock = Number(body.backupStock);
   if (body.minStockAlert !== undefined) updates.minStockAlert = Number(body.minStockAlert);
   if (body.price !== undefined) updates.price = body.price !== null ? Number(body.price) : null;

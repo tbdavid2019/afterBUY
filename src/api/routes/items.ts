@@ -196,6 +196,7 @@ itemsRouter.post('/', async (c) => {
     currentQuantity?: number;
     dailyUsage?: number;
     quantityUnit?: string;
+    activeUnits?: number;
     backupStock?: number;
     minStockAlert?: number;
     price?: number;
@@ -269,6 +270,7 @@ itemsRouter.post('/', async (c) => {
     currentQuantity: currentQty,
     dailyUsage: dailyRate,
     quantityUnit: isQuantityMode ? (body.quantityUnit?.trim() || '顆') : null,
+    activeUnits: Math.max(1, Math.floor(Number(body.activeUnits) || 1)),
     backupStock: Math.max(0, body.backupStock ?? 0),
     minStockAlert: Math.max(0, body.minStockAlert ?? 1),
     price: body.price !== undefined && body.price !== null ? Math.max(0, Math.round(body.price)) : null,
@@ -424,6 +426,7 @@ itemsRouter.put('/:id', async (c) => {
     currentQuantity: body.currentQuantity !== undefined ? (body.currentQuantity !== null ? Math.max(0, body.currentQuantity) : null) : existing.currentQuantity,
     dailyUsage: body.dailyUsage !== undefined ? (body.dailyUsage !== null ? Math.max(0.01, body.dailyUsage) : null) : existing.dailyUsage,
     quantityUnit: body.quantityUnit !== undefined ? (body.quantityUnit?.trim() || null) : existing.quantityUnit,
+    activeUnits: body.activeUnits !== undefined ? Math.max(1, Math.floor(Number(body.activeUnits) || 1)) : (existing.activeUnits ?? 1),
     backupStock: body.backupStock !== undefined ? Math.max(0, body.backupStock) : existing.backupStock,
     minStockAlert: body.minStockAlert !== undefined ? Math.max(0, body.minStockAlert) : existing.minStockAlert,
     price: body.price !== undefined ? (body.price === null ? null : Math.max(0, Math.round(body.price))) : existing.price,
@@ -590,14 +593,24 @@ itemsRouter.post('/:id/replace', async (c) => {
     previousStartDate: existing.startDate,
     stockAfterReplace: newStock,
     notes: existing.trackingMode === 'quantity'
-      ? (existing.backupStock > 0 ? `已開啟新一${existing.quantityUnit === '顆' ? '瓶' : '包'}，備品扣減 1` : '已重置數量，備品已耗盡')
-      : (existing.backupStock > 0 ? '已扣減 1 個備品庫存' : '無備品庫存（需採購）'),
+      ? (existing.backupStock > 0
+          ? (existing.activeUnits && existing.activeUnits > 1
+              ? `已開啟新備品替換 1 ${existing.quantityUnit === '顆' ? '瓶' : (existing.quantityUnit || '包')}（維持 ${existing.activeUnits} ${existing.quantityUnit || '包'}在用），備品扣減 1`
+              : `已開啟新一${existing.quantityUnit === '顆' ? '瓶' : '包'}，備品扣減 1`)
+          : '已重置數量，備品已耗盡')
+      : (existing.backupStock > 0
+          ? (existing.activeUnits && existing.activeUnits > 1
+              ? `已開封新備品替換 1 件（維持 ${existing.activeUnits} 件在用），備品扣減 1`
+              : '已扣減 1 個備品庫存')
+          : '無備品庫存（需採購）'),
   };
   await db.insert(itemHistory).values(historyRecord);
 
   return c.json({
     success: true,
-    message: existing.trackingMode === 'quantity' ? '已開啟新備品！容量已重置' : '已記錄更換！計時器已重置',
+    message: existing.activeUnits && existing.activeUnits > 1
+      ? (existing.trackingMode === 'quantity' ? `已開啟新備品（維持 ${existing.activeUnits} 在用）！` : `已開封新備品（維持 ${existing.activeUnits} 在用）！`)
+      : (existing.trackingMode === 'quantity' ? '已開啟新備品！容量已重置' : '已記錄更換！計時器已重置'),
     newStock,
     startDate: todayStr,
     currentQuantity: resetQty,

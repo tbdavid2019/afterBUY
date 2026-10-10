@@ -90,6 +90,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const [currentQuantity, setCurrentQuantity] = useState<number | ''>('');
   const [dailyUsage, setDailyUsage] = useState<number | ''>(2);
   const [quantityUnit, setQuantityUnit] = useState('顆');
+  const [activeUnits, setActiveUnits] = useState(1);
   const [backupStock, setBackupStock] = useState(1);
   const [minStockAlert, setMinStockAlert] = useState(1);
   const [price, setPrice] = useState<number | ''>('');
@@ -149,6 +150,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setCurrentQuantity(itemToEdit.currentQuantity !== null && itemToEdit.currentQuantity !== undefined ? itemToEdit.currentQuantity : '');
       setDailyUsage(itemToEdit.dailyUsage ?? 2);
       setQuantityUnit(itemToEdit.quantityUnit || '顆');
+      setActiveUnits(itemToEdit.activeUnits && itemToEdit.activeUnits >= 1 ? itemToEdit.activeUnits : 1);
       setBackupStock(itemToEdit.backupStock);
       setMinStockAlert(itemToEdit.minStockAlert);
       setPrice(itemToEdit.price !== null && itemToEdit.price !== undefined ? itemToEdit.price : '');
@@ -184,6 +186,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setCurrentQuantity('');
       setDailyUsage(2);
       setQuantityUnit('顆');
+      setActiveUnits(1);
       setBackupStock(1);
       setMinStockAlert(1);
       setPrice('');
@@ -265,6 +268,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
     if (preset.currentQuantity !== undefined) setCurrentQuantity(preset.currentQuantity);
     if (preset.dailyUsage !== undefined) setDailyUsage(preset.dailyUsage);
     if (preset.quantityUnit) setQuantityUnit(preset.quantityUnit);
+    if (preset.defaultActiveUnits !== undefined) setActiveUnits(preset.defaultActiveUnits);
+    else setActiveUnits(1);
     if (preset.minStockAlert !== undefined) setMinStockAlert(preset.minStockAlert);
     if (preset.defaultPrice !== undefined) setPrice(preset.defaultPrice);
     if (preset.defaultSpecModel !== undefined) setSpecModel(preset.defaultSpecModel);
@@ -346,6 +351,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             currentQuantity: parsedCurrentQty,
             dailyUsage: parsedDailyUsage,
             quantityUnit: parsedQtyUnit,
+            activeUnits: Math.max(1, Number(activeUnits) || 1),
             backupStock: Number(backupStock),
             minStockAlert: Number(minStockAlert),
             price: price === '' ? null : Number(price),
@@ -367,6 +373,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               currentQuantity: parsedCurrentQty,
               dailyUsage: parsedDailyUsage,
               quantityUnit: parsedQtyUnit,
+              activeUnits: Math.max(1, Number(activeUnits) || 1),
               backupStock: Number(backupStock),
               minStockAlert: Number(minStockAlert),
               isStored,
@@ -390,6 +397,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             currentQuantity: parsedCurrentQty,
             dailyUsage: parsedDailyUsage,
             quantityUnit: parsedQtyUnit,
+            activeUnits: Math.max(1, Number(activeUnits) || 1),
             backupStock: Number(backupStock),
             minStockAlert: Number(minStockAlert),
             price: price === '' ? null : Number(price),
@@ -413,6 +421,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               currentQuantity: parsedCurrentQty,
               dailyUsage: parsedDailyUsage,
               quantityUnit: parsedQtyUnit,
+              activeUnits: Math.max(1, Number(activeUnits) || 1),
               backupStock: Number(backupStock),
               minStockAlert: Number(minStockAlert),
               isStored,
@@ -439,6 +448,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           currentQuantity: parsedCurrentQty as any,
           dailyUsage: parsedDailyUsage as any,
           quantityUnit: parsedQtyUnit as any,
+          activeUnits: Math.max(1, Number(activeUnits) || 1),
           backupStock: Number(backupStock),
           minStockAlert: Number(minStockAlert),
           price: price === '' ? null : Number(price),
@@ -463,6 +473,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           currentQuantity: parsedCurrentQty ?? undefined,
           dailyUsage: parsedDailyUsage ?? undefined,
           quantityUnit: parsedQtyUnit ?? undefined,
+          activeUnits: Math.max(1, Number(activeUnits) || 1),
           backupStock: Number(backupStock),
           minStockAlert: Number(minStockAlert),
           price: price === '' ? null : Number(price),
@@ -1058,23 +1069,62 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             </div>
           </div>
 
-          {/* Backup Stock (Essential) */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="ui-label font-semibold text-[var(--app-text)]">
-                {trackingMode === 'quantity' ? '未拆封備品庫存（瓶 / 包 / 盒）' : '現有備品數量'}
-              </label>
-              {trackingMode === 'quantity' && (
-                <span className="ui-meta text-[var(--app-muted)]">耗盡時開啟新備品將自動扣除 1</span>
-              )}
+          {/* Active In-Use Units & Backup Stock Grid */}
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              {/* Left Column: Active Units (Concurrently in-use / opened) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="ui-label font-semibold text-[var(--app-text)] flex items-center gap-1 truncate">
+                    <span>同時在用數量</span>
+                  </label>
+                  <span className="ui-meta text-[var(--app-accent-strong)] font-semibold shrink-0">開封現役</span>
+                </div>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={activeUnits}
+                  onChange={(e) => setActiveUnits(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
+                  title="多處同時在用數量（如多間浴室各放 1 瓶洗髮精，或客廳、房間同時開 4 包衛生紙）"
+                />
+                <p className="ui-meta text-[var(--app-muted)] mt-1 text-[11px] leading-tight">
+                  多處現役（如多間衛浴或客廳餐桌各開）
+                </p>
+              </div>
+
+              {/* Right Column: Backup Stock (Cabinet / drawer reserves) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="ui-label font-semibold text-[var(--app-text)] truncate">
+                    <span>未拆封備品</span>
+                  </label>
+                  <span className="ui-meta text-[var(--app-muted)] shrink-0">櫃子庫存</span>
+                </div>
+                <input
+                  type="number"
+                  min="0"
+                  value={backupStock}
+                  onChange={(e) => setBackupStock(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
+                />
+                <p className="ui-meta text-[var(--app-muted)] mt-1 text-[11px] leading-tight">
+                  {trackingMode === 'quantity' ? '用盡開新備品時自動扣 1' : '換新時從備品扣 1'}
+                </p>
+              </div>
             </div>
-            <input
-              type="number"
-              min="0"
-              value={backupStock}
-              onChange={(e) => setBackupStock(Math.max(0, parseInt(e.target.value) || 0))}
-              className="w-full bg-[var(--app-bg)] border border-[var(--app-border)] focus:border-[var(--app-accent)] rounded-xl px-3.5 min-h-11 text-[var(--app-text)] outline-none font-bold ui-body tabular-nums"
-            />
+
+            {/* Total Inventory Summary Banner */}
+            <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] text-xs text-[var(--app-muted)]">
+              <span className="truncate">
+                庫存彙總：
+                <strong className="text-[var(--app-accent-strong)] font-bold">{activeUnits}</strong> {trackingMode === 'quantity' ? (quantityUnit || '件') : '件'}使用中 + <strong className="text-[var(--app-text)] font-bold">{backupStock}</strong> 件備品
+              </span>
+              <span className="shrink-0 font-bold text-[var(--app-text)] ml-2">
+                共 {activeUnits + backupStock} 件
+              </span>
+            </div>
           </div>
 
           {/* Progressive Disclosure: Advanced / Optional Fields Accordion */}

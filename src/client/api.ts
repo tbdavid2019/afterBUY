@@ -114,6 +114,7 @@ export const api = {
     currentQuantity?: number | null;
     dailyUsage?: number | null;
     quantityUnit?: string | null;
+    activeUnits?: number;
     backupStock?: number;
     minStockAlert?: number;
     price?: number | null;
@@ -143,6 +144,7 @@ export const api = {
     currentQuantity: number | null;
     dailyUsage: number | null;
     quantityUnit: string | null;
+    activeUnits: number;
     backupStock: number;
     minStockAlert: number;
     price: number | null;

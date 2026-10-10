@@ -65,6 +65,7 @@ export interface ItemResponse {
   currentQuantity?: number | null;
   dailyUsage?: number | null;
   quantityUnit?: string | null;
+  activeUnits?: number | null;
   backupStock: number;
   minStockAlert: number;
   price: number | null;

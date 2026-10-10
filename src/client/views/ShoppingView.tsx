@@ -30,7 +30,10 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({
   const handleCopyList = () => {
     if (restockItems.length === 0) return;
     const textList = restockItems
-      .map((i) => `• ${i.name} (${locale === 'zh-TW' ? '目前庫存' : 'Stock'}: ${i.backupStock}, ${locale === 'zh-TW' ? '門檻' : 'Threshold'}: ${i.minStockAlert})`)
+      .map((i) => {
+        const inUseStr = i.activeUnits && i.activeUnits > 1 ? `, ${locale === 'zh-TW' ? '在用' : 'In use'}: ${i.activeUnits}` : '';
+        return `• ${i.name} (${locale === 'zh-TW' ? '備品' : 'Stock'}: ${i.backupStock}${inUseStr}, ${locale === 'zh-TW' ? '門檻' : 'Threshold'}: ${i.minStockAlert})`;
+      })
       .join('\n');
     const fullText = `${t('appName')} - ${locale === 'zh-TW' ? '待採購耗材備品清單' : 'Shopping List'}:\n${textList}`;
 
@@ -131,8 +134,13 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                      {item.activeUnits && item.activeUnits > 1 ? (
+                        <span className="inline-flex items-center rounded border px-1.5 py-0.5 bg-sky-500/10 text-sky-800 dark:text-sky-300 border-sky-500/30 text-xs font-bold tabular-nums">
+                          {item.activeUnits} 在用
+                        </span>
+                      ) : null}
                       <span className="inline-flex items-center rounded border px-1.5 py-0.5 bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/30 text-xs font-medium tabular-nums">
-                        庫存: {item.backupStock} (門檻: {item.minStockAlert})
+                        備品: {item.backupStock} (門檻: {item.minStockAlert}{item.activeUnits && item.activeUnits > 1 ? ` · 共 ${item.backupStock + item.activeUnits}` : ''})
                       </span>
                       <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-xs font-medium ${cat.bg} ${cat.color}`}>
                         {cat.label}
@@ -205,8 +213,11 @@ export const ShoppingView: React.FC<ShoppingViewProps> = ({
             <div key={item.id} className="min-h-12 px-4 py-2 flex items-center justify-between gap-3">
               <span className="ui-body text-[var(--app-text)] font-medium truncate flex-1 pr-2">{item.name}</span>
               <div className="flex items-center gap-2 shrink-0">
-                <span className="ui-meta text-[var(--app-muted)]">
-                  庫存: <strong className="ui-body font-semibold text-[var(--app-text)] tabular-nums">{item.backupStock}</strong>
+                <span className="ui-meta text-[var(--app-muted)] flex items-center gap-1">
+                  {item.activeUnits && item.activeUnits > 1 && (
+                    <span className="text-[var(--app-accent-strong)] font-semibold tabular-nums">{item.activeUnits}在用 ·</span>
+                  )}
+                  <span>備品: <strong className="ui-body font-semibold text-[var(--app-text)] tabular-nums">{item.backupStock}</strong></span>
                 </span>
                 <button
                   type="button"
