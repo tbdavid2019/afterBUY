@@ -648,11 +648,14 @@ export const App: React.FC = () => {
         }
       }
 
+    const nowIso = new Date().toISOString();
     const updatedTarget: ItemResponse = {
       ...target,
       startDate: newStartDate,
       backupStock: newStock,
       currentQuantity: newCurrentQty,
+      quantityUpdatedAt: nowIso,
+      updatedAt: nowIso,
       activeUnitsData: updatedUnits ?? target.activeUnitsData,
       snoozeUntil: null,
       ...computeItemStatus({
@@ -660,6 +663,8 @@ export const App: React.FC = () => {
         startDate: newStartDate,
         backupStock: newStock,
         currentQuantity: newCurrentQty,
+        quantityUpdatedAt: nowIso,
+        updatedAt: nowIso,
         activeUnitsData: updatedUnits ?? target.activeUnitsData,
         snoozeUntil: null,
       }),
@@ -697,19 +702,24 @@ export const App: React.FC = () => {
     const target = items.find((i) => i.id === id);
     if (!target || target.isStored || target.trackingMode !== 'quantity') return;
 
-    const currentVal = target.currentQuantity !== null && target.currentQuantity !== undefined
-      ? target.currentQuantity
-      : (target.remainingQuantity !== null && target.remainingQuantity !== undefined
-          ? target.remainingQuantity
+    const currentVal = target.remainingQuantity !== null && target.remainingQuantity !== undefined
+      ? target.remainingQuantity
+      : (target.currentQuantity !== null && target.currentQuantity !== undefined
+          ? target.currentQuantity
           : (target.initialQuantity || 60));
 
-    const newCurrentQty = Math.max(0, currentVal - amount);
+    const newCurrentQty = Math.max(0, Math.round((currentVal - amount) * 10) / 10);
+    const nowIso = new Date().toISOString();
     const updatedTarget: ItemResponse = {
       ...target,
       currentQuantity: newCurrentQty,
+      quantityUpdatedAt: nowIso,
+      updatedAt: nowIso,
       ...computeItemStatus({
         ...target,
         currentQuantity: newCurrentQty,
+        quantityUpdatedAt: nowIso,
+        updatedAt: nowIso,
       }),
     };
 
@@ -744,6 +754,7 @@ export const App: React.FC = () => {
           previousBackupStock: snapshot.backupStock,
           previousSnoozeUntil: snapshot.snoozeUntil,
           previousCurrentQuantity: snapshot.currentQuantity,
+          previousQuantityUpdatedAt: snapshot.quantityUpdatedAt || snapshot.updatedAt || null,
           previousActiveUnitsData: snapshot.activeUnitsData
             ? (typeof snapshot.activeUnitsData === 'string'
               ? snapshot.activeUnitsData
@@ -826,17 +837,22 @@ export const App: React.FC = () => {
           if (i.isStored || (i.trackingMode !== 'cycle' && i.trackingMode !== 'pao' && i.trackingMode !== 'quantity')) return i;
           const newStock = Math.max(0, i.backupStock - 1);
           const newCurrentQty = i.trackingMode === 'quantity' ? (i.initialQuantity || 60) : i.currentQuantity;
+          const nowIso = new Date().toISOString();
           return {
             ...i,
             startDate: todayStr,
             backupStock: newStock,
             currentQuantity: newCurrentQty,
+            quantityUpdatedAt: nowIso,
+            updatedAt: nowIso,
             snoozeUntil: null,
             ...computeItemStatus({
               ...i,
               startDate: todayStr,
               backupStock: newStock,
               currentQuantity: newCurrentQty,
+              quantityUpdatedAt: nowIso,
+              updatedAt: nowIso,
             }),
           };
         })

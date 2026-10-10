@@ -470,6 +470,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             snoozeUntil: itemToEdit.snoozeUntil || null,
             notes: notes.trim() || null,
             imageUrl: imageUrl || null,
+            quantityUpdatedAt: (parsedCurrentQty !== itemToEdit.currentQuantity)
+              ? new Date().toISOString()
+              : itemToEdit.quantityUpdatedAt,
             updatedAt: new Date().toISOString(),
             ...computeItemStatus({
               startDate: finalStartDate,
@@ -488,6 +491,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               minStockAlert: Number(minStockAlert),
               isStored,
               snoozeUntil: itemToEdit.snoozeUntil || null,
+              quantityUpdatedAt: (parsedCurrentQty !== itemToEdit.currentQuantity)
+                ? new Date().toISOString()
+                : itemToEdit.quantityUpdatedAt,
+              updatedAt: new Date().toISOString(),
             }),
           };
           onUpdateGuestItem?.(updated);
@@ -521,6 +528,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
             calendarSequence: 0,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            quantityUpdatedAt: new Date().toISOString(),
             ...computeItemStatus({
               startDate: finalStartDate,
               trackingMode,
@@ -538,6 +546,8 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               minStockAlert: Number(minStockAlert),
               isStored,
               snoozeUntil: null,
+              quantityUpdatedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
             }),
           };
           onAddGuestItem?.(newItem);
@@ -570,6 +580,9 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           isStored,
           notes: notes.trim() || null as any,
           imageUrl: imageUrl || null as any,
+          quantityUpdatedAt: (parsedCurrentQty !== itemToEdit.currentQuantity)
+            ? new Date().toISOString()
+            : (itemToEdit.quantityUpdatedAt ?? null),
         });
       } else {
         await api.createItem({
@@ -596,6 +609,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           isStored,
           notes: notes.trim() || undefined,
           imageUrl: imageUrl || undefined,
+          quantityUpdatedAt: new Date().toISOString(),
         });
       }
       onSave();

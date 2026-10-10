@@ -139,6 +139,31 @@ test('quantity tracking mode calculates remaining days and burn rate properly', 
   assert.equal(overrideStatus.nextDueDate, '2026-10-16'); // 2026-10-11 + 5 days
   assert.equal(overrideStatus.healthStatus, 'due_soon'); // <= 7 days is due_soon
 
+  // When currentQuantity was updated on a past date (e.g. 143 pills on 2026-10-07, rate 1 pill/day):
+  // 3 days later on 2026-10-10, it should auto-deplete 3 pills to 140 pills!
+  const pastUpdateItem = {
+    startDate: '2026-10-01',
+    trackingMode: 'quantity' as const,
+    initialQuantity: 150,
+    dailyUsage: 1,
+    quantityUnit: '錠',
+    currentQuantity: 143,
+    updatedAt: '2026-10-07T05:26:11.879Z',
+    backupStock: 1,
+  };
+  const autoDepletedStatus = computeItemStatus(pastUpdateItem, new Date('2026-10-10T00:00:00Z'));
+  assert.equal(autoDepletedStatus.remainingQuantity, 140);
+  assert.equal(autoDepletedStatus.remainingDays, 140);
+  assert.equal(autoDepletedStatus.percentageRemaining, 93); // 140 / 150 = 93%
+
+  // Unrelated edits (e.g. notes change) advancing updatedAt must not overstate inventory beyond autoRemaining
+  const unrelatedEditItem = {
+    ...pastUpdateItem,
+    updatedAt: '2026-10-10T00:00:00Z', // advanced due to unrelated note/stock change
+  };
+  const safeStatus = computeItemStatus(unrelatedEditItem, new Date('2026-10-10T00:00:00Z'));
+  assert.equal(safeStatus.remainingQuantity, 141); // bounded by elapsed days since startDate (150 - 9 = 141)
+
   // When quantity is 0, becomes overdue and is labeled depleted
   const emptyStatus = computeItemStatus({
     ...item,
@@ -787,5 +812,156 @@ test('undo-replace snapshot payload preserves and restores activeUnitsData', () 
   assert.equal(parsedRestored[0].startDate, '2026-08-21', 'restores unit 1 original start date');
   assert.equal(parsedRestored[1].startDate, '2026-09-30', 'preserves unit 2 start date');
 });
+
+test('undo-replace restores previousQuantityUpdatedAt and quantity', () => {
+  const originalSnapshot = {
+    startDate: '2026-10-01',
+    backupStock: 2,
+    currentQuantity: 88,
+    quantityUpdatedAt: '2026-10-07T12:00:00+08:00',
+    updatedAt: '2026-10-07T12:00:00+08:00',
+  };
+
+  const afterReplaceItem = {
+    startDate: '2026-10-10',
+    backupStock: 1,
+    currentQuantity: 180,
+    quantityUpdatedAt: '2026-10-10T12:00:00+08:00',
+    updatedAt: '2026-10-10T12:00:00+08:00',
+  };
+
+  const payload = {
+    previousStartDate: originalSnapshot.startDate,
+    previousBackupStock: originalSnapshot.backupStock,
+    previousCurrentQuantity: originalSnapshot.currentQuantity,
+    previousQuantityUpdatedAt: originalSnapshot.quantityUpdatedAt,
+  };
+
+  const restoredQuantity = payload.previousCurrentQuantity !== undefined ? payload.previousCurrentQuantity : afterReplaceItem.currentQuantity;
+  const restoredQuantityUpdatedAt = payload.previousQuantityUpdatedAt !== undefined ? payload.previousQuantityUpdatedAt : afterReplaceItem.quantityUpdatedAt;
+
+  assert.equal(restoredQuantity, 88, 'restores previous calibrated quantity');
+  assert.equal(restoredQuantityUpdatedAt, '2026-10-07T12:00:00+08:00', 'restores calibration timestamp instead of keeping replacement timestamp');
+});
+
+test('quantity calibration timestamp (quantityUpdatedAt) survives unrelated metadata edits', async () => {
+  const { computeItemStatus } = await import('../src/shared/lifecycle.ts');
+
+  // Item opened on Oct 1 with 180 pills, daily usage 2 pills
+  // User calibrated remaining quantity to 100 on Oct 7 (e.g. quantityUpdatedAt = 2026-10-07)
+  // On Oct 10, user edits notes or backupStock (advancing updatedAt to 2026-10-10, but quantityUpdatedAt stays 2026-10-07)
+  const item = {
+    startDate: '2026-10-01',
+    trackingMode: 'quantity' as const,
+    initialQuantity: 180,
+    currentQuantity: 100, // calibrated to 100 on Oct 7
+    dailyUsage: 2,
+    quantityUnit: '顆',
+    backupStock: 2,
+    quantityUpdatedAt: '2026-10-07T12:00:00+08:00',
+    updatedAt: '2026-10-10T15:30:00+08:00', // metadata edit today
+  };
+
+  const refDate = new Date('2026-10-10T16:00:00+08:00'); // Oct 10 in Taipei
+  const status = computeItemStatus(item, refDate);
+
+  // 3 elapsed days since calibration (Oct 7 -> Oct 10) at 2 pills/day = 6 pills consumed
+  // Remaining must be 100 - 6 = 94 pills (NOT frozen at 100 due to generic updatedAt edit!)
+  assert.equal(status.remainingQuantity, 94, 'depletion correctly calculated from quantityUpdatedAt despite later updatedAt');
+  assert.equal(status.remainingDays, 47, 'remaining days is 94 / 2 = 47 days');
+
+  // Next, if user explicitly re-calibrates currentQuantity to 80 on Oct 10
+  const recalibratedItem = {
+    ...item,
+    currentQuantity: 80,
+    quantityUpdatedAt: '2026-10-10T16:00:00+08:00',
+    updatedAt: '2026-10-10T16:00:00+08:00',
+  };
+  const statusRecalibrated = computeItemStatus(recalibratedItem, refDate);
+  assert.equal(statusRecalibrated.remainingQuantity, 80, 'immediate count matches newly calibrated quantity');
+
+  // And on Oct 12 (2 days later), auto-depletion continues from 80 -> 76
+  const refDateOct12 = new Date('2026-10-12T16:00:00+08:00');
+  const statusOct12 = computeItemStatus(recalibratedItem, refDateOct12);
+  assert.equal(statusOct12.remainingQuantity, 76, 'depletes 4 pills over 2 days from calibration point');
+});
+
+test('manual quantity correction upward (e.g. forgot to take doses) is respected when quantityUpdatedAt is set', async () => {
+  const { computeItemStatus } = await import('../src/shared/lifecycle.ts');
+
+  // Opened Oct 1 with 180 pills, rate 2 pills/day.
+  // On Oct 10 (9 days elapsed), autoRemaining would normally predict 180 - (9 * 2) = 162.
+  // Suppose user counts and realizes they have 170 left because they missed several doses.
+  const upwardCorrectedItem = {
+    startDate: '2026-10-01',
+    trackingMode: 'quantity' as const,
+    initialQuantity: 180,
+    currentQuantity: 170, // corrected upward above autoRemaining (162)
+    dailyUsage: 2,
+    quantityUnit: '顆',
+    backupStock: 1,
+    quantityUpdatedAt: '2026-10-10T16:00:00+08:00',
+    updatedAt: '2026-10-10T16:00:00+08:00',
+  };
+
+  const refDate = new Date('2026-10-10T16:00:00+08:00');
+  const status = computeItemStatus(upwardCorrectedItem, refDate);
+
+  assert.equal(status.remainingQuantity, 170, 'upward correction is respected and not falsely capped at 162');
+  assert.equal(status.remainingDays, 85, 'remaining days calculated from upward corrected 170 / 2 = 85');
+
+  // Next day Oct 11, continues to count down from 170 -> 168
+  const refDateOct11 = new Date('2026-10-11T16:00:00+08:00');
+  const statusOct11 = computeItemStatus(upwardCorrectedItem, refDateOct11);
+  assert.equal(statusOct11.remainingQuantity, 168, 'auto-depletes 2 pills from upward corrected quantity');
+});
+
+test('batch-replacement on quantity items resets quantity and calibration timestamp', async () => {
+  const { computeItemStatus } = await import('../src/shared/lifecycle.ts');
+
+  // Pre-replacement item with old quantityUpdatedAt
+  const oldItem = {
+    startDate: '2026-09-01',
+    trackingMode: 'quantity' as const,
+    initialQuantity: 180,
+    currentQuantity: 10,
+    dailyUsage: 2,
+    quantityUnit: '顆',
+    backupStock: 2,
+    quantityUpdatedAt: '2026-09-25T12:00:00+08:00',
+    updatedAt: '2026-09-25T12:00:00+08:00',
+  };
+
+  const todayStr = '2026-10-10';
+  const nowIso = '2026-10-10T16:00:00+08:00';
+
+  // Batch replace simulates resetting startDate to today and resetting quantity to initial
+  const batchReplacedItem = {
+    ...oldItem,
+    startDate: todayStr,
+    backupStock: 1,
+    currentQuantity: oldItem.initialQuantity,
+    quantityUpdatedAt: nowIso,
+    updatedAt: nowIso,
+  };
+
+  const refDate = new Date(nowIso);
+  const status = computeItemStatus(batchReplacedItem, refDate);
+
+  assert.equal(status.remainingQuantity, 180, 'remaining quantity reset to 180 on replacement day');
+  assert.equal(status.remainingDays, 90, 'remaining days is 90 days');
+
+  // Furthermore, if an item has a stale quantityUpdatedAt predating its new startDate (e.g. from prior cycle):
+  const itemWithStaleTimestamp = {
+    ...oldItem,
+    startDate: todayStr, // new startDate
+    currentQuantity: 180,
+    quantityUpdatedAt: '2026-09-25T12:00:00+08:00', // stale timestamp predates startDate
+  };
+
+  const staleStatus = computeItemStatus(itemWithStaleTimestamp, refDate);
+  assert.equal(staleStatus.remainingQuantity, 180, 'stale timestamp predating startDate safely falls back to autoRemaining');
+});
+
 
 

@@ -942,6 +942,7 @@ agentApiRouter.post('/items', async (c) => {
     imageUrl,
     createdAt: now,
     updatedAt: now,
+    quantityUpdatedAt: now,
   };
 
   await db.insert(items).values(newItemData);
@@ -1036,7 +1037,13 @@ agentApiRouter.patch('/items/:id', async (c) => {
   if (body.expiryDate !== undefined) updates.expiryDate = body.expiryDate;
   if (body.warrantyDate !== undefined) updates.warrantyDate = body.warrantyDate;
   if (body.initialQuantity !== undefined) updates.initialQuantity = Number(body.initialQuantity);
-  if (body.currentQuantity !== undefined) updates.currentQuantity = Number(body.currentQuantity);
+  if (body.currentQuantity !== undefined) {
+    const parsedQty = Number(body.currentQuantity);
+    updates.currentQuantity = parsedQty;
+    if (parsedQty !== item.currentQuantity) {
+      updates.quantityUpdatedAt = new Date().toISOString();
+    }
+  }
   if (body.dailyUsage !== undefined) updates.dailyUsage = Number(body.dailyUsage);
   if (body.quantityUnit !== undefined) updates.quantityUnit = body.quantityUnit;
   if (body.activeUnits !== undefined) updates.activeUnits = Math.min(30, Math.max(1, Math.floor(Number(body.activeUnits) || 1)));
@@ -1179,6 +1186,7 @@ agentApiRouter.post('/items/:id/replace', async (c) => {
       isStored: 0,
       snoozeUntil: null,
       updatedAt: now,
+      quantityUpdatedAt: now,
     })
     .where(eq(items.id, itemId));
 
@@ -1204,6 +1212,7 @@ agentApiRouter.post('/items/:id/replace', async (c) => {
     isStored: 0,
     snoozeUntil: null,
     updatedAt: now,
+    quantityUpdatedAt: now,
   };
 
   const status = computeItemStatus(updatedItem, new Date());
@@ -1254,20 +1263,23 @@ agentApiRouter.post('/items/:id/consume', async (c) => {
   const defaultAmount = item.dailyUsage || 1;
   const requestedAmount = typeof rawQty === 'number' && rawQty > 0 ? rawQty : defaultAmount;
 
-  const currentAvailable = item.currentQuantity ?? item.initialQuantity ?? 0;
+  const now = new Date();
+  const currentStatus = computeItemStatus(item, now);
+  const currentAvailable = currentStatus.remainingQuantity ?? item.initialQuantity ?? 0;
   const actualDeducted = Math.min(currentAvailable, requestedAmount);
-  const newQuantity = Math.max(0, currentAvailable - actualDeducted);
+  const newQuantity = Math.max(0, Math.round((currentAvailable - actualDeducted) * 100) / 100);
 
-  const now = new Date().toISOString();
+  const nowIso = now.toISOString();
   await db
     .update(items)
     .set({
       currentQuantity: newQuantity,
-      updatedAt: now,
+      quantityUpdatedAt: nowIso,
+      updatedAt: nowIso,
     })
     .where(eq(items.id, itemId));
 
-  const updatedItem = { ...item, currentQuantity: newQuantity, updatedAt: now };
+  const updatedItem = { ...item, currentQuantity: newQuantity, quantityUpdatedAt: nowIso, updatedAt: nowIso };
   const status = computeItemStatus(updatedItem, new Date());
 
   return c.json({

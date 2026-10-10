@@ -124,6 +124,7 @@ export const api = {
     snoozeUntil?: string | null;
     notes?: string;
     imageUrl?: string;
+    quantityUpdatedAt?: string | null;
   }): Promise<{ success: boolean; item: any }> {
     return request('/items', {
       method: 'POST',
@@ -154,6 +155,7 @@ export const api = {
     snoozeUntil: string | null;
     notes: string;
     imageUrl: string;
+    quantityUpdatedAt: string | null;
   }>): Promise<{ success: boolean; item: any }> {
     return request(`/items/${id}`, {
       method: 'PUT',
@@ -186,6 +188,7 @@ export const api = {
       previousBackupStock?: number;
       previousSnoozeUntil?: string | null;
       previousCurrentQuantity?: number | null;
+      previousQuantityUpdatedAt?: string | null;
       previousActiveUnitsData?: string | null;
     }
   ): Promise<{ success: boolean; message: string; item?: any }> {

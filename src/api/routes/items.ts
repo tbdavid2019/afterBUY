@@ -153,6 +153,8 @@ itemsRouter.get('/', async (c) => {
           isStored: Boolean(item.isStored),
           snoozeUntil: item.snoozeUntil,
           activeUnitsData: parsedActiveUnitsData,
+          updatedAt: item.updatedAt,
+          quantityUpdatedAt: item.quantityUpdatedAt,
         },
         now
       );
@@ -176,6 +178,8 @@ itemsRouter.get('/', async (c) => {
         minStockAlert: item.minStockAlert,
         isStored: Boolean(item.isStored),
         snoozeUntil: item.snoozeUntil,
+        updatedAt: item.updatedAt,
+        quantityUpdatedAt: item.quantityUpdatedAt,
       },
       now
     );
@@ -361,6 +365,7 @@ itemsRouter.post('/', async (c) => {
     deletedAt: null,
     createdAt: nowIso,
     updatedAt: nowIso,
+    quantityUpdatedAt: body.quantityUpdatedAt || nowIso,
   };
 
   if (body.guestSourceId) {
@@ -396,15 +401,20 @@ itemsRouter.post('/batch-replace', async (c) => {
     if (!access) continue;
 
     const existing = access.item;
-    if (existing.isStored || (existing.trackingMode !== 'cycle' && existing.trackingMode !== 'pao')) continue;
+    if (existing.isStored || (existing.trackingMode !== 'cycle' && existing.trackingMode !== 'pao' && existing.trackingMode !== 'quantity')) continue;
+    const isQuantity = existing.trackingMode === 'quantity';
     const newStock = Math.max(0, existing.backupStock - 1);
-    const updatedData = {
+    const updatedData: any = {
       startDate: todayStr,
       backupStock: newStock,
       snoozeUntil: null,
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
     };
+    if (isQuantity) {
+      updatedData.currentQuantity = existing.initialQuantity ?? 60;
+      updatedData.quantityUpdatedAt = nowIso;
+    }
 
     await db.update(items).set(updatedData).where(eq(items.id, id));
 
@@ -546,6 +556,9 @@ itemsRouter.put('/:id', async (c) => {
     imageUrl: body.imageUrl !== undefined ? body.imageUrl : existing.imageUrl,
     calendarSequence: existing.calendarSequence + 1,
     updatedAt: nowIso,
+    quantityUpdatedAt: (body.currentQuantity !== undefined && body.currentQuantity !== existing.currentQuantity)
+      ? nowIso
+      : (body.quantityUpdatedAt !== undefined ? body.quantityUpdatedAt : existing.quantityUpdatedAt),
   };
 
   if (body.stockId && body.stockId !== existing.stockId) {
@@ -729,6 +742,7 @@ itemsRouter.post('/:id/replace', async (c) => {
       snoozeUntil: null,
       calendarSequence: existing.calendarSequence + 1,
       updatedAt: nowIso,
+      quantityUpdatedAt: nowIso,
     })
     .where(eq(items.id, itemId));
 
@@ -799,6 +813,7 @@ itemsRouter.post('/:id/consume', async (c) => {
     .set({
       currentQuantity: newCurrentQuantity,
       updatedAt: nowIso,
+      quantityUpdatedAt: nowIso,
     })
     .where(eq(items.id, itemId));
 
@@ -818,6 +833,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
     previousBackupStock?: number;
     previousSnoozeUntil?: string | null;
     previousCurrentQuantity?: number | null;
+    previousQuantityUpdatedAt?: string | null;
     previousActiveUnitsData?: string | null;
   }>().catch(() => ({}));
   const db = getDb(c.env.DB);
@@ -850,6 +866,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
 
   const restoredSnooze = body.previousSnoozeUntil !== undefined ? body.previousSnoozeUntil : existing.snoozeUntil;
   const restoredQuantity = body.previousCurrentQuantity !== undefined ? body.previousCurrentQuantity : existing.currentQuantity;
+  const restoredQuantityUpdatedAt = body.previousQuantityUpdatedAt !== undefined ? body.previousQuantityUpdatedAt : existing.quantityUpdatedAt;
   const restoredActiveUnitsData = body.previousActiveUnitsData !== undefined ? body.previousActiveUnitsData : existing.activeUnitsData;
 
   await db
@@ -858,6 +875,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
       startDate: restoredStartDate,
       backupStock: restoredStock,
       currentQuantity: restoredQuantity,
+      quantityUpdatedAt: restoredQuantityUpdatedAt,
       activeUnitsData: restoredActiveUnitsData,
       snoozeUntil: restoredSnooze,
       calendarSequence: existing.calendarSequence + 1,
@@ -877,6 +895,7 @@ itemsRouter.post('/:id/undo-replace', async (c) => {
       startDate: restoredStartDate,
       backupStock: restoredStock,
       currentQuantity: restoredQuantity,
+      quantityUpdatedAt: restoredQuantityUpdatedAt,
       snoozeUntil: restoredSnooze,
     },
   });

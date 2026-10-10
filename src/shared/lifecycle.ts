@@ -63,6 +63,8 @@ export function computeActiveUnitsStatus(
     isStored?: boolean | null;
     snoozeUntil?: string | null;
     activeUnitsData?: ActiveUnitInstance[] | string | null;
+    updatedAt?: string | null;
+    quantityUpdatedAt?: string | null;
   },
   referenceDate: Date = new Date()
 ): ActiveUnitInstance[] {
@@ -131,6 +133,8 @@ export function computeItemStatus(
     minStockAlert?: number;
     isStored?: boolean | null;
     snoozeUntil?: string | null;
+    updatedAt?: string | null;
+    quantityUpdatedAt?: string | null;
   },
   referenceDate: Date = new Date()
 ): {
@@ -171,8 +175,43 @@ export function computeItemStatus(
       const autoConsumed = elapsedDays * rate;
       const autoRemaining = Math.max(0, initQty - autoConsumed);
 
-      if (item.currentQuantity !== null && item.currentQuantity !== undefined && item.currentQuantity < initQty) {
-        remainingQuantity = Math.max(0, item.currentQuantity);
+      if (item.currentQuantity !== null && item.currentQuantity !== undefined && (item.quantityUpdatedAt || item.currentQuantity < initQty)) {
+        // If currentQuantity was manually adjusted or calibrated at a certain date:
+        // Prioritize quantityUpdatedAt (which only changes when quantity is calibrated or consumed).
+        // Fall back to updatedAt only when quantityUpdatedAt is not available.
+        const calibrationTimestamp = item.quantityUpdatedAt || item.updatedAt;
+        let daysSinceUpdate = 0;
+        if (calibrationTimestamp) {
+          try {
+            const updateDateStr = businessDate(new Date(calibrationTimestamp));
+            const updateElapsed = businessDateDiff(item.startDate, updateDateStr);
+            if (updateElapsed >= 0) {
+              daysSinceUpdate = Math.max(0, businessDateDiff(updateDateStr, refDateStr));
+            } else {
+              // Calibration timestamp predates startDate (stale timestamp from previous replacement cycle)
+              daysSinceUpdate = -1;
+            }
+          } catch {
+            daysSinceUpdate = 0;
+          }
+        }
+
+        if (daysSinceUpdate === -1) {
+          // Stale calibration predates startDate: fallback to autoRemaining from new startDate
+          remainingQuantity = Math.round(autoRemaining * 10) / 10;
+        } else {
+          const consumedSinceUpdate = daysSinceUpdate * rate;
+          const remainingFromUpdate = Math.max(0, Math.round((item.currentQuantity - consumedSinceUpdate) * 10) / 10);
+
+          if (item.quantityUpdatedAt) {
+            // Explicit calibration timestamp exists: user's manual correction (including upward) is authoritative
+            remainingQuantity = remainingFromUpdate;
+          } else {
+            // Legacy item without dedicated calibration timestamp:
+            // Bound by autoRemaining so generic historical updatedAt doesn't inflate stock.
+            remainingQuantity = Math.min(remainingFromUpdate, Math.round(autoRemaining * 10) / 10);
+          }
+        }
       } else {
         remainingQuantity = Math.round(autoRemaining * 10) / 10;
       }
@@ -186,6 +225,12 @@ export function computeItemStatus(
   }
 
   let percentageRemaining = Math.max(0, Math.min(100, Math.round((remainingDays / totalDays) * 100)));
+  if (item.trackingMode === 'quantity' && remainingQuantity !== null) {
+    const initQty = item.initialQuantity || 60;
+    if (initQty > 0) {
+      percentageRemaining = Math.max(0, Math.min(100, Math.round((remainingQuantity / initQty) * 100)));
+    }
+  }
 
   let healthStatus: HealthStatus = 'healthy';
   if (isFuture) {

@@ -85,6 +85,7 @@ export const items = sqliteTable('items', {
   deletedAt: text('deleted_at'), // ISO timestamp for soft delete 30-day tombstone
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
+  quantityUpdatedAt: text('quantity_updated_at'),
 });
 
 export const itemHistory = sqliteTable('item_history', {

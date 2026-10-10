@@ -19,6 +19,7 @@ import { CATEGORIES } from '../utils/category.ts';
 import { formatRemainingDaysText } from '../../shared/lifecycle.ts';
 import { CategoryIcon } from './CategoryIcon.tsx';
 import { ItemBrandBadge } from './ItemBrandBadge.tsx';
+import { CircularProgressRing } from './CircularProgressRing.tsx';
 import { DEMO_ITEM_IDS } from '../utils/guestStorage.ts';
 import { useSwipeGesture } from '../hooks/useSwipeGesture.ts';
 
@@ -145,13 +146,37 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         {swipeHint}
         {/* Top: Thumbnail + Tag + More Menu */}
         <div className="flex items-start justify-between gap-2">
-          <ItemBrandBadge
-            name={item.name}
-            category={item.category}
-            imageUrl={item.imageUrl}
-            specModel={item.specModel}
-            size="lg"
-          />
+          {!dateOnly && !isStored ? (
+            <div className="relative inline-flex items-center justify-center shrink-0">
+              <CircularProgressRing
+                percentage={item.percentageRemaining ?? 100}
+                healthStatus={item.healthStatus}
+                size={54}
+                strokeWidth={3}
+                ariaLabel={`${item.name} 剩餘比例`}
+              >
+                <ItemBrandBadge
+                  name={item.name}
+                  category={item.category}
+                  imageUrl={item.imageUrl}
+                  specModel={item.specModel}
+                  size="md"
+                  shape="circle"
+                />
+              </CircularProgressRing>
+              <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-md text-[9px] font-black bg-[var(--app-surface)] shadow-xs border border-[var(--app-border)] tabular-nums text-slate-700 dark:text-slate-300">
+                {item.percentageRemaining ?? 100}%
+              </span>
+            </div>
+          ) : (
+            <ItemBrandBadge
+              name={item.name}
+              category={item.category}
+              imageUrl={item.imageUrl}
+              specModel={item.specModel}
+              size="lg"
+            />
+          )}
 
           <div className="flex items-center gap-1.5">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200/80 dark:border-slate-700/80 truncate max-w-[90px]">
@@ -243,31 +268,45 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             </div>
           ) : (
             <div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-sm text-slate-500 font-semibold">已用</span>
-                <span className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
-                  {item.elapsedDays ?? 0}
-                </span>
-                <span className="text-sm text-slate-600 dark:text-slate-400 font-semibold">天</span>
+              <div className="flex items-baseline justify-between gap-1.5">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm text-slate-500 font-semibold">已用</span>
+                  <span className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
+                    {item.elapsedDays ?? 0}
+                  </span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400 font-semibold">天</span>
+                </div>
+                {!dateOnly && !isStored && (
+                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500 tabular-nums">
+                    {item.startDate.slice(5)} 啟用
+                  </span>
+                )}
               </div>
-              <p className={`text-xs sm:text-sm font-bold mt-1 ${
-                item.healthStatus === 'overdue'
-                  ? 'text-rose-600 dark:text-rose-400'
-                  : item.healthStatus === 'due_soon'
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-slate-500 dark:text-slate-400'
-              }`}>
-                {item.healthStatus === 'overdue'
-                  ? `已逾期 ${Math.abs(item.remainingDays)} 天`
-                  : `剩餘 ${item.remainingDays} 天`}
-              </p>
+              <div className="flex items-center justify-between gap-1 mt-1">
+                <p className={`text-xs sm:text-sm font-bold ${
+                  item.healthStatus === 'overdue'
+                    ? 'text-rose-600 dark:text-rose-400'
+                    : item.healthStatus === 'due_soon'
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-slate-500 dark:text-slate-400'
+                }`}>
+                  {item.healthStatus === 'overdue'
+                    ? `已逾期 ${Math.abs(item.remainingDays)} 天`
+                    : `剩餘 ${item.remainingDays} 天`}
+                </p>
+                {!dateOnly && !isStored && (
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    剩 {item.percentageRemaining ?? 100}%
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
           {/* Slim Progress Bar */}
           {!dateOnly && !isStored && (
-            <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-              <div className={`h-full rounded-full transition-[width] duration-300 ${progressColor}`} style={{ width: `${item.percentageRemaining}%` }} />
+            <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800 ring-1 ring-inset ring-slate-900/5 dark:ring-white/10">
+              <div className={`h-full rounded-full transition-[width] duration-300 ${progressColor}`} style={{ width: `${Math.max(0, Math.min(100, item.percentageRemaining ?? 100))}%` }} />
             </div>
           )}
         </div>
@@ -285,10 +324,21 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               const isDueSoon = rem <= 7;
               return (
                 <div key={unit.id} className="flex items-center justify-between gap-1 text-xs py-1 border-b border-slate-100 dark:border-slate-800/60 last:border-none">
-                  <div className="min-w-0 flex-1 truncate pr-1">
-                    <span className="font-bold text-slate-800 dark:text-slate-200">📍{unit.label}</span>
-                    <div className="text-[10px] text-slate-400 truncate">
-                      已用 {unit.elapsedDays ?? 0} 天 · {isOverdue ? '已過期' : rem === 0 ? '今日到期' : `剩${rem}天`}
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
+                    <CircularProgressRing
+                      percentage={unit.percentageRemaining ?? 100}
+                      healthStatus={unit.healthStatus}
+                      size={24}
+                      strokeWidth={2.5}
+                      showText={true}
+                      textClassName="text-[8px]"
+                      ariaLabel={`${unit.label} 剩餘比例`}
+                    />
+                    <div className="min-w-0 flex-1 truncate">
+                      <span className="font-bold text-slate-800 dark:text-slate-200">📍{unit.label}</span>
+                      <div className="text-[10px] text-slate-400 truncate">
+                        已用 {unit.elapsedDays ?? 0} 天 · {isOverdue ? '已過期' : rem === 0 ? '今日到期' : `剩${rem}天`}
+                      </div>
                     </div>
                   </div>
                   <button
@@ -456,25 +506,59 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       {/* Middle Row: Avatar & Title & Hero Metrics */}
       <div className="mt-3.5 flex items-start gap-3.5">
-        <ItemBrandBadge
-          name={item.name}
-          category={item.category}
-          imageUrl={item.imageUrl}
-          specModel={item.specModel}
-          size="lg"
-        />
+        {!dateOnly && !isStored ? (
+          <div className="relative inline-flex items-center justify-center shrink-0">
+            <CircularProgressRing
+              percentage={item.percentageRemaining ?? 100}
+              healthStatus={item.healthStatus}
+              size={54}
+              strokeWidth={3}
+              ariaLabel={`${item.name} 剩餘比例`}
+            >
+              <ItemBrandBadge
+                name={item.name}
+                category={item.category}
+                imageUrl={item.imageUrl}
+                specModel={item.specModel}
+                size="md"
+                shape="circle"
+              />
+            </CircularProgressRing>
+            <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-md text-[9px] font-black bg-[var(--app-surface)] shadow-xs border border-[var(--app-border)] tabular-nums text-slate-700 dark:text-slate-300">
+              {item.percentageRemaining ?? 100}%
+            </span>
+          </div>
+        ) : (
+          <ItemBrandBadge
+            name={item.name}
+            category={item.category}
+            imageUrl={item.imageUrl}
+            specModel={item.specModel}
+            size="lg"
+          />
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight truncate">{item.name}</h3>
             {!isStored && !dateOnly && (
               item.daysUntilStart && item.daysUntilStart > 0 ? (
-                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400 shrink-0">
-                  距啟用 <span className="font-black tabular-nums">{item.daysUntilStart}</span> 天
-                </span>
+                <div className="text-right shrink-0">
+                  <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                    距啟用 <span className="font-black tabular-nums">{item.daysUntilStart}</span> 天
+                  </span>
+                  <div className="text-[11px] text-slate-400 dark:text-slate-500 font-medium tabular-nums">
+                    {item.startDate} 啟用
+                  </div>
+                </div>
               ) : (
-                <span className="text-sm font-bold text-slate-500 shrink-0">
-                  已用 <span className="font-black tabular-nums text-slate-900 dark:text-slate-100">{item.elapsedDays}</span> 天
-                </span>
+                <div className="text-right shrink-0">
+                  <span className="text-sm font-bold text-slate-500">
+                    已用 <span className="font-black tabular-nums text-slate-900 dark:text-slate-100">{item.elapsedDays}</span> 天
+                  </span>
+                  <div className="text-[11px] text-slate-400 dark:text-slate-500 font-medium tabular-nums">
+                    {item.startDate} 啟用
+                  </div>
+                </div>
               )
             )}
           </div>
@@ -499,22 +583,50 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <span>未拆封備品 · 開始使用後才會計算更換週期</span>
         </div>
       ) : (
-        <div className="mt-3 space-y-2">
-          <div className="flex items-center justify-between gap-2 text-sm text-slate-600 dark:text-slate-400">
-            <span className="flex min-w-0 items-center gap-1.5 truncate tabular-nums font-semibold">
+        <div className="mt-3 p-3 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-semibold truncate">
               <Clock className="h-4 w-4 shrink-0 text-slate-400" />
-              {dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : isQuantityMode ? '預計用盡日' : '下次處理'} · {item.nextDueDate}
-            </span>
+              <span>{dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : isQuantityMode ? '預計用盡日' : '下次更換'} · {item.nextDueDate}</span>
+            </div>
+            {!dateOnly && (
+              <div className="text-xs font-medium text-slate-500 dark:text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-0.5 tabular-nums">
+                <span>
+                  已耗用 <strong className="text-slate-700 dark:text-slate-200">{100 - (item.percentageRemaining ?? 100)}%</strong>
+                  {isQuantityMode && item.initialQuantity && (
+                    <span className="text-[11px] text-slate-400 ml-0.5">
+                      (約 {Math.max(0, Math.round((Number(item.initialQuantity) - Number(item.remainingQuantity ?? item.initialQuantity)) * 10) / 10)} {item.quantityUnit || '顆'})
+                    </span>
+                  )}
+                </span>
+                <span>·</span>
+                <span>
+                  剩餘 <strong className="text-emerald-600 dark:text-emerald-400">{item.percentageRemaining ?? 100}%</strong>
+                  {isQuantityMode && item.remainingQuantity !== undefined && item.remainingQuantity !== null && (
+                    <span className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 ml-0.5">
+                      ({item.remainingQuantity} {item.quantityUnit || '顆'})
+                    </span>
+                  )}
+                </span>
+              </div>
+            )}
             {item.healthStatus === 'snoozed' && item.snoozeUntil && (
-              <span className="flex shrink-0 items-center gap-1 text-blue-600 dark:text-blue-400 tabular-nums font-bold">
-                <Moon className="h-4 w-4" />{item.snoozeUntil}
-              </span>
+              <div className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-bold">
+                <Moon className="h-3.5 w-3.5" />延後至 {item.snoozeUntil}
+              </div>
             )}
           </div>
+
           {!dateOnly && (
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:border-slate-800" role="progressbar" aria-valuenow={item.percentageRemaining} aria-valuemin={0} aria-valuemax={100} aria-label={`${item.name} 週期剩餘比例`}>
-              <div className={`h-full rounded-full transition-[width] duration-300 ease-out ${progressColor}`} style={{ width: `${item.percentageRemaining}%` }} />
-            </div>
+            <CircularProgressRing
+              percentage={item.percentageRemaining ?? 100}
+              healthStatus={item.healthStatus}
+              size={44}
+              strokeWidth={3.8}
+              showText={true}
+              textClassName="text-[11px]"
+              ariaLabel={`${item.name} 剩餘比例`}
+            />
           )}
         </div>
       )}
@@ -546,8 +658,17 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               return (
                 <div
                   key={unit.id}
-                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+                  className="flex items-center justify-between gap-2.5 p-2.5 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 transition-colors"
                 >
+                  <CircularProgressRing
+                    percentage={unit.percentageRemaining ?? 100}
+                    healthStatus={unit.healthStatus}
+                    size={34}
+                    strokeWidth={3}
+                    showText={true}
+                    textClassName="text-[9px]"
+                    ariaLabel={`${unit.label} 剩餘比例`}
+                  />
                   <div className="min-w-0 flex-1 pr-1">
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">

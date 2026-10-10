@@ -93,6 +93,7 @@ export interface ItemResponse {
   calendarSequence: number;
   createdAt: string;
   updatedAt: string;
+  quantityUpdatedAt?: string | null;
 
   // Computed properties
   nextDueDate: string;

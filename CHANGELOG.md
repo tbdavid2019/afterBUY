@@ -7,6 +7,15 @@
 ## 2026-10-10
 
 ### Added
+- **Apple Watch 風格極簡圓形環狀進度條與視覺化剩餘百分比 (Circular Progress Rings & Percentage UX)**：
+  - **智慧家居儀表風格環狀進度條 (`CircularProgressRing`)**：
+    - 精緻俐落的圓形 SVG 動態進度環，支援底層軌道（Track）、平滑進度弧線（Stroke Arc）、圓形筆端（Round Cap）與智慧狀態色彩映射（綠色安全 > 15%、琥珀警戒 ≤ 15%、玫瑰紅色逾期/耗盡）。
+    - 完整無障礙語意支援（`role="progressbar"`、`aria-valuenow`、`aria-label`），支援無障礙螢幕閱讀器讀取精確百分比與物品名稱。
+  - **首頁網格與清單雙視圖全面整合 (Grid & List View Integration)**：
+    - **物品圖示光環（Avatar Outer Gauge）**：為物品縮圖／分類圖示外圈鑲嵌 54px 圓形進度環，右下角搭配微型百分比膠囊，一眼綜覽物品壽命健康度。
+    - **清單視圖狀態儀表**：清單卡片右側整合 44px 圓形進度環（內嵌居中百分比數值），左側條列已用天數與剩餘量，直覺易讀且節省垂直操作高度。
+    - **多處在用獨立迷你環（Multi-Unit Mini Rings）**：多處同時開封使用時（如主衛浴、客衛、臥室、客廳），各位置卡片配備 24px（網格）與 34px（清單）迷你圓環，各位置消耗速度與剩餘量一目了然。
+
 - **衛生紙抽數與洗衣精瓶蓋真實計量規格與 UX 智慧快選 (Real-World Packaging & Unit UX)**：
   - **釐清耗材容量與備品包數語意**：徹底解決先前衛生紙將好市多整箱/整串 24 包誤設為單件容量（「24 包 ÷ 每日 0.2 包」）造成的混淆，落實「單包開封抽數」與「未拆封備品包數」嚴格分離。
   - **多元規格衛生紙範本**：
@@ -54,6 +63,15 @@
 - 口腔清潔範本分為「電動牙刷刷頭」、「普通牙刷」及「舌苔刷」，各自可搜尋、套用並管理更換週期與備品；沿用原 `toothbrush-head` 識別碼並將模糊的「牙刷更換」名稱明確改為「電動牙刷刷頭」。
 
 ### Fixed
+- **定時耗用進度凍結與校準後持續耗用修復 (Auto-Depletion & Calibration Countdown Fix)**：
+  - **校準存量持續依時間倒數 (Continuous Depletion After Calibration)**：徹底解決先前魚油、維他命等數量追蹤物品在手動調整存量（`currentQuantity < initialQuantity`）後，進度停滯不再隨日曆天數扣減的問題。
+  - **解耦存量校準與通用中繼資料編輯 (Decoupled Quantity Calibration Timestamp `quantityUpdatedAt`)**：
+    - 新增 `quantityUpdatedAt` 獨立時間戳（資料庫遷移 `0009_quantity_updated_at.sql`），僅在使用者手動調整存量、點擊換新或記錄耗用時更新。
+    - 後續修改物品筆記、存放位置或備品庫存等通用欄位時，完全不影響已校準存量的自然扣減進度，徹底避免通用編輯導致耗用重設。
+    - 輔以 `startDate` 自動耗用上限雙層防禦（`Math.min(remainingFromUpdate, autoRemaining)`），確保存量不減反增。
+  - **Agent API 累計消耗同步**：修復 AI Agent 消耗端點未即時結算校準後自然消耗的隱患，先計算當前實際剩餘存量再執行手動扣減。
+  - **雲端資料庫歷史起算日修復**：修正遠端 Cloudflare D1 資料庫中魚油耗材之 `startDate`，恢復從實際開封日 2026-10-07 起算的真實已耗用進度（已耗用 6 顆、剩餘 174 顆 / 97%）。
+
 - **表單數字輸入框防呆鎖定與刪除修改修復 (Number Input Clearing & Typing Fix)**：
   - 修復在手機與桌面端編輯物品時，無法將「同時在用數量」欄位中的數字 1 刪除並改為 2 的問題。
   - 問題根源在於受控組件（Controlled Input）在使用者按退格鍵清空時會傳入空字串 `""`，原代碼 `parseInt(e.target.value) || 1` 的兜底邏輯會立即把 `""` 強制還原為 `1`，導致使用者無法刪除重打。
