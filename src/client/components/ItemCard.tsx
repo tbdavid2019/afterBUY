@@ -19,6 +19,8 @@ import { CATEGORIES } from '../utils/category.ts';
 import { formatRemainingDaysText } from '../../shared/lifecycle.ts';
 import { CategoryIcon } from './CategoryIcon.tsx';
 import { ItemBrandBadge } from './ItemBrandBadge.tsx';
+import { DEMO_ITEM_IDS } from '../utils/guestStorage.ts';
+import { useSwipeGesture } from '../hooks/useSwipeGesture.ts';
 
 interface ItemCardProps {
   item: ItemResponse;
@@ -83,6 +85,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
     }
   };
 
+  const swipe = useSwipeGesture({
+    disabled: Boolean(selectable || busy || showMenu || showSnoozeMenu),
+    onSwipe(direction) {
+      if (direction === 'left') setShowMenu(true);
+      if (direction === 'right' && !isStored && !dateOnly) void runAction(() => onReplace(item.id));
+    },
+  });
+  const swipeStyle = { touchAction: 'pan-y pinch-zoom', transform: swipe.offset ? `translateX(${swipe.offset}px)` : undefined };
+  const swipeHint = swipe.offset !== 0 && <span className="absolute top-2 left-3 right-3 ui-meta text-[var(--app-accent-strong)] bg-[var(--app-surface)] rounded-lg px-2 py-1 pointer-events-none z-10">{swipe.offset < 0 ? '繼續左滑，更多操作' : (isStored || dateOnly ? '此物品不適用今天已換' : '繼續右滑，今天已換')}</span>;
+
   const progressColor = item.healthStatus === 'overdue'
     ? 'bg-rose-500'
     : item.healthStatus === 'due_soon'
@@ -105,6 +117,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   if (viewMode === 'grid') {
     return (
       <article
+        {...swipe.handlers}
+        style={swipeStyle}
+        data-swipe-surface="item"
         onClick={selectable ? () => onToggleSelect?.(item.id) : undefined}
         className={`relative rounded-2xl border p-3.5 sm:p-5 flex flex-col justify-between transition-all duration-200 ${
           isSelected
@@ -112,6 +127,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs hover:shadow-md'
         } ${selectable ? 'cursor-pointer select-none' : ''}`}
       >
+        {swipeHint}
         {/* Top: Thumbnail + Tag + More Menu */}
         <div className="flex items-start justify-between gap-2">
           <ItemBrandBadge
@@ -154,6 +170,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight line-clamp-1" title={item.name}>
             {item.name}
           </h3>
+          {DEMO_ITEM_IDS.has(item.id) && <span className="ui-meta text-[var(--app-muted)]">示範</span>}
           {item.location && (
             <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
               <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -303,6 +320,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   // -------------------------------------------------------------
   return (
     <article
+      {...swipe.handlers}
+      style={swipeStyle}
+      data-swipe-surface="item"
       onClick={selectable ? () => onToggleSelect?.(item.id) : undefined}
       className={`relative rounded-2xl border p-4 sm:p-5 transition-all duration-200 ${
         isSelected
@@ -310,6 +330,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-xs hover:shadow-md'
       } ${selectable ? 'cursor-pointer select-none' : ''}`}
     >
+      {swipeHint}
       {/* Top Header Row: Category, Status dot badge, Location, Overflow Menu */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 flex-wrap items-center gap-2">
@@ -391,6 +412,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               )
             )}
           </div>
+          {DEMO_ITEM_IDS.has(item.id) && <span className="ui-meta text-[var(--app-muted)]">示範</span>}
           <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-medium">
             {item.stockName && <span className="truncate">{item.stockName}</span>}
             {item.specModel && <span className="truncate">型號: {item.specModel}</span>}

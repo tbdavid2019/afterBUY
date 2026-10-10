@@ -9,7 +9,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      injectRegister: null,
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'brand-lockup.svg', 'icons/*.svg', 'icons/*.png'],
       manifest: {
         name: '補貨日記 | After Buy',
@@ -41,8 +42,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        skipWaiting: true,
-        clientsClaim: true,
+        skipWaiting: false,
+        clientsClaim: false,
         cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         navigateFallback: null,

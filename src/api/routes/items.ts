@@ -7,6 +7,7 @@ import { computeItemStatus } from '../../shared/lifecycle.ts';
 import { ItemCategory, TrackingMode, HealthStatus, StockRole } from '../../shared/types.ts';
 import { ensureUserDefaultStock } from './stocks.ts';
 import { addBusinessDays, businessDate } from '../../shared/date.ts';
+import { hashString } from '../utils/auth.ts';
 
 export const itemsRouter = new Hono<HonoEnv>();
 
@@ -181,6 +182,7 @@ itemsRouter.get('/', async (c) => {
 itemsRouter.post('/', async (c) => {
   const user = c.get('user')!;
   const body = await c.req.json<{
+    guestSourceId?: string;
     name: string;
     stockId?: string;
     category?: ItemCategory;
@@ -208,11 +210,18 @@ itemsRouter.post('/', async (c) => {
   if (!body.name || !body.name.trim()) {
     return c.json({ error: '請輸入物品名稱' }, 400);
   }
+  if (body.guestSourceId !== undefined && (typeof body.guestSourceId !== 'string' || !/^guest-[a-zA-Z0-9-]{1,120}$/.test(body.guestSourceId))) {
+    return c.json({ error: '試用物品來源識別碼無效' }, 400);
+  }
 
   const db = getDb(c.env.DB);
   const nowIso = new Date().toISOString();
   const todayStr = businessDate();
-  const itemId = crypto.randomUUID();
+  // Stable per account and source item, so a lost response or page reload
+  // cannot create a second copy. The primary key also handles concurrent tabs.
+  const itemId = body.guestSourceId
+    ? `guest-import-${await hashString(JSON.stringify([user.id, body.guestSourceId]), 'afterbuy-guest-import')}`
+    : crypto.randomUUID();
 
   // Resolve target Stock ID
   const targetStockId: string = (body.stockId && body.stockId !== 'all')
@@ -275,7 +284,17 @@ itemsRouter.post('/', async (c) => {
     updatedAt: nowIso,
   };
 
-  await db.insert(items).values(newItem);
+  if (body.guestSourceId) {
+    const inserted = await db.insert(items).values(newItem).onConflictDoNothing({ target: items.id }).returning().get();
+    if (!inserted) {
+      const access = await checkItemAccess(db, itemId, user.id);
+      if (access === false) return c.json({ error: '無權讀取先前帶入的物品' }, 403);
+      if (!access) return c.json({ error: '先前帶入的物品已刪除，重試不會重新建立' }, 409);
+      return c.json({ success: true, item: { ...access.item, isStored: Boolean(access.item.isStored) } });
+    }
+  } else {
+    await db.insert(items).values(newItem);
+  }
 
   return c.json({ success: true, item: { ...newItem, isStored: Boolean(newItem.isStored) } }, 201);
 });

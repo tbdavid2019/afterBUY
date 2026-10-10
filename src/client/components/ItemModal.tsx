@@ -24,6 +24,7 @@ import { CATEGORIES, ITEM_PRESETS, ItemPreset } from '../utils/category.ts';
 import { ItemBrandBadge } from './ItemBrandBadge.tsx';
 import { api } from '../api.ts';
 import { useTranslation } from '../i18n/index.tsx';
+import { useSwipeGesture } from '../hooks/useSwipeGesture.ts';
 
 const PRESET_CATEGORIES = [
   { id: 'all', label: '全部' },
@@ -110,9 +111,32 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const initializedForOpen = useRef(false);
+  const hasUnsavedInput = useRef(false);
+  const sheetSwipe = useSwipeGesture({
+    axis: 'vertical',
+    disabled: !isOpen || saving || uploading,
+    onSwipe(direction) {
+      if (direction !== 'down') return;
+      if (hasUnsavedInput.current && !window.confirm('尚未儲存的內容會捨棄，確定關閉？')) return;
+      onClose();
+    },
+  });
 
   useEffect(() => {
+    if (!isOpen) {
+      initializedForOpen.current = false;
+      return;
+    }
+    // Initialize once per opening. A refreshed stock list must not erase a draft.
+    if (initializedForOpen.current) return;
+    initializedForOpen.current = true;
+    hasUnsavedInput.current = false;
+    setPresetSearch('');
+    setPresetCategory('all');
+    setSelectedPresetName(null);
     if (itemToEdit) {
+      setActiveTab('form');
       setName(itemToEdit.name);
       setCategory(itemToEdit.category);
       setTrackingMode(itemToEdit.trackingMode);
@@ -138,7 +162,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       // Auto-expand advanced drawer if any optional/advanced field has custom data
       const hasAdvancedValues = Boolean(
         itemToEdit.imageUrl ||
-        (itemToEdit.price !== null && itemToEdit.price !== undefined && itemToEdit.price !== '') ||
+        (itemToEdit.price !== null && itemToEdit.price !== undefined) ||
         itemToEdit.specModel ||
         itemToEdit.location ||
         itemToEdit.isStored ||
@@ -169,7 +193,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setNotes('');
       setImageUrl('');
       setShowAdvanced(false);
-      setActiveTab('presets');
+      setActiveTab(initialTab);
       if (currentStockId && currentStockId !== 'all') {
         setSelectedStockId(currentStockId);
       } else if (stocks.length > 0) {
@@ -177,30 +201,18 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       } else {
         setSelectedStockId('');
       }
-    }
-    setErrorMessage('');
-  }, [itemToEdit, isOpen, currentStockId, stocks]);
-
-  useEffect(() => {
-    if (isOpen) {
-      if (itemToEdit) {
-        setActiveTab('form');
-        setSelectedPresetName(null);
-      } else if (initialPreset) {
+      if (initialPreset) {
         handleApplyPreset(initialPreset);
         setActiveTab('form');
-        setSelectedPresetName(initialPreset.name);
-      } else {
-        setActiveTab(initialTab || 'presets');
-        setSelectedPresetName(null);
       }
     }
-  }, [isOpen, itemToEdit, initialPreset, initialTab]);
+    setErrorMessage('');
+  }, [itemToEdit, isOpen, currentStockId, stocks, initialPreset, initialTab]);
 
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && !e.isComposing && e.keyCode !== 229) onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -242,6 +254,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   };
 
   const handleApplyPreset = (preset: ItemPreset) => {
+    hasUnsavedInput.current = true;
     setSelectedPresetName(preset.name);
     setName(preset.name);
     setCategory(preset.category);
@@ -483,18 +496,16 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
   return (
     <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm modal-backdrop-animate"
     >
-      <div className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden sheet-content-animate sm:modal-content-animate">
+      <div role="dialog" aria-modal="true" aria-labelledby="item-modal-title" style={sheetSwipe.offset > 0 ? { animation: 'none', transform: `translateY(${sheetSwipe.offset}px)` } : undefined} className="app-surface border border-[var(--app-border)] rounded-t-3xl sm:rounded-2xl w-full max-w-lg max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden sheet-content-animate sm:modal-content-animate">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--app-border)]">
+        <div {...sheetSwipe.handlers} data-swipe-surface="sheet" style={{ touchAction: 'none' }} className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--app-border)]">
           <div className="min-w-0 pr-2">
-            <h2 className="ui-section-title text-[var(--app-text)] tracking-tight">
+            <h2 id="item-modal-title" className="ui-section-title text-[var(--app-text)] tracking-tight">
               {itemToEdit ? '編輯物品' : '新增追蹤物品'}
             </h2>
+            <p className="sm:hidden ui-meta text-[var(--app-muted)]">從標題往下滑可關閉</p>
             {!itemToEdit && (
               <p className="ui-meta text-[var(--app-muted)] text-xs mt-0.5 truncate">
                 {activeTab === 'presets' ? '選一個後會帶入圖片、名稱、分類與建議週期' : '自訂名稱、模式與生活週期規格'}
@@ -730,7 +741,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           </div>
         ) : (
           /* Tab 2: Custom Form Body */
-          <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+          <form onChangeCapture={() => { hasUnsavedInput.current = true; }} onClickCapture={(event) => { if ((event.target as HTMLElement).closest('button')) hasUnsavedInput.current = true; }} onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
             {!user && (
               <div className="app-primary-soft border rounded-xl px-3.5 py-2.5 ui-meta flex items-center gap-2">
                 <Sparkles className="w-4 h-4 shrink-0 text-[var(--app-accent-strong)]" />

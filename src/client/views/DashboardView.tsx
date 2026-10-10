@@ -158,40 +158,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
-      {/* Guest Mode Banner */}
       {!user && (
-        <details className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-xs text-sm">
-          <summary className="font-semibold cursor-pointer list-none flex items-center justify-between text-slate-700 dark:text-slate-200 tactile-press">
-            <span className="flex items-center gap-1.5">
-              <Fingerprint className="h-4 w-4 text-[var(--app-accent)]" />
-              {t('guestModeBannerTitle')}
-            </span>
-            <span className="text-slate-400 font-normal">{t('guestModeBannerBadge')} ▾</span>
-          </summary>
-          <div className="mt-2.5 border-t border-slate-100 dark:border-slate-800 pt-2 text-slate-600 dark:text-slate-400 leading-relaxed">
-            <p>{t('guestModeBannerDesc')}</p>
-            <div className="mt-2.5 flex flex-wrap gap-2">
-              {items.some((i) => DEMO_ITEM_IDS.has(i.id)) && onClearDemoItems && (
-                <button type="button" onClick={onClearDemoItems} className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press">
-                  {t('guestModeClearDemoBtn')}
-                </button>
-              )}
-              {!items.some((i) => DEMO_ITEM_IDS.has(i.id)) && onRestoreDemoItems && (
-                <button type="button" onClick={onRestoreDemoItems} className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium text-sm tactile-press flex items-center gap-1.5">
-                  <RotateCcw className="h-4 w-4" />{t('guestModeRestoreDemoBtn')}
-                </button>
-              )}
-              {onOpenAuth && (
-                <button type="button" onClick={onOpenAuth} className="app-primary px-3.5 py-2 rounded-xl text-sm font-semibold tactile-press flex items-center gap-1.5">
-                  <Fingerprint className="h-4 w-4" />{t('guestModeLoginBtn')}
-                </button>
-              )}
-            </div>
-          </div>
-        </details>
+        <div className="flex flex-wrap gap-2">
+          {items.some((i) => DEMO_ITEM_IDS.has(i.id)) && onClearDemoItems && <button type="button" onClick={onClearDemoItems} className="app-control ui-button min-h-11 rounded-xl px-3">{t('guestModeClearDemoBtn')}</button>}
+          {!items.some((i) => DEMO_ITEM_IDS.has(i.id)) && onRestoreDemoItems && <button type="button" onClick={onRestoreDemoItems} className="app-control ui-button min-h-11 rounded-xl px-3">{t('guestModeRestoreDemoBtn')}</button>}
+        </div>
       )}
 
       {/* Segmented Status Filter Bar */}
+      <p className="sm:hidden ui-meta text-[var(--app-muted)]">右滑物品：今天已換，可復原 · 左滑：更多操作。空白處左右滑可切換頁面。</p>
       <section aria-label={locale === 'zh-TW' ? '狀態篩選' : 'Status filters'} className="flex gap-2.5 overflow-x-auto no-scrollbar py-0.5">
         <button
           type="button"
@@ -227,8 +202,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Unified Search, Filter and Actions Toolbar */}
       <section className="space-y-3">
-        <div className="flex items-center gap-2.5">
-          <div className="relative flex-1">
+        <div className="flex flex-wrap min-[400px]:flex-nowrap items-center gap-2.5">
+          <div className="relative basis-full min-[400px]:basis-auto flex-1 min-w-0">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             <input
               id="dashboard-search"

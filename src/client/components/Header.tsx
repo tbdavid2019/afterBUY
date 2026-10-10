@@ -46,12 +46,12 @@ export const Header: React.FC<HeaderProps> = ({
               onRefreshStocks={onRefreshStocks}
             />
           ) : (
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex flex-col min-w-0">
               <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 truncate">
                 {t('appName')}
               </h1>
-              <span className="hidden sm:inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0">
-                {locale === 'zh-TW' ? '訪客模式' : 'Guest'}
+              <span className="ui-meta font-semibold text-[var(--app-accent-strong)]">
+                {locale === 'zh-TW' ? '試用 · 未登入' : 'Trial · Signed out'}
               </span>
             </div>
           )}
@@ -69,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
           {!user && (
             <button
               onClick={onOpenAuth}
-              aria-label={locale === 'zh-TW' ? '登入' : 'Sign in'}
+              aria-label={locale === 'zh-TW' ? '登入／註冊' : 'Sign in / Register'}
               className="h-9 px-3 flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-xs font-semibold tactile-press transition-colors"
             >
               <Fingerprint className="w-4 h-4 text-[var(--app-accent)]" />

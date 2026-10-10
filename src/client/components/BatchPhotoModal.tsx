@@ -181,7 +181,7 @@ export const BatchPhotoModal: React.FC<BatchPhotoModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop-animate">
+    <div role="dialog" aria-modal="true" aria-label="批次拍照新增物品" className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm modal-backdrop-animate">
       <div className="app-surface w-full max-w-xl max-h-[90dvh] rounded-3xl border border-[var(--app-border)] shadow-2xl flex flex-col overflow-hidden modal-content-animate">
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-[var(--app-border)]">

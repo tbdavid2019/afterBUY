@@ -100,6 +100,7 @@ export const api = {
   },
 
   async createItem(item: {
+    guestSourceId?: string;
     stockId?: string;
     name: string;
     category?: ItemCategory;

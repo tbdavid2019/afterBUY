@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Fingerprint, Mail, KeyRound, ArrowRight, ShieldCheck, Loader2, Sparkles } from 'lucide-react';
 import { api } from '../api.ts';
 import { UserSession } from '../../shared/types.ts';
+import { useTranslation } from '../i18n/index.tsx';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [step, setStep] = useState<'email' | 'otp' | 'prompt_passkey'>('email');
@@ -160,6 +162,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSu
               <p className="ui-meta text-[var(--app-muted)] mt-1">
                 使用生物辨識或 Email 驗證碼，免記任何密碼
               </p>
+              <p className="ui-meta text-[var(--app-muted)] mt-2">首次驗證 Email 即建立帳號。試用時新增的物品可在登入後帶入，不必重新輸入。</p>
             </div>
 
             {/* 1-Click Passkey Button */}

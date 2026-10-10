@@ -7,6 +7,10 @@ import { TimelineView } from './views/TimelineView.tsx';
 import { ShoppingView } from './views/ShoppingView.tsx';
 import { SettingsView } from './views/SettingsView.tsx';
 import { ItemModal } from './components/ItemModal.tsx';
+import { PwaUpdateNotice } from './components/PwaUpdateNotice.tsx';
+import { GuestStatusBanner } from './components/GuestStatusBanner.tsx';
+import { useTranslation } from './i18n/index.tsx';
+import { useSwipeGesture } from './hooks/useSwipeGesture.ts';
 import { HistoryModal } from './components/HistoryModal.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
 import { StockSettingsModal } from './components/StockSettingsModal.tsx';
@@ -146,7 +150,7 @@ const DEMO_ITEMS: ItemResponse[] = [
     id: 'demo-5',
     userId: 'guest',
     name: '好市多 Kirkland 深海魚油膠囊 (150顆)',
-    category: 'health',
+    category: 'medicine',
     trackingMode: 'quantity',
     cycleDays: null,
     startDate: businessDate(new Date(Date.now() - 11 * 24 * 60 * 60 * 1000)),
@@ -182,6 +186,7 @@ const DEMO_ITEMS: ItemResponse[] = [
 ];
 
 export const App: React.FC = () => {
+  const { locale } = useTranslation();
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [user, setUser] = useState<UserSession | null>(() => {
     if (typeof window !== 'undefined') {
@@ -217,6 +222,10 @@ export const App: React.FC = () => {
   const [presetForNewItem, setPresetForNewItem] = useState<ItemPreset | null>(null);
   const [isVersionNoticeOpen, setIsVersionNoticeOpen] = useState(false);
   const [historyItem, setHistoryItem] = useState<ItemResponse | null>(null);
+  const isEditing = isItemModalOpen || isStockSettingsOpen || isAuthOpen || isPresetCatalogOpen || Boolean(historyItem);
+  const isEditingRef = useRef(isEditing);
+  isEditingRef.current = isEditing;
+  const [versionNoticePending, setVersionNoticePending] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(() =>
     getInitialTheme(typeof window === 'undefined' ? null : window.localStorage.getItem('afterbuy-theme'))
   );
@@ -226,6 +235,24 @@ export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(() => typeof window !== 'undefined' && Boolean(localStorage.getItem('afterbuy_user')));
   const [loadError, setLoadError] = useState<string | null>(null);
   const stockRequestId = useRef(0);
+  const [guestStorageError, setGuestStorageError] = useState<string | null>(null);
+  const [pendingGuestCount, setPendingGuestCount] = useState(() => readGuestItems().length);
+  const [importingGuest, setImportingGuest] = useState(false);
+  const [guestImportMessage, setGuestImportMessage] = useState<string | null>(null);
+  const guestImportLock = useRef(false);
+  const importedGuestIds = useRef(new Set<string>());
+  const pageSwipe = useSwipeGesture({
+    disabled: isEditing || isVersionNoticeOpen || importingGuest,
+    onSwipe(direction) {
+      if (document.querySelector('[role="dialog"]')) return;
+      const pages: NavTab[] = ['dashboard', 'timeline', 'shopping', 'settings'];
+      const index = pages.indexOf(currentTab) + (direction === 'left' ? 1 : -1);
+      if (index >= 0 && index < pages.length) {
+        setCurrentTab(pages[index]);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    },
+  });
 
   // Undo Toast state for reversible 「今天已換」
   const [undoToast, setUndoToast] = useState<{
@@ -240,9 +267,10 @@ export const App: React.FC = () => {
       const resolved = typeof next === 'function' ? next(previous) : next;
       try {
         writeGuestItems(resolved);
+        window.setTimeout(() => setGuestStorageError(null), 0);
       } catch (error: any) {
         // Keep the in-memory edit usable, but make a quota failure explicit.
-        window.setTimeout(() => window.alert(error.message), 0);
+        window.setTimeout(() => setGuestStorageError(error.message), 0);
       }
       return resolved;
     });
@@ -260,68 +288,88 @@ export const App: React.FC = () => {
 
 
 
-  const importGuestItems = async (availableStocks: StockResponse[]): Promise<number> => {
+  const importGuestItems = async (availableStocks: StockResponse[]): Promise<void> => {
+    const accountId = currentUserRef.current?.id;
+    if (!accountId || guestImportLock.current) return;
+    const editableStock = availableStocks.find((stock) => stock.id === currentStockId && stock.myRole !== 'viewer')
+      || availableStocks.find((stock) => stock.myRole !== 'viewer');
+    if (!editableStock) return;
+    guestImportLock.current = true;
+    setImportingGuest(true);
+    setGuestImportMessage(null);
     const localItems = readGuestItems();
-    if (localItems.length === 0) return 0;
-    const editableStock = availableStocks.find((stock) => stock.myRole !== 'viewer');
-    if (!editableStock) return 0;
-    const selected = localItems.filter((item) => !DEMO_ITEM_IDS.has(item.id));
-    if (selected.length === 0 || !window.confirm(`要將本機新增的 ${selected.length} 項物品帶入「${editableStock.name}」嗎？`)) {
-      return 0;
-    }
-
-    const importedIds = new Set<string>();
-    for (const item of selected) {
-      try {
-        let imageUrl = item.imageUrl || undefined;
-        if (imageUrl?.startsWith('data:')) {
-          const match = imageUrl.match(/^data:([^;,]+)?(?:;base64)?,(.*)$/s);
-          if (!match) throw new Error('照片格式無法辨識');
-          const mime = match[1] || 'image/jpeg';
-          const bytes = Uint8Array.from(atob(match[2]), (char) => char.charCodeAt(0));
-          const extension = mime.split('/')[1] || 'jpg';
-          const upload = await api.uploadImage(new File([bytes], `guest-${item.id}.${extension}`, { type: mime }));
-          imageUrl = upload.url;
+    let importedCount = 0;
+    let failures = 0;
+    try {
+      for (const item of localItems) {
+        if (currentUserRef.current?.id !== accountId) return;
+        if (importedGuestIds.current.has(`${accountId}:${item.id}`)) continue;
+        try {
+          let imageUrl = item.imageUrl || undefined;
+          if (imageUrl?.startsWith('data:')) {
+            const match = imageUrl.match(/^data:([^;,]+)?(?:;base64)?,(.*)$/s);
+            if (!match) throw new Error('照片格式無法辨識');
+            const mime = match[1] || 'image/jpeg';
+            const bytes = Uint8Array.from(atob(match[2]), (char) => char.charCodeAt(0));
+            const extension = mime.split('/')[1] || 'jpg';
+            const upload = await api.uploadImage(new File([bytes], `guest-${item.id}.${extension}`, { type: mime }));
+            imageUrl = upload.url;
+          }
+          if (currentUserRef.current?.id !== accountId) return;
+          await api.createItem({
+            guestSourceId: item.id,
+            stockId: editableStock.id,
+            name: item.name,
+            category: item.category,
+            trackingMode: item.trackingMode,
+            cycleDays: item.cycleDays ?? undefined,
+            startDate: item.startDate,
+            paoMonths: item.paoMonths ?? undefined,
+            expiryDate: item.expiryDate ?? undefined,
+            warrantyDate: item.warrantyDate ?? undefined,
+            initialQuantity: item.initialQuantity,
+            currentQuantity: item.currentQuantity,
+            dailyUsage: item.dailyUsage,
+            quantityUnit: item.quantityUnit,
+            backupStock: item.backupStock,
+            minStockAlert: item.minStockAlert,
+            price: item.price,
+            specModel: item.specModel,
+            location: item.location,
+            isStored: item.isStored,
+            snoozeUntil: item.snoozeUntil,
+            notes: item.notes || undefined,
+            imageUrl,
+          });
+          importedGuestIds.current.add(`${accountId}:${item.id}`);
+          importedCount++;
+        } catch (error) {
+          failures++;
+          console.error(`Failed to import guest item ${item.id}`, error);
         }
-        await api.createItem({
-          stockId: editableStock.id,
-          name: item.name,
-          category: item.category,
-          trackingMode: item.trackingMode,
-          cycleDays: item.cycleDays ?? undefined,
-          startDate: item.startDate,
-          paoMonths: item.paoMonths ?? undefined,
-          expiryDate: item.expiryDate ?? undefined,
-          warrantyDate: item.warrantyDate ?? undefined,
-          backupStock: item.backupStock,
-          minStockAlert: item.minStockAlert,
-          price: item.price,
-          specModel: item.specModel,
-          location: item.location,
-          isStored: item.isStored,
-          snoozeUntil: item.snoozeUntil,
-          notes: item.notes || undefined,
-          imageUrl,
-        });
-        importedIds.add(item.id);
-      } catch (error) {
-        console.error(`Failed to import guest item ${item.id}`, error);
       }
-    }
-
-    if (importedIds.size > 0) {
+      if (currentUserRef.current?.id !== accountId) return;
+      // Retain failed items and demo edits. A retry in this session skips items
+      // already created, even if local cleanup could not be written.
+      const remaining = readGuestItems().filter((item) => !importedGuestIds.current.has(`${accountId}:${item.id}`));
       try {
-        writeGuestItems(localItems.filter((item) => !importedIds.has(item.id)), { preserveDemos: true });
+        writeGuestItems(remaining, { preserveDemos: true });
+        setPendingGuestCount(remaining.length);
+        setGuestImportMessage(locale === 'zh-TW'
+          ? (failures ? `已帶入 ${importedCount} 項；${remaining.length} 項未成功，仍保留在本機，可再次帶入。` : '試用物品已帶入帳號，目前的數量與備品狀態已保留。')
+          : (failures ? `${importedCount} imported. ${remaining.length} remain locally; retry to import them.` : 'Trial items imported to your account, preserving quantities and spare stock.'));
       } catch (error: any) {
-        window.alert(error.message);
+        setGuestImportMessage(locale === 'zh-TW' ? `雲端已帶入 ${importedCount} 項，但本機清理失敗：${error.message}。請在此頁重試。` : 'Cloud import completed, but local cleanup failed. Retry on this page.');
       }
-      window.alert(`已帶入 ${importedIds.size} 項本機物品。${selected.length - importedIds.size > 0 ? `另有 ${selected.length - importedIds.size} 項保留在本機，稍後可重試。` : ''}`);
+      await loadUserAndItems();
+    } finally {
+      guestImportLock.current = false;
+      setImportingGuest(false);
     }
-    return importedIds.size;
   };
 
   // Load User, Stocks & Items
-  const loadUserAndItems = async (stockIdToLoad?: string, offerGuestImport = false) => {
+  const loadUserAndItems = async (stockIdToLoad?: string) => {
     const requestId = ++stockRequestId.current;
     setIsLoading(true);
     setLoadError(null);
@@ -339,7 +387,7 @@ export const App: React.FC = () => {
         if (requestId !== stockRequestId.current) return;
         setStocks(stocksRes.stocks);
 
-        if (offerGuestImport) await importGuestItems(stocksRes.stocks);
+        setPendingGuestCount(readGuestItems().length);
 
         // Load items for specified stock or currentStockId
         const effectiveStockId = stockIdToLoad !== undefined ? stockIdToLoad : currentStockId;
@@ -388,17 +436,24 @@ export const App: React.FC = () => {
   };
 
   useEffect(() => {
-    loadUserAndItems(undefined, typeof window !== 'undefined' && Boolean(localStorage.getItem('afterbuy_user')));
+    loadUserAndItems();
     if (typeof window !== 'undefined') {
       const lastSeen = localStorage.getItem('afterbuy_last_seen_date');
       if (lastSeen !== CURRENT_APP_RELEASE_DATE) {
         const timer = setTimeout(() => {
-          setIsVersionNoticeOpen(true);
+          setVersionNoticePending(true);
         }, 700);
         return () => clearTimeout(timer);
       }
     }
   }, []);
+
+  useEffect(() => {
+    if (versionNoticePending && !isEditingRef.current) {
+      setIsVersionNoticeOpen(true);
+      setVersionNoticePending(false);
+    }
+  }, [versionNoticePending, isEditing]);
 
   const handleSelectStock = async (stockId: string) => {
     setCurrentStockId(stockId);
@@ -468,7 +523,7 @@ export const App: React.FC = () => {
         imageUrl: preset.imageUrl ?? undefined,
         isStored: false,
       });
-      await loadUserAndItems(currentStockId, false);
+      await loadUserAndItems(currentStockId);
     } else {
       const newItem: ItemResponse = {
         id: `guest-${crypto.randomUUID()}`,
@@ -838,6 +893,7 @@ export const App: React.FC = () => {
       localStorage.removeItem('afterbuy_user');
     }
     setUser(null);
+    setGuestImportMessage(null);
     setDevices([]);
     setStocks([]);
     setCurrentStockId('all');
@@ -898,7 +954,21 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-3xl md:max-w-4xl lg:max-w-5xl w-full mx-auto px-4 sm:px-6 pt-3 md:pt-5 main-content-pb">
+      <main {...pageSwipe.handlers} style={{ touchAction: 'pan-y pinch-zoom' }} className="flex-1 max-w-3xl md:max-w-4xl lg:max-w-5xl w-full mx-auto px-4 sm:px-6 pt-3 md:pt-5 main-content-pb">
+        <GuestStatusBanner
+          signedIn={Boolean(user)}
+          localCount={user ? pendingGuestCount : items.filter((item) => !DEMO_ITEM_IDS.has(item.id)).length}
+          storageError={guestStorageError}
+          importMessage={user ? guestImportMessage : null}
+          importing={importingGuest}
+          destination={stocks.find((stock) => stock.id === currentStockId && stock.myRole !== 'viewer')?.name || stocks.find((stock) => stock.myRole !== 'viewer')?.name}
+          onLogin={() => setIsAuthOpen(true)}
+          onImport={() => void importGuestItems(stocks)}
+          onRetrySave={() => {
+            try { writeGuestItems(items); setGuestStorageError(null); }
+            catch (error: any) { setGuestStorageError(error.message); }
+          }}
+        />
         {(isLoading || loadError) && (
           <div className="mb-3 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-subtle)] px-3 py-2 text-sm text-[var(--app-muted)]" role={loadError ? 'alert' : 'status'}>
             {loadError || '正在載入最新資料…'}
@@ -1026,12 +1096,13 @@ export const App: React.FC = () => {
       />
 
       {/* Modals */}
+      <PwaUpdateNotice busy={isEditing || isVersionNoticeOpen} />
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={(loggedUser) => {
           setUser(loggedUser);
-          loadUserAndItems(undefined, true);
+          loadUserAndItems();
         }}
       />
 

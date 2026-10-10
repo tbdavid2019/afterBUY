@@ -27,6 +27,7 @@ export interface ItemPreset {
   cycleDays?: number;
   paoMonths?: number;
   initialQuantity?: number;
+  currentQuantity?: number;
   dailyUsage?: number;
   quantityUnit?: string;
   minStockAlert: number;
@@ -37,6 +38,7 @@ export interface ItemPreset {
 }
 
 export const ITEM_PRESETS: ItemPreset[] = [
+  { id: 'shampoo', name: '洗髮精 / 洗髮乳', category: 'bathroom', trackingMode: 'cycle', cycleDays: 60, minStockAlert: 1, notes: '先以 60 天作為補貨週期，可依容量、使用人數與實際用量調整；保存期限請依包裝標示。' },
   { id: 'costco-fish-oil', name: '好市多 Kirkland 深海魚油膠囊 (150顆)', category: 'medicine', trackingMode: 'quantity', initialQuantity: 150, dailyUsage: 2, quantityUnit: '顆', minStockAlert: 1, notes: '好市多常備 Kirkland 150 粒魚油，每天 2 顆隨餐食用，約 75 天份', defaultSpecModel: '150顆/瓶', defaultPrice: 699 },
   { id: 'tissue-paper', name: '抽取式衛生紙 / 面紙', category: 'general', trackingMode: 'quantity', initialQuantity: 24, dailyUsage: 0.2, quantityUnit: '包', minStockAlert: 3, notes: '好市多 24 包一串，平均 5 天使用 1 包約 120 天份', defaultSpecModel: '24包/串', defaultPrice: 389 },
   { id: 'garbage-bags', name: '環保抽取垃圾袋', category: 'kitchen', trackingMode: 'quantity', initialQuantity: 50, dailyUsage: 1, quantityUnit: '個', minStockAlert: 2, notes: '居家日用品，中型 20L 環保袋，每天 1 個約 50 天份', defaultSpecModel: '50入/包', defaultPrice: 120 },
@@ -44,7 +46,9 @@ export const ITEM_PRESETS: ItemPreset[] = [
   { id: 'dish-soap-refill', name: '洗碗精補充包', category: 'kitchen', trackingMode: 'cycle', cycleDays: 60, minStockAlert: 1, notes: '廚房洗滌常備耗材，約每 2 個月用完補充', defaultSpecModel: '1000ml 補充包', defaultPrice: 139 },
   { id: 'vitamin-c', name: '綜合維他命C / B群', category: 'medicine', trackingMode: 'quantity', initialQuantity: 100, dailyUsage: 1, quantityUnit: '錠', minStockAlert: 1, notes: '每天 1 錠補充日常所需，約 100 天份', defaultSpecModel: '100錠/瓶', defaultPrice: 550 },
   { id: 'contact-lenses-daily', name: '日拋隱形眼鏡', category: 'bathroom', trackingMode: 'quantity', initialQuantity: 30, dailyUsage: 2, quantityUnit: '片', minStockAlert: 1, notes: '一盒 30 片，每天雙眼 2 片約 15 天份', defaultSpecModel: '30片/盒', defaultPrice: 550 },
-  { id: 'toothbrush-head', name: '牙刷更換', category: 'bathroom', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 2, notes: '牙醫師建議每 3 個月更換一次', imageUrl: '/images/items/toothbrush-head.png', defaultPrice: 150 },
+  { id: 'toothbrush-head', name: '電動牙刷刷頭', category: 'bathroom', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 2, notes: '替換電動牙刷的刷頭；預設 90 天提醒，可依原廠說明與刷毛磨損情形調整。', imageUrl: '/images/items/toothbrush-head.png', defaultPrice: 150 },
+  { id: 'manual-toothbrush', name: '普通牙刷', category: 'bathroom', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 2, notes: '手動牙刷，整支更換；預設 90 天提醒，可依刷毛磨損情形提早更換。' },
+  { id: 'tongue-brush', name: '舌苔刷', category: 'bathroom', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 1, notes: '清潔舌苔的舌刷；90 天為可調整的提醒週期，請依材質、原廠說明與磨損情形調整。' },
   { id: 'underwear-renew', name: '貼身內褲換新', category: 'clothing', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 3, notes: '衛生專家建議 3~6 個月淘汰換新防細菌滋生', defaultPrice: 200 },
   { id: 'bra-renew', name: '貼身內衣/運動內衣', category: 'clothing', trackingMode: 'cycle', cycleDays: 180, minStockAlert: 2, notes: '定期檢視彈性與支撐力', defaultPrice: 800 },
   { id: 'socks-renew', name: '運動襪/棉襪換新', category: 'clothing', trackingMode: 'cycle', cycleDays: 90, minStockAlert: 3, notes: '襪口鬆脫或腳跟變薄失去避震時換新', defaultPrice: 150 },

@@ -8,7 +8,7 @@ interface VersionNoticeModalProps {
   actionLabel?: string;
 }
 
-export const CURRENT_APP_RELEASE_DATE = '2026-10-07';
+export const CURRENT_APP_RELEASE_DATE = '2026-10-10';
 
 export const VersionNoticeModal: React.FC<VersionNoticeModalProps> = ({
   isOpen,
@@ -31,20 +31,20 @@ export const VersionNoticeModal: React.FC<VersionNoticeModalProps> = ({
 
   const features = [
     {
-      title: '常用耗材範本庫',
-      desc: '支援即時搜尋與分類，一鍵直接加入好市多 150 顆魚油等 30+ 款台灣家庭常備耗材。',
+      title: '試用狀態與物品帶入',
+      desc: '清楚標示尚未登入與本機保存方式；登入後可帶入自訂物品，保留數量、備品及照片。',
     },
     {
-      title: '細緻通知偏好設定',
-      desc: '到期、備品不足與用量預警獨立開關，完整支援 iOS 16.4+ 與 Android 手機系統推播。',
+      title: '手機滑動與復原',
+      desc: '右滑物品記錄今天已換，左滑開啟操作；空白區左右滑切換頁面，標題區下滑關閉表單。',
     },
     {
-      title: '生活月曆雙時程軌跡',
-      desc: '購買啟用與預計到期雙重里程碑，清楚掌握生活規律與月度支出預算。',
+      title: '輸入不再被背景更新打斷',
+      desc: '表單開啟期間保留輸入，PWA 更新由你主動套用，背景點擊不會關閉表單。',
     },
     {
-      title: '5 色個人化調色盤',
-      desc: '珊瑚橘、鼠尾草綠、海洋藍等質感配色，隨心切換日夜深淺模式。',
+      title: '補齊洗沐與口腔範本',
+      desc: '新增洗髮精、普通牙刷、舌苔刷；電動牙刷刷頭獨立管理。',
     },
   ];
 
@@ -75,13 +75,13 @@ export const VersionNoticeModal: React.FC<VersionNoticeModalProps> = ({
                 這版新增
               </span>
               <h2 className="ui-section-title text-[var(--app-text)] text-lg sm:text-xl font-bold leading-tight">
-                常用耗材範本庫 & 手機通知升級
+                試用資料保留與手機操作更新
               </h2>
             </div>
           </div>
 
           <p className="ui-body text-[var(--app-muted)] leading-relaxed text-sm">
-            好市多 150 顆魚油等常見生活耗材隨選即用，搭配 PWA 手機系統推播與月曆雙時程，生活節奏更從容。
+            先試用、再登入帶入物品；手機滑動操作與輸入穩定性同步改善。
           </p>
 
           {/* Checklist */}
