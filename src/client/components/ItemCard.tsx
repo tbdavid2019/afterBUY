@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   RotateCcw,
   Plus,
@@ -56,6 +56,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showSnoozeMenu, setShowSnoozeMenu] = useState(false);
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const lastUnitContextMenu = useRef<{ id: string; at: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const categoryMeta = CATEGORIES[item.category] || CATEGORIES.general;
@@ -126,6 +128,83 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         : item.trackingMode === 'warranty'
           ? '原廠保固'
           : '有效期限';
+
+  const renderActiveUnit = (unit: ActiveUnitInstance, compact = false) => {
+    const remainingDays = unit.remainingDays ?? 0;
+    const isOpen = selectedUnitId === unit.id;
+    const remainingText = remainingDays < 0
+      ? `已逾期 ${Math.abs(remainingDays)} 天`
+      : remainingDays === 0 ? '今日該換' : `剩 ${remainingDays} 天`;
+    const statusClass = remainingDays < 0
+      ? 'text-rose-700 dark:text-rose-300'
+      : remainingDays <= 7
+        ? 'text-amber-700 dark:text-amber-300'
+        : 'text-emerald-700 dark:text-emerald-300';
+
+    return (
+      <div key={unit.id} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/40">
+        <button
+          type="button"
+          disabled={busy}
+          aria-expanded={isOpen}
+          aria-label={`使用處 ${unit.label}，${remainingText}，查看換新操作`}
+          onClick={(event) => {
+            event.stopPropagation();
+            if (lastUnitContextMenu.current?.id === unit.id && Date.now() - lastUnitContextMenu.current.at < 700) {
+              lastUnitContextMenu.current = null;
+              return;
+            }
+            setSelectedUnitId(isOpen ? null : unit.id);
+          }}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            lastUnitContextMenu.current = { id: unit.id, at: Date.now() };
+            setSelectedUnitId(unit.id);
+          }}
+          className={`w-full min-h-14 text-left flex items-start gap-2.5 rounded-xl p-2.5 hover:bg-white dark:hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-accent)] disabled:opacity-60 ${compact ? 'sm:p-2' : ''}`}
+        >
+          <CircularProgressRing
+            percentage={unit.percentageRemaining ?? 100}
+            healthStatus={unit.healthStatus}
+            size={compact ? 30 : 34}
+            strokeWidth={3}
+            showText={true}
+            textClassName="text-[9px]"
+            ariaLabel={`${unit.label} 剩餘比例`}
+          />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-start gap-1 text-sm font-bold text-slate-900 dark:text-slate-100">
+              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500" />
+              <span className="min-w-0 break-words">{unit.label}</span>
+            </span>
+            <span className="mt-1 block text-xs font-semibold">
+              <span className={statusClass}>{remainingText}</span>
+              <span className="text-slate-600 dark:text-slate-300"> · 已用 {unit.elapsedDays ?? 0} 天</span>
+            </span>
+            <span className="mt-0.5 block text-[11px] text-slate-500 dark:text-slate-400">{unit.startDate} 啟用</span>
+          </span>
+        </button>
+        {isOpen && (
+          <div className="flex items-center justify-end gap-2 px-2.5 pb-2.5">
+            <button type="button" onClick={(event) => { event.stopPropagation(); setSelectedUnitId(null); }} className="min-h-10 px-3 text-xs font-semibold text-slate-600 dark:text-slate-300">取消</button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={(event) => {
+                event.stopPropagation();
+                setSelectedUnitId(null);
+                void runAction(() => onReplace(item.id, unit.id), `已換新【${unit.label}】！備品扣減 1`);
+              }}
+              className="app-primary min-h-10 rounded-lg px-3 text-xs font-bold disabled:opacity-60"
+            >
+              確認換新此處
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // -------------------------------------------------------------
   // GRID VIEW (2-Column Portrait Card with Hero Metric)
@@ -212,9 +291,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           </h3>
           {DEMO_ITEM_IDS.has(item.id) && <span className="ui-meta text-[var(--app-muted)]">示範</span>}
           {item.location && (
-            <p className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+            <p className="flex items-start gap-1 text-xs text-slate-500 dark:text-slate-400 mt-1">
               <MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{item.location}</span>
+              <span className="break-words">備品存放：{item.location}</span>
             </p>
           )}
         </div>
@@ -315,53 +394,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         {hasMultiUnits && !isStored && !dateOnly && (
           <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
             <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center justify-between">
-              <span>在用位置 ({activeUnitsList.length})</span>
-              <span className="text-[10px] text-slate-400">點擊個別換新</span>
+              <span>使用處 ({activeUnitsList.length})</span>
+              <span className="text-[10px] text-slate-500">點選位置操作</span>
             </div>
-            {activeUnitsList.map((unit) => {
-              const rem = unit.remainingDays ?? 0;
-              const isOverdue = rem < 0;
-              const isDueSoon = rem <= 7;
-              return (
-                <div key={unit.id} className="flex items-center justify-between gap-1 text-xs py-1 border-b border-slate-100 dark:border-slate-800/60 last:border-none">
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate pr-1">
-                    <CircularProgressRing
-                      percentage={unit.percentageRemaining ?? 100}
-                      healthStatus={unit.healthStatus}
-                      size={24}
-                      strokeWidth={2.5}
-                      showText={true}
-                      textClassName="text-[8px]"
-                      ariaLabel={`${unit.label} 剩餘比例`}
-                    />
-                    <div className="min-w-0 flex-1 truncate">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">📍{unit.label}</span>
-                      <div className="text-[10px] text-slate-400 truncate">
-                        已用 {unit.elapsedDays ?? 0} 天 · {isOverdue ? '已過期' : rem === 0 ? '今日到期' : `剩${rem}天`}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void runAction(() => onReplace(item.id, unit.id), `已換新【${unit.label}】！`);
-                    }}
-                    className={`px-2 py-0.5 text-[11px] font-bold rounded-lg shrink-0 shadow-2xs tactile-press ${
-                      isOverdue || rem === 0
-                        ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                        : isDueSoon
-                          ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                          : 'app-primary'
-                    }`}
-                    title={`換新【${unit.label}】，此處啟用日重設為今日，備品扣減 1`}
-                  >
-                    換新
-                  </button>
-                </div>
-              );
-            })}
+            {activeUnitsList.map((unit) => renderActiveUnit(unit, true))}
           </div>
         )}
 
@@ -472,7 +508,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           {item.location && (
             <span className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 dark:text-slate-400">
               <MapPin className="h-4 w-4 text-slate-400" />
-              <span>{item.location}</span>
+              <span>備品存放：{item.location}</span>
             </span>
           )}
         </div>
@@ -634,79 +670,18 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       {/* Multi-Unit Concurrent In-Use Breakdown (List View) */}
       {hasMultiUnits && !isStored && !dateOnly && (
         <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-1">
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
               <span>現役多處耗用明細</span>
               <span className="px-1.5 py-0.5 rounded-md bg-[var(--app-surface-subtle)] text-[var(--app-accent-strong)] text-[11px] font-extrabold">
                 {activeUnitsList.length} 處在用
               </span>
             </span>
-            <span className="text-[11px] text-slate-400 font-medium">各處獨立計時 · 點擊個別換新</span>
+            <span className="text-[11px] text-slate-500 font-medium">點選使用處查看操作</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {activeUnitsList.map((unit) => {
-              const rem = unit.remainingDays ?? 0;
-              const isOverdue = rem < 0;
-              const isDueSoon = rem <= 7;
-              const badgeClass = isOverdue
-                ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60'
-                : isDueSoon
-                  ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60';
-
-              return (
-                <div
-                  key={unit.id}
-                  className="flex items-center justify-between gap-2.5 p-2.5 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 transition-colors"
-                >
-                  <CircularProgressRing
-                    percentage={unit.percentageRemaining ?? 100}
-                    healthStatus={unit.healthStatus}
-                    size={34}
-                    strokeWidth={3}
-                    showText={true}
-                    textClassName="text-[9px]"
-                    ariaLabel={`${unit.label} 剩餘比例`}
-                  />
-                  <div className="min-w-0 flex-1 pr-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
-                        📍 {unit.label}
-                      </span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 ${badgeClass}`}>
-                        {rem < 0 ? `已逾期 ${Math.abs(rem)} 天` : rem === 0 ? '今日該換' : `剩 ${rem} 天`}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5 truncate">
-                      <span>{unit.startDate} 啟用</span>
-                      <span>·</span>
-                      <span>已用 {unit.elapsedDays ?? 0} 天</span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      void runAction(() => onReplace(item.id, unit.id), `已換新【${unit.label}】！備品扣減 1`);
-                    }}
-                    className={`px-2.5 py-1.5 text-xs font-bold rounded-lg shadow-2xs tactile-press flex items-center gap-1 shrink-0 ${
-                      isOverdue || rem === 0
-                        ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                        : isDueSoon
-                          ? 'bg-amber-600 hover:bg-amber-700 text-white'
-                          : 'app-primary'
-                    }`}
-                    title={`換新【${unit.label}】，此處啟用日重設為今日，備品扣減 1`}
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>換新此處</span>
-                  </button>
-                </div>
-              );
-            })}
+            {activeUnitsList.map((unit) => renderActiveUnit(unit))}
           </div>
         </div>
       )}
