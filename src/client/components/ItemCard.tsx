@@ -404,11 +404,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         {/* Bottom: Stock Count & Quick Action */}
         <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
           <div className="flex flex-col text-xs text-slate-600 dark:text-slate-400 font-medium min-w-0">
-            {item.activeUnits && item.activeUnits > 1 ? (
-              <span className="text-[11px] font-bold text-[var(--app-accent-strong)] truncate">
-                {item.activeUnits} {isQuantityMode ? (item.quantityUnit || '包') : '件'}使用中
-              </span>
-            ) : null}
             <div className="flex items-center text-sm">
               <span>備品:</span>
               <span className={`ml-1 text-base font-black tabular-nums ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-slate-100'}`}>
@@ -688,16 +683,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       {/* Bottom Row: Minimalist Stock Stepper & Primary CTA */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800/80 pt-3">
-        {/* Stock Stepper & In-Use Badge */}
+        {/* Stock Stepper */}
         <div className="flex items-center gap-2">
-          {item.activeUnits && item.activeUnits > 1 ? (
-            <div
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-[var(--app-accent-strong)]"
-              title={`目前有 ${item.activeUnits} ${isQuantityMode ? (item.quantityUnit || '包') : '件'}在不同處同時使用中`}
-            >
-              <span>{item.activeUnits} {isQuantityMode ? (item.quantityUnit || '包') : '件'}使用中</span>
-            </div>
-          ) : null}
           <div className="flex items-center border border-slate-200 dark:border-slate-800 rounded-xl p-1 bg-slate-50/80 dark:bg-slate-800/50">
             <span className="text-sm text-slate-600 dark:text-slate-400 px-3 font-bold">備品</span>
           <button
