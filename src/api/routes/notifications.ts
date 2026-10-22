@@ -443,7 +443,7 @@ export async function dispatchScheduledNotifications(env: HonoEnv['Bindings']) {
             html: `
               <div style="font-family: sans-serif; max-width: 540px; margin: 0 auto; padding: 24px; background: #0f172a; color: #f8fafc; border-radius: 12px;">
                 <h2 style="color: #FB923C; margin-bottom: 8px;">補貨日記 晨間更換與庫存提醒</h2>
-                <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">早安！以下是您所屬備品庫中需要注意的耗材更換、備品不足與用量預警：</p>
+                <p style="color: #94a3b8; font-size: 14px; margin-bottom: 20px;">早安！以下是您所屬倉庫中需要注意的耗材更換、備品不足與用量預警：</p>
                 ${sectionsHtml.join('')}
                 <div style="text-align: center; margin-top: 24px;">
                   <a href="${env.APP_ORIGIN || 'https://afterbuy.app'}" style="display: inline-block; background: #FB923C; color: #0f172a; font-weight: bold; padding: 12px 24px; border-radius: 8px; text-decoration: none;">開啟 補貨日記 處理</a>

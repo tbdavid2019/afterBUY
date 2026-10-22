@@ -37,6 +37,7 @@ interface ItemCardProps {
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
   viewMode?: 'grid' | 'list';
+  isCompact?: boolean;
 }
 
 export const ItemCard: React.FC<ItemCardProps> = ({
@@ -53,10 +54,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
   isSelected,
   onToggleSelect,
   viewMode = 'list',
+  isCompact = false,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [showSnoozeMenu, setShowSnoozeMenu] = useState(false);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [expandedDetails, setExpandedDetails] = useState(false);
   const lastUnitContextMenu = useRef<{ id: string; at: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -393,11 +396,45 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         {/* Multi-Unit List in Grid View */}
         {hasMultiUnits && !isStored && !dateOnly && (
           <div className="mt-3 pt-2.5 border-t border-[var(--app-border)] space-y-1.5">
-            <div className="text-[11px] font-bold text-[var(--app-muted)] flex items-center justify-between">
-              <span>使用處 ({activeUnitsList.length})</span>
-              <span className="text-[10px] text-[var(--app-muted)]">點選位置操作</span>
-            </div>
-            {activeUnitsList.map((unit) => renderActiveUnit(unit, true))}
+            {isCompact && !expandedDetails ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedDetails(true);
+                }}
+                className="w-full flex items-center justify-between text-[11px] py-1 px-1.5 rounded-lg bg-[var(--app-surface-subtle)] text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold transition-colors"
+              >
+                <span className="truncate">
+                  <strong className="text-[var(--app-accent-strong)]">{activeUnitsList.length} 處：</strong>
+                  {activeUnitsList.map((u) => u.label).join('、')}
+                </span>
+                <span className="text-[10px] text-[var(--app-accent-strong)] shrink-0 ml-1">▼</span>
+              </button>
+            ) : (
+              <>
+                <div className="text-[11px] font-bold text-[var(--app-muted)] flex items-center justify-between">
+                  <span>使用處 ({activeUnitsList.length})</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-[var(--app-muted)]">點選操作</span>
+                    {isCompact && (
+                      <button
+                        type="button"
+                        aria-label="收合明細"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedDetails(false);
+                        }}
+                        className="text-[10px] font-bold text-[var(--app-accent-strong)] px-1.5 py-0.5 rounded hover:underline"
+                      >
+                        收合 ▲
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {activeUnitsList.map((unit) => renderActiveUnit(unit, true))}
+              </>
+            )}
           </div>
         )}
 
@@ -613,12 +650,48 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <Package className="h-4.5 w-4.5 shrink-0 text-[var(--app-muted-low)]" />
           <span>未拆封備品 · 開始使用後才會計算更換週期</span>
         </div>
+      ) : isCompact && !expandedDetails ? (
+        <div className="mt-2 flex items-center justify-between gap-2 text-xs text-[var(--app-muted)]">
+          <span className="flex items-center gap-1.5 font-semibold truncate min-w-0">
+            <Clock className="h-3.5 w-3.5 shrink-0 text-[var(--app-muted)]" />
+            <span className="truncate">{dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : isQuantityMode ? '預計用盡日' : '下次更換'} · <strong className="text-[var(--app-text)] tabular-nums">{item.nextDueDate}</strong></span>
+            {item.healthStatus === 'snoozed' && item.snoozeUntil && (
+              <span className="text-[#17324D] dark:text-sky-300 font-bold shrink-0">(延至 {item.snoozeUntil})</span>
+            )}
+          </span>
+          {!hasMultiUnits && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpandedDetails(true);
+              }}
+              className="text-[11px] text-[var(--app-accent-strong)] font-bold shrink-0 hover:underline"
+            >
+              詳細 ▼
+            </button>
+          )}
+        </div>
       ) : (
         <div className="mt-3 p-3 rounded-2xl bg-[var(--app-surface-subtle)]/70 border border-[var(--app-border)] flex items-center justify-between gap-3">
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-[var(--app-text)] font-semibold truncate">
-              <Clock className="h-4 w-4 shrink-0 text-[var(--app-muted)]" />
-              <span>{dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : isQuantityMode ? '預計用盡日' : '下次更換'} · {item.nextDueDate}</span>
+            <div className="flex items-center justify-between gap-1.5 text-xs sm:text-sm text-[var(--app-text)] font-semibold">
+              <span className="flex items-center gap-1.5 truncate">
+                <Clock className="h-4 w-4 shrink-0 text-[var(--app-muted)]" />
+                <span>{dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : isQuantityMode ? '預計用盡日' : '下次更換'} · {item.nextDueDate}</span>
+              </span>
+              {isCompact && !hasMultiUnits && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedDetails(false);
+                  }}
+                  className="text-[11px] text-[var(--app-accent-strong)] font-bold shrink-0 hover:underline"
+                >
+                  收合 ▲
+                </button>
+              )}
             </div>
             {!dateOnly && (
               <div className="text-xs font-medium text-[var(--app-muted)] flex flex-wrap items-center gap-x-2 gap-y-0.5 tabular-nums">
@@ -664,20 +737,55 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       {/* Multi-Unit Concurrent In-Use Breakdown (List View) */}
       {hasMultiUnits && !isStored && !dateOnly && (
-        <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-1">
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <span>現役多處耗用明細</span>
-              <span className="px-1.5 py-0.5 rounded-md bg-[var(--app-surface-subtle)] text-[var(--app-accent-strong)] text-[11px] font-extrabold">
-                {activeUnitsList.length} 處在用
+        <div className="mt-2.5 pt-2.5 border-t border-[var(--app-border)] space-y-2">
+          {isCompact && !expandedDetails ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpandedDetails(true);
+              }}
+              className="w-full flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-[var(--app-surface-subtle)] text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold transition-colors"
+            >
+              <span className="truncate">
+                <strong className="text-[var(--app-accent-strong)]">{activeUnitsList.length} 處在用：</strong>
+                {activeUnitsList.map((u) => u.label).join('、')}
               </span>
-            </span>
-            <span className="text-[11px] text-slate-500 font-medium">點選使用處查看操作</span>
-          </div>
+              <span className="text-[11px] text-[var(--app-accent-strong)] shrink-0 ml-1.5 flex items-center gap-0.5 font-bold">
+                展開明細 ▼
+              </span>
+            </button>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-center justify-between gap-1">
+                <span className="text-xs font-bold text-[var(--app-text)] flex items-center gap-1.5">
+                  <span>現役多處耗用明細</span>
+                  <span className="px-1.5 py-0.5 rounded-md bg-[var(--app-surface-subtle)] text-[var(--app-accent-strong)] text-[11px] font-extrabold">
+                    {activeUnitsList.length} 處在用
+                  </span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-[var(--app-muted)] font-medium">點選使用處查看操作</span>
+                  {isCompact && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedDetails(false);
+                      }}
+                      className="text-[11px] font-bold text-[var(--app-accent-strong)] hover:underline"
+                    >
+                      收合明細 ▲
+                    </button>
+                  )}
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {activeUnitsList.map((unit) => renderActiveUnit(unit))}
-          </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {activeUnitsList.map((unit) => renderActiveUnit(unit))}
+              </div>
+            </>
+          )}
         </div>
       )}
 

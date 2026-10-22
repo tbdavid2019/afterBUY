@@ -15,6 +15,7 @@ import { HistoryModal } from './components/HistoryModal.tsx';
 import { AuthModal } from './components/AuthModal.tsx';
 import { StockSettingsModal } from './components/StockSettingsModal.tsx';
 import { PresetCatalogModal } from './components/PresetCatalogModal.tsx';
+import { BatchPhotoModal } from './components/BatchPhotoModal.tsx';
 import { VersionNoticeModal, CURRENT_APP_RELEASE_DATE } from './components/VersionNoticeModal.tsx';
 import { ItemPreset } from './utils/category.ts';
 import { api } from './api.ts';
@@ -228,10 +229,12 @@ export const App: React.FC = () => {
   const [itemModalInitialTab, setItemModalInitialTab] = useState<'presets' | 'form'>('presets');
   const [itemToEdit, setItemToEdit] = useState<ItemResponse | null>(null);
   const [isPresetCatalogOpen, setIsPresetCatalogOpen] = useState(false);
+  const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [presetForNewItem, setPresetForNewItem] = useState<ItemPreset | null>(null);
   const [isVersionNoticeOpen, setIsVersionNoticeOpen] = useState(false);
   const [historyItem, setHistoryItem] = useState<ItemResponse | null>(null);
-  const isEditing = isItemModalOpen || isStockSettingsOpen || isAuthOpen || isPresetCatalogOpen || Boolean(historyItem);
+  const isEditing = isItemModalOpen || isStockSettingsOpen || isAuthOpen || isPresetCatalogOpen || isPhotoModalOpen || Boolean(historyItem);
   const isEditingRef = useRef(isEditing);
   isEditingRef.current = isEditing;
   const [versionNoticePending, setVersionNoticePending] = useState(false);
@@ -415,14 +418,14 @@ export const App: React.FC = () => {
             window.history.replaceState({}, '', `${window.location.pathname}${newSearch ? '?' + newSearch : ''}`);
             try {
               const joinRes = await api.joinStock(joinCode);
-              alert(`已成功加入備品庫「${joinRes.stock.name}」！`);
+              alert(`已成功加入倉庫「${joinRes.stock.name}」！`);
               const refreshedStocks = await api.getStocks();
               setStocks(refreshedStocks.stocks);
               setCurrentStockId(joinRes.stock.id);
               const refreshedItems = await api.getItems(joinRes.stock.id);
               setItems(refreshedItems.items);
             } catch (joinErr: any) {
-              alert(joinErr.message || '加入備品庫失敗');
+              alert(joinErr.message || '加入倉庫失敗');
             }
           }
         }
@@ -476,7 +479,7 @@ export const App: React.FC = () => {
       } catch (err) {
         if (requestId !== stockRequestId.current) return;
         console.error('Failed to switch stock:', err);
-        setLoadError(err instanceof Error ? err.message : '備品庫切換失敗');
+        setLoadError(err instanceof Error ? err.message : '倉庫切換失敗');
       }
     }
   };
@@ -1036,6 +1039,13 @@ export const App: React.FC = () => {
         onRefreshStocks={loadUserAndItems}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenNewItem={handleOpenNewItem}
+        searchQuery={searchQuery}
+        onSearchChange={(q) => {
+          setSearchQuery(q);
+          if (currentTab !== 'dashboard') setCurrentTab('dashboard');
+        }}
+        onOpenPresetCatalog={handleOpenPresetCatalog}
+        onOpenBatchPhoto={() => setIsPhotoModalOpen(true)}
         theme={theme}
         onToggleTheme={() => setTheme((currentTheme) => currentTheme === 'light' ? 'dark' : 'light')}
       />
@@ -1084,6 +1094,9 @@ export const App: React.FC = () => {
             onClearDemoItems={handleClearDemoItems}
             onRestoreDemoItems={handleRestoreDemoItems}
             onOpenPresetCatalog={handleOpenPresetCatalog}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onOpenBatchPhoto={() => setIsPhotoModalOpen(true)}
           />
         )}
 
@@ -1221,6 +1234,14 @@ export const App: React.FC = () => {
         onClose={() => setIsPresetCatalogOpen(false)}
         onSelectPreset={handleSelectPresetForModal}
         onDirectAdd={handleDirectAddPreset}
+      />
+
+      <BatchPhotoModal
+        isOpen={isPhotoModalOpen}
+        onClose={() => setIsPhotoModalOpen(false)}
+        onSuccess={() => void loadUserAndItems()}
+        user={user}
+        onAddGuestItems={(newItems) => setGuestItems((prev) => [...newItems, ...prev])}
       />
 
       <VersionNoticeModal

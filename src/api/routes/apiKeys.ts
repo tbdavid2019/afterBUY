@@ -81,7 +81,7 @@ app.post('/', async (c) => {
       .limit(1);
 
     if (!member) {
-      return c.json({ error: '指定的備品庫不存在或您沒有存取權限' }, 403);
+      return c.json({ error: '指定的倉庫不存在或您沒有存取權限' }, 403);
     }
   }
 

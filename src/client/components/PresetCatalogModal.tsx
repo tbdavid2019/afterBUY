@@ -254,7 +254,7 @@ export const PresetCatalogModal: React.FC<PresetCatalogModalProps> = ({
                         ? 'bg-emerald-500 text-white shadow-xs'
                         : 'app-primary-soft text-[var(--app-accent-strong)] hover:app-primary border border-[var(--app-accent)]/30 active:scale-95'
                     }`}
-                    title="點擊直接加入當前備品庫"
+                    title="點擊直接加入當前倉庫"
                   >
                     {isAdded ? (
                       <>

@@ -97,7 +97,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
         }
       }
     } catch (err: any) {
-      setError(err.message || (locale === 'zh-TW' ? '無法載入備品庫資訊' : 'Failed to load stock details'));
+      setError(err.message || (locale === 'zh-TW' ? '無法載入倉庫資訊' : 'Failed to load stock details'));
     } finally {
       setLoading(false);
     }
@@ -126,7 +126,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
         description: description.trim() || undefined,
       });
       onStockUpdated();
-      alert(locale === 'zh-TW' ? '備品庫設定已更新' : 'Stock updated successfully');
+      alert(locale === 'zh-TW' ? '倉庫設定已更新' : 'Stock updated successfully');
     } catch (err: any) {
       setError(err.message || '更新失敗');
     } finally {
@@ -169,7 +169,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
   };
 
   const handleRemoveMember = async (memberUserId: string, memberNickname?: string | null) => {
-    if (!confirm(locale === 'zh-TW' ? `確定要將成員「${memberNickname || '成員'}」移出此備品庫？` : 'Remove this member?')) {
+    if (!confirm(locale === 'zh-TW' ? `確定要將成員「${memberNickname || '成員'}」移出此倉庫？` : 'Remove this member?')) {
       return;
     }
     try {
@@ -184,7 +184,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
   const handleTransferOwnership = async () => {
     if (!transferTargetUserId) return;
     if (transferConfirmName.trim() !== stock?.name) {
-      alert(locale === 'zh-TW' ? '輸入的備品庫名稱不相符，轉移已取消' : 'Stock name does not match');
+      alert(locale === 'zh-TW' ? '輸入的倉庫名稱不相符，轉移已取消' : 'Stock name does not match');
       return;
     }
 
@@ -204,7 +204,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
   };
 
   const handleLeaveStock = async () => {
-    if (!confirm(locale === 'zh-TW' ? '確定要退出此備品庫？退出後您將無法查看此庫中的物品。' : 'Leave this stock?')) {
+    if (!confirm(locale === 'zh-TW' ? '確定要退出此倉庫？退出後您將無法查看此倉庫中的物品。' : 'Leave this stock?')) {
       return;
     }
     try {
@@ -218,7 +218,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
 
   const handleDeleteStock = async () => {
     const promptText = locale === 'zh-TW'
-      ? `確定要永久刪除「${stock?.name}」及其內部的所有耗材項目嗎？此操作無法還原！請輸入備品庫名稱以確認刪除：`
+      ? `確定要永久刪除「${stock?.name}」及其內部的所有耗材項目嗎？此操作無法還原！請輸入倉庫名稱以確認刪除：`
       : `Are you sure you want to permanently delete "${stock?.name}"? Enter stock name to confirm:`;
     const input = window.prompt(promptText);
     if (input !== stock?.name) {
@@ -272,7 +272,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-[var(--app-muted)]">
               <Loader2 className="w-6 h-6 animate-spin text-[var(--app-accent)]" />
-              <span className="text-sm font-medium">載入備品庫資訊中...</span>
+              <span className="text-sm font-medium">載入倉庫資訊中...</span>
             </div>
           ) : (
             <>
@@ -487,7 +487,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                               type="button"
                               onClick={() => handleRemoveMember(member.userId, member.nickname || member.email)}
                               className="w-10 h-10 rounded-xl flex items-center justify-center text-[var(--app-muted)] hover:text-rose-600 hover:bg-rose-500/10 transition-colors"
-                              title="移出備品庫"
+                              title="移出倉庫"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -563,7 +563,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                           <span>{t('transferOwnership')}</span>
                         </div>
                         <p className="ui-meta text-[var(--app-muted)] mt-1">
-                          將此備品庫的最高擁有權轉交給其他成員。轉移後，您將自動轉為管理員 (Admin)。
+                          將此倉庫的最高擁有權轉交給其他成員。轉移後，您將自動轉為管理員 (Admin)。
                         </p>
                       </div>
                       <button
@@ -599,7 +599,7 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
 
                         <div>
                           <label className="block ui-meta font-semibold text-[var(--app-text)] mb-1.5">
-                            請輸入備品庫名稱「<span className="font-bold text-amber-700 dark:text-amber-400">{stock?.name}</span>」以確認：
+                            請輸入倉庫名稱「<span className="font-bold text-amber-700 dark:text-amber-400">{stock?.name}</span>」以確認：
                           </label>
                           <input
                             type="text"
@@ -628,8 +628,8 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                 {!isOwner && (
                   <div className="flex items-center justify-between p-3.5 rounded-2xl app-surface-subtle border border-[var(--app-border)]">
                     <div>
-                      <div className="font-semibold ui-body text-[var(--app-text)]">退出備品庫</div>
-                      <p className="ui-meta text-[var(--app-muted)] mt-0.5">退出後將不再能查看與協作此備品庫。</p>
+                      <div className="font-semibold ui-body text-[var(--app-text)]">退出倉庫</div>
+                      <p className="ui-meta text-[var(--app-muted)] mt-0.5">退出後將不再能查看與協作此倉庫。</p>
                     </div>
                     <button
                       type="button"
@@ -646,8 +646,8 @@ export const StockSettingsModal: React.FC<StockSettingsModalProps> = ({
                 {isOwner && (
                   <div className="flex items-center justify-between p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20">
                     <div>
-                      <div className="font-semibold ui-body text-rose-700 dark:text-rose-300">刪除備品庫</div>
-                      <p className="ui-meta text-[var(--app-muted)] mt-0.5">永久刪除此備品庫與所有包含的物品。</p>
+                      <div className="font-semibold ui-body text-rose-700 dark:text-rose-300">刪除倉庫</div>
+                      <p className="ui-meta text-[var(--app-muted)] mt-0.5">永久刪除此倉庫與所有包含的物品。</p>
                     </div>
                     <button
                       type="button"

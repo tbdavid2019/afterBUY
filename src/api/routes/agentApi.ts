@@ -858,7 +858,7 @@ agentApiRouter.post('/items', async (c) => {
     .get();
 
   if (!member) {
-    return c.json({ error: '無權限在此備品庫建立物品' }, 403);
+    return c.json({ error: '無權限在此倉庫建立物品' }, 403);
   }
 
   if (member.role === 'viewer') {

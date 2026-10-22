@@ -196,7 +196,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
 
               <div className="pt-2 pb-1 flex items-center justify-between text-sm font-bold text-[var(--app-text)] px-1">
                 <span>{t('myStocks')}</span>
-                <span className="ui-meta font-semibold text-[var(--app-muted)]">{stocks.length} 個備品庫</span>
+                <span className="ui-meta font-semibold text-[var(--app-muted)]">{stocks.length} 個倉庫</span>
               </div>
 
               {/* Stock List */}
@@ -262,7 +262,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                               onOpenStockSettings(stock.id);
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--app-accent-soft)] hover:bg-[var(--app-accent)]/20 text-[var(--app-accent-strong)] border border-[var(--app-border)] ui-label font-bold transition-all active:scale-95 shadow-sm min-h-11"
-                            title="邀請家人加入此備品庫"
+                            title="邀請家人加入此倉庫"
                           >
                             <UserPlus className="w-4 h-4" />
                             <span>邀請</span>
@@ -276,7 +276,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                             onOpenStockSettings(stock.id);
                           }}
                           aria-label={t('stockSettings')}
-                          title="備品庫設定"
+                          title="倉庫設定"
                           className="w-9 h-9 rounded-xl flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors"
                         >
                           <Settings className="w-4 h-4" />
@@ -413,7 +413,7 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
                 />
                 <p className="ui-meta text-[var(--app-muted)] mt-1.5">
                   {locale === 'zh-TW'
-                    ? '輸入備品庫成員提供給您的 8 碼邀請代碼。'
+                    ? '輸入倉庫成員提供給您的 8 碼邀請代碼。'
                     : 'Enter the 8-character invite code provided by a stock member.'}
                 </p>
               </div>

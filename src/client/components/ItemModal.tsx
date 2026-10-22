@@ -841,7 +841,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                             ? 'bg-emerald-500 text-white shadow-xs'
                             : 'app-primary-soft text-[var(--app-accent-strong)] hover:app-primary border border-[var(--app-accent)]/30 active:scale-95'
                         }`}
-                        title="點擊直接加入當前備品庫"
+                        title="點擊直接加入當前倉庫"
                       >
                         {isAdded ? (
                           <>
@@ -938,7 +938,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {/* Stock Space Selector */}
           {user && stocks.length > 0 && !itemToEdit && (
             <div>
-              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">所屬備品庫 (Stock)</label>
+              <label className="block ui-label font-semibold text-[var(--app-text)] mb-1">所屬倉庫 (Stock)</label>
               <select
                 value={selectedStockId}
                 onChange={(e) => setSelectedStockId(e.target.value)}
