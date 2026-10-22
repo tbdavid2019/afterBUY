@@ -304,26 +304,26 @@ export function formatRemainingDaysText(
   if (daysUntilStart > 0) {
     return {
       text: `${qtyPrefix}距啟用 ${daysUntilStart} 天`,
-      color: 'text-indigo-700 dark:text-indigo-400 font-semibold',
-      badge: 'bg-indigo-50 text-indigo-700 border-indigo-200/80 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800/60',
-      dot: 'bg-indigo-500',
+      color: 'text-[#17324D] dark:text-[#FFD166] font-semibold',
+      badge: 'bg-[#17324D]/10 text-[#17324D] border-[#17324D]/25 dark:bg-[#FFD166]/15 dark:text-[#FFD166] dark:border-[#FFD166]/30',
+      dot: 'bg-[#17324D] dark:bg-[#FFD166]',
     };
   }
 
   if (healthStatus === 'stored') {
     return {
       text: '存放中（未拆封）',
-      color: 'text-slate-700 dark:text-slate-300',
-      badge: 'bg-slate-100/90 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-      dot: 'bg-slate-400 dark:bg-slate-500',
+      color: 'text-[var(--app-muted)]',
+      badge: 'bg-[var(--app-surface-subtle)] text-[var(--app-muted)] border-[var(--app-border)]',
+      dot: 'bg-[#655A43] dark:bg-[#ADA082]',
     };
   }
   if (healthStatus === 'snoozed') {
     return {
       text: '延後提醒中',
-      color: 'text-blue-700 dark:text-blue-400',
-      badge: 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/60',
-      dot: 'bg-blue-500',
+      color: 'text-[#17324D] dark:text-[#8AB4F8]',
+      badge: 'bg-[#17324D]/10 text-[#17324D] border-[#17324D]/25 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/60',
+      dot: 'bg-[#17324D] dark:bg-sky-400',
     };
   }
   // Depleted quantity items should explicitly indicate they are used up
@@ -347,17 +347,17 @@ export function formatRemainingDaysText(
   if (remainingDays === 0) {
     return {
       text: qtyPrefix ? `${qtyPrefix}今日預計用盡！` : '今天該換！',
-      color: 'text-amber-800 dark:text-amber-300 font-bold',
-      badge: 'bg-amber-50 text-amber-800 border-amber-300/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 font-semibold',
-      dot: 'bg-amber-500',
+      color: 'text-[#A9471D] dark:text-amber-300 font-bold',
+      badge: 'bg-[#A9471D]/12 text-[#A9471D] border-[#A9471D]/30 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 font-semibold',
+      dot: 'bg-[#A9471D] dark:bg-amber-400',
     };
   }
   if (remainingDays <= 7) {
     return {
       text: `${qtyPrefix}剩餘 ${remainingDays} 天`,
-      color: 'text-amber-800 dark:text-amber-300',
-      badge: 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60',
-      dot: 'bg-amber-500',
+      color: 'text-[#A9471D] dark:text-amber-300 font-semibold',
+      badge: 'bg-[#A9471D]/12 text-[#A9471D] border-[#A9471D]/30 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60',
+      dot: 'bg-[#A9471D] dark:bg-amber-400',
     };
   }
   return {

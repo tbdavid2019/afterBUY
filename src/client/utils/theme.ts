@@ -1,5 +1,5 @@
 export type ThemeMode = 'light' | 'dark';
-export type ThemePalette = 'coral' | 'mint' | 'peach' | 'sky' | 'lilac';
+export type ThemePalette = 'saffron';
 
 export interface ThemePaletteConfig {
   id: ThemePalette;
@@ -8,14 +8,19 @@ export interface ThemePaletteConfig {
   dotColor: string;
   ringColor: string;
   lightBg: string;
+  darkBg: string;
 }
 
 export const THEME_PALETTES: ThemePaletteConfig[] = [
-  { id: 'coral', label: '暖陶土', labelEn: 'Terracotta', dotColor: '#C86F58', ringColor: '#A8543E', lightBg: '#F9F6F4' },
-  { id: 'peach', label: '柔和桃', labelEn: 'Peach Fuzz', dotColor: '#D97757', ringColor: '#C86F58', lightBg: '#FFF5EE' },
-  { id: 'lilac', label: '暮色黑李', labelEn: 'Plum Noir', dotColor: '#8B5A73', ringColor: '#5D3A4D', lightBg: '#F8F5F4' },
-  { id: 'mint', label: '鼠尾草綠', labelEn: 'Sage Mist', dotColor: '#5E8271', ringColor: '#456354', lightBg: '#F5F7F6' },
-  { id: 'sky', label: '岩霧藍', labelEn: 'Nordic Slate', dotColor: '#4E6E82', ringColor: '#3A5465', lightBg: '#F4F6F8' },
+  {
+    id: 'saffron',
+    label: '番紅花金 · 2MD',
+    labelEn: 'Saffron · 2MD',
+    dotColor: '#FFB010',
+    ringColor: '#17324D',
+    lightBg: '#FFB010',
+    darkBg: '#17324D',
+  },
 ];
 
 export function getInitialTheme(storedTheme: string | null, fallback: ThemeMode = 'light'): ThemeMode {
@@ -23,7 +28,7 @@ export function getInitialTheme(storedTheme: string | null, fallback: ThemeMode 
   return fallback;
 }
 
-export function getInitialPalette(storedPalette: string | null, fallback: ThemePalette = 'coral'): ThemePalette {
+export function getInitialPalette(storedPalette: string | null, fallback: ThemePalette = 'saffron'): ThemePalette {
   if (THEME_PALETTES.some((p) => p.id === storedPalette)) {
     return storedPalette as ThemePalette;
   }

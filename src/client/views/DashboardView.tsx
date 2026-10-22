@@ -116,12 +116,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   return (
     <div className="space-y-4 pb-36 sm:pb-40">
       {/* Hero Life Status Overview */}
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-br from-white via-slate-50/60 to-slate-100/60 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-850 p-4 sm:p-5 shadow-xs">
+      <section className="relative overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:p-5 shadow-xs">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3.5 min-w-0">
             <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
               counts.due > 0
-                ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/25'
+                ? 'bg-[#A9471D]/15 text-[#A9471D] dark:text-amber-300 border border-[#A9471D]/30 dark:border-amber-500/30'
                 : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25'
             }`}>
               {counts.due > 0 ? (
@@ -131,12 +131,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               )}
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-black tracking-tight text-slate-900 dark:text-slate-100 leading-snug">
+              <h2 className="text-lg sm:text-xl font-black tracking-tight text-[var(--app-text)] leading-snug">
                 {counts.due > 0
                   ? (locale === 'zh-TW' ? `${counts.due} 項耗材即將到期或需處理` : `${counts.due} items need attention`)
                   : (locale === 'zh-TW' ? '生活耗材狀態一切就緒' : 'All items in good standing')}
               </h2>
-              <p className="text-sm sm:text-[15px] text-slate-600 dark:text-slate-400 mt-1 leading-normal font-medium">
+              <p className="text-sm sm:text-[15px] text-[var(--app-muted)] mt-1 leading-normal font-medium">
                 {counts.due > 0
                   ? (locale === 'zh-TW' ? '及時更換確保生活品質，保持安心使用' : 'Replace in time to maintain optimal living quality')
                   : (locale === 'zh-TW'
@@ -173,8 +173,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           onClick={() => setStatusFilter('all')}
           className={`px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl border transition-all shrink-0 tactile-press ${
             statusFilter === 'all'
-              ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100 shadow-xs'
-              : 'bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800'
+              ? 'bg-[#17324D] text-[#FFF9E8] border-[#17324D] dark:bg-[#FFB010] dark:text-[#2B251A] dark:border-[#FFB010] shadow-xs'
+              : 'bg-[var(--app-surface)] text-[var(--app-text)] border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)]'
           }`}
         >
           {locale === 'zh-TW' ? '全部' : 'All'}
@@ -189,8 +189,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             aria-pressed={statusFilter === id}
             className={`flex items-center gap-2 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl border transition-all shrink-0 tactile-press ${
               statusFilter === id
-                ? 'bg-slate-900 text-white border-slate-900 dark:bg-slate-100 dark:text-slate-900 dark:border-slate-100 shadow-xs'
-                : 'bg-white text-slate-700 border-slate-200/90 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800'
+                ? 'bg-[#17324D] text-[#FFF9E8] border-[#17324D] dark:bg-[#FFB010] dark:text-[#2B251A] dark:border-[#FFB010] shadow-xs'
+                : 'bg-[var(--app-surface)] text-[var(--app-text)] border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)]'
             }`}
           >
             <span className={`w-2 h-2 rounded-full ${dotClass}`} />
@@ -204,21 +204,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section className="space-y-3">
         <div className="flex flex-wrap min-[400px]:flex-nowrap items-center gap-2.5">
           <div className="relative basis-full min-[400px]:basis-auto flex-1 min-w-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--app-muted)]" />
             <input
               id="dashboard-search"
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={locale === 'zh-TW' ? '搜尋物品、型號或備註...' : 'Search items, models, or notes...'}
-              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pl-10 pr-9 py-2.5 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition-colors font-medium"
+              className="w-full bg-[var(--app-input-bg)] border border-[var(--app-border)] rounded-xl pl-10 pr-9 py-2.5 text-base text-[var(--app-text)] placeholder:text-[var(--app-muted)] focus:outline-none focus:border-[var(--app-accent)] transition-colors font-medium"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label="清除搜尋"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--app-muted)] hover:text-[var(--app-text)] font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-[var(--app-surface-subtle)]"
               >
                 ×
               </button>
@@ -231,8 +231,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             aria-label={locale === 'zh-TW' ? '分類與位置篩選' : 'Filter by category and location'}
             className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border transition-colors tactile-press shrink-0 ${
               showFilters || selectedCategory !== 'all' || selectedLocation !== 'all'
-                ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                ? 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] text-[var(--app-text)] font-semibold'
+                : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]'
             }`}
           >
             <SlidersHorizontal className="h-4 w-4" />
@@ -260,7 +260,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={() => setIsPhotoModalOpen(true)}
             aria-label={t('batchIntake')}
             title={t('batchIntake')}
-            className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors tactile-press shrink-0"
+            className="flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] transition-colors tactile-press shrink-0"
           >
             <Camera className="h-4 w-4" />
             <span className="hidden sm:inline">{t('batchIntake')}</span>
@@ -273,8 +273,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             title={viewMode === 'grid' ? (locale === 'zh-TW' ? '切換為清單模式' : 'Switch to list view') : (locale === 'zh-TW' ? '切換為雙欄網格' : 'Switch to grid view')}
             className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border transition-colors tactile-press shrink-0 ${
               viewMode === 'grid'
-                ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-100'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                ? 'bg-[var(--app-surface-subtle)] border-[var(--app-border)] text-[var(--app-text)] font-semibold'
+                : 'bg-[var(--app-surface)] border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]'
             }`}
           >
             {viewMode === 'grid' ? <List className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
@@ -289,7 +289,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-2.5 text-sm font-medium rounded-xl border transition-colors tactile-press shrink-0 ${
               isSelecting
                 ? 'bg-[var(--app-accent-soft)] border-[var(--app-accent)] text-[var(--app-accent-strong)] font-semibold'
-                : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                : 'border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]'
             }`}
           >
             <CheckSquare className="h-4 w-4" />
@@ -299,9 +299,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Filter Drawer */}
         {showFilters && (
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 space-y-3 sheet-content-animate shadow-xs text-xs">
+          <div className="rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] p-3.5 space-y-3 sheet-content-animate shadow-xs text-xs">
             <div>
-              <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-2">
+              <span className="font-semibold text-[var(--app-text)] block mb-2">
                 {locale === 'zh-TW' ? '耗材分類' : 'Category'}
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -311,7 +311,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   className={`px-2.5 py-1 rounded-md border font-medium transition-colors tactile-press ${
                     selectedCategory === 'all'
                       ? 'app-primary border-transparent'
-                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                      : 'border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]'
                   }`}
                 >
                   {locale === 'zh-TW' ? '全部類別' : 'All categories'}
@@ -324,7 +324,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     className={`px-2.5 py-1 rounded-md border font-medium transition-colors tactile-press ${
                       selectedCategory === category.id
                         ? 'app-primary border-transparent'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                        : 'border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]'
                     }`}
                   >
                     {category.label}
@@ -334,8 +334,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </div>
 
             {uniqueLocations.length > 0 && (
-              <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
-                <span className="font-semibold text-slate-700 dark:text-slate-300 block mb-2">
+              <div className="border-t border-[var(--app-border)] pt-3">
+                <span className="font-semibold text-[var(--app-text)] block mb-2">
                   {locale === 'zh-TW' ? '放置位置' : 'Location'}
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -345,7 +345,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     className={`px-2.5 py-1 rounded-md border font-medium transition-colors tactile-press ${
                       selectedLocation === 'all'
                         ? 'app-primary border-transparent'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                        : 'border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]'
                     }`}
                   >
                     {locale === 'zh-TW' ? '全部位置' : 'All locations'}
@@ -358,7 +358,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       className={`px-2.5 py-1 rounded-md border font-medium transition-colors tactile-press ${
                         selectedLocation === loc
                           ? 'app-primary border-transparent'
-                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
+                          : 'border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]'
                       }`}
                     >
                       {loc}
@@ -374,12 +374,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* Items Section */}
       <section>
         {filteredItems.length === 0 ? (
-          <div className="app-surface rounded-xl border border-slate-200 dark:border-slate-800 p-8 text-center shadow-xs">
-            <Package className="mx-auto mb-2 h-8 w-8 text-slate-400" />
-            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+          <div className="app-surface rounded-xl border border-[var(--app-border)] p-8 text-center shadow-xs">
+            <Package className="mx-auto mb-2 h-8 w-8 text-[var(--app-muted-low)]" />
+            <h3 className="text-base font-semibold text-[var(--app-text)]">
               {items.length === 0 ? (!user ? t('guestModeClearedTitle') : t('emptyItemsTitle')) : (locale === 'zh-TW' ? '沒有符合條件的耗材' : 'No matching items')}
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mx-auto mt-1 max-w-xs font-medium">
+            <p className="text-sm text-[var(--app-muted)] mx-auto mt-1 max-w-xs font-medium">
               {items.length === 0 ? (!user ? t('guestModeClearedDesc') : t('emptyItemsDesc')) : (locale === 'zh-TW' ? '請嘗試清除篩選或調整搜尋關鍵字。' : 'Try clearing filters.')}
             </p>
             {items.length === 0 && (
@@ -398,7 +398,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   <Plus className="h-4 w-4" />{locale === 'zh-TW' ? '自訂建立耗材' : 'Add custom item'}
                 </button>
                 {!user && onRestoreDemoItems && (
-                  <button type="button" onClick={onRestoreDemoItems} className="px-3.5 py-2 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press">
+                  <button type="button" onClick={onRestoreDemoItems} className="px-3.5 py-2 text-sm font-bold rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-[var(--app-text)] hover:bg-[var(--app-surface)] tactile-press">
                     {t('guestModeRestoreDemoBtn')}
                   </button>
                 )}
@@ -456,7 +456,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           type="button"
           onClick={onOpenNewItem}
           aria-label={t('addItem')}
-          className="sm:hidden fixed bottom-24 right-4 z-30 h-12 px-4 rounded-full bg-[var(--app-accent)] hover:brightness-105 active:scale-95 text-white shadow-lg shadow-sky-600/30 flex items-center gap-2 font-bold text-sm tactile-press transition-all"
+          className="sm:hidden fixed bottom-24 right-4 z-30 h-12 px-4 rounded-full app-primary shadow-lg flex items-center gap-2 font-bold text-sm tactile-press transition-all"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
           <span>{locale === 'zh-TW' ? '新增耗材' : 'Add Item'}</span>

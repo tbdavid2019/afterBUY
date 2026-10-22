@@ -291,7 +291,7 @@ export const App: React.FC = () => {
     window.localStorage.setItem('afterbuy-theme', theme);
     window.localStorage.setItem('afterbuy-theme-palette', palette);
     const activePaletteConfig = THEME_PALETTES.find((p) => p.id === palette);
-    const themeColor = theme === 'dark' ? '#111417' : (activePaletteConfig?.lightBg || '#f7f5f0');
+    const themeColor = theme === 'dark' ? '#17324D' : (activePaletteConfig?.lightBg || '#FFB010');
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor);
   }, [theme, palette]);
 

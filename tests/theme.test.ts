@@ -13,11 +13,12 @@ test('falls back to the configured default when no preference is stored', () => 
 });
 
 test('handles theme palette selection and fallback', () => {
-  assert.equal(getInitialPalette('mint'), 'mint');
-  assert.equal(getInitialPalette('peach'), 'peach');
-  assert.equal(getInitialPalette('sky'), 'sky');
-  assert.equal(getInitialPalette('lilac'), 'lilac');
-  assert.equal(getInitialPalette('coral'), 'coral');
-  assert.equal(getInitialPalette(null), 'coral');
-  assert.equal(getInitialPalette('unknown_theme', 'sky'), 'sky');
+  assert.equal(getInitialPalette('saffron'), 'saffron');
+  assert.equal(getInitialPalette('coral'), 'saffron');
+  assert.equal(getInitialPalette('mint'), 'saffron');
+  assert.equal(getInitialPalette('peach'), 'saffron');
+  assert.equal(getInitialPalette('sky'), 'saffron');
+  assert.equal(getInitialPalette('lilac'), 'saffron');
+  assert.equal(getInitialPalette(null), 'saffron');
+  assert.equal(getInitialPalette('unknown_theme', 'saffron'), 'saffron');
 });

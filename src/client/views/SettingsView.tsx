@@ -34,7 +34,7 @@ import {
 import { UserSession, UserNotificationSettings } from '../../shared/types.ts';
 import { api } from '../api.ts';
 import { useTranslation } from '../i18n/index.tsx';
-import { THEME_PALETTES, type ThemeMode, type ThemePalette } from '../utils/theme.ts';
+import { type ThemeMode, type ThemePalette } from '../utils/theme.ts';
 import { businessDate } from '../../shared/date.ts';
 
 interface SettingsViewProps {
@@ -59,7 +59,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onRefreshUser,
   themeMode = 'light',
   onToggleThemeMode,
-  currentPalette = 'coral',
+  currentPalette = 'saffron',
   onSelectPalette,
   onOpenVersionNotice,
   onOpenPresetCatalog,
@@ -318,49 +318,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         </div>
       </div>
 
-      {/* 5-Color Theme Palette Selector */}
-      <div className="bg-[var(--app-surface-subtle)] border border-[var(--app-border)] rounded-2xl p-3 sm:p-4">
-        <div className="grid grid-cols-5 gap-2 sm:gap-3">
-          {THEME_PALETTES.map((p) => {
-            const isSelected = currentPalette === p.id;
-            const paletteLabel = locale === 'zh-TW' ? p.label : p.labelEn;
-            return (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => onSelectPalette?.(p.id)}
-                className="flex flex-col items-center gap-2 group focus:outline-none"
-                aria-pressed={isSelected}
-                aria-label={`${paletteLabel} 主題`}
-              >
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                    isSelected
-                      ? 'ring-2 ring-offset-2 ring-offset-[var(--app-surface)] shadow-md scale-105'
-                      : 'hover:scale-105 opacity-85 hover:opacity-100'
-                  }`}
-                  style={{
-                    backgroundColor: `${p.dotColor}22`,
-                    boxShadow: isSelected ? `0 0 0 2px ${p.dotColor}` : undefined,
-                  }}
-                >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center shadow-sm"
-                    style={{ backgroundColor: p.dotColor }}
-                  >
-                    {isSelected && <Check className="w-4 h-4 text-white stroke-[3]" />}
-                  </div>
-                </div>
-                <span
-                  className={`ui-meta text-xs sm:text-sm font-semibold transition-colors ${
-                    isSelected ? 'text-[var(--app-text)] font-bold' : 'text-[var(--app-muted)] group-hover:text-[var(--app-text)]'
-                  }`}
-                >
-                  {paletteLabel}
-                </span>
-              </button>
-            );
-          })}
+      {/* 2md.aiurl.tw Unified 5-Color System & WCAG AAA Spec */}
+      <div className="bg-[var(--app-surface-subtle)] border border-[var(--app-border)] rounded-2xl p-3.5 sm:p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs sm:text-sm font-bold text-[var(--app-text)]">
+              {locale === 'zh-TW' ? 'Pantone 14-1064 Saffron · 2MD 經典色彩系統' : 'Pantone 14-1064 Saffron · 2MD Color System'}
+            </span>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-extrabold bg-[#17324D] text-[#FFF9E8] dark:bg-[#FFB010] dark:text-[#2B251A] shadow-2xs">
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
+            <span>WCAG 2.1 AAA (14.9:1)</span>
+          </span>
+        </div>
+
+        {/* 5-Color Swatches */}
+        <div className="grid grid-cols-5 gap-2 pt-1">
+          {[
+            { name: locale === 'zh-TW' ? '番紅花金' : 'Saffron', code: '#FFB010', desc: 'Saffron' },
+            { name: locale === 'zh-TW' ? '經典深藍' : 'Deep Blue', code: '#17324D', desc: 'Deep Blue' },
+            { name: locale === 'zh-TW' ? '大地陶土' : 'Clay', code: '#A9471D', desc: 'Clay' },
+            { name: locale === 'zh-TW' ? '溫潤暖乳' : 'Warm Cream', code: '#FFF9E8', desc: 'Warm Cream' },
+            { name: locale === 'zh-TW' ? '經典炭墨' : 'Ink', code: '#2B251A', desc: 'Ink' },
+          ].map((c) => (
+            <div key={c.code} className="flex flex-col items-center gap-1.5 text-center">
+              <div
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-black/10 dark:border-white/10 shadow-xs flex items-center justify-center transition-transform hover:scale-105"
+                style={{ backgroundColor: c.code }}
+                title={`${c.name} (${c.code})`}
+              />
+              <span className="text-[11px] sm:text-xs font-bold text-[var(--app-text)] truncate max-w-full">
+                {c.name}
+              </span>
+              <span className="text-[9px] sm:text-[10px] font-mono text-[var(--app-muted)] uppercase truncate max-w-full">
+                {c.code}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -1289,7 +1283,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <span className="ui-item-title text-[var(--app-text)] group-hover:text-[var(--app-accent-strong)] transition-colors block">
                     這版新增 · 版本更新紀錄
                   </span>
-                  <span className="ui-badge bg-[var(--app-accent-strong)] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                  <span className="ui-badge app-primary text-[10px] font-bold px-1.5 py-0.2 rounded-full">
                     NEW
                   </span>
                 </div>

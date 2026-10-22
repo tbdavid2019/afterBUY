@@ -9,160 +9,59 @@
 
 @layer base {
   :root,
-  :root[data-theme-palette="coral"] {
+  :root[data-theme="light"],
+  :root[data-theme-palette="saffron"] {
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --font-app: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
-    --app-bg: #F9F6F4;
-    --app-text: #2E2522;
-    --app-muted: #685954;
-    --app-muted-low: #A39590;
-    --app-surface: #ffffff;
-    --app-surface-subtle: #F3EBE7;
-    --app-border: #E5DBD5;
-    --app-border-subtle: #EFE7E2;
-    --app-accent: #C86F58;
-    --app-accent-strong: #A8543E;
-    --app-accent-soft: #FAF0EC;
+    --saffron: #FFB010;
+    --deep-blue: #17324D;
+    --clay: #A9471D;
+    --warm-cream: #FFF9E8;
+    --ink: #2B251A;
+    --canvas: #FFF0CC;
+    --app-bg: #FFF0CC;
+    --app-surface: #FFF9E8;
+    --app-surface-subtle: #F6E4B5;
+    --app-input-bg: #FFFEFA;
+    --app-text: #2B251A;
+    --app-muted: #5C503A;
+    --app-muted-low: #6B5B38;
+    --app-border: #DDC58B;
+    --app-border-subtle: #E9D6A8;
+    --app-input-border: #6B5B38;
+    --app-accent: #FFB010;
+    --app-accent-hover: #F2A600;
+    --app-on-primary: #2B251A;
+    --app-accent-strong: #17324D;
+    --app-accent-clay: #A9471D;
+    --app-accent-soft: #FFF0CC;
+    --app-link: #17324D;
     --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
     --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
     --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
     color-scheme: light;
   }
 
-  :root[data-theme-palette="peach"] {
-    --app-bg: #FFF5EE;
-    --app-text: #3B2A25;
-    --app-muted: #6B4A41;
-    --app-muted-low: #A58A82;
-    --app-surface: #ffffff;
-    --app-surface-subtle: #FAF0E8;
-    --app-border: #EADCD4;
-    --app-border-subtle: #F5EBE4;
-    --app-accent: #D97757;
-    --app-accent-strong: #C86F58;
-    --app-accent-soft: #FFEFE6;
-    color-scheme: light;
-  }
-
-  :root[data-theme-palette="lilac"] {
-    --app-bg: #F8F5F4;
-    --app-text: #3D2832;
-    --app-muted: #6A525E;
-    --app-muted-low: #9C8591;
-    --app-surface: #ffffff;
-    --app-surface-subtle: #F2EAEF;
-    --app-border: #E3D8DE;
-    --app-border-subtle: #ECE3E8;
-    --app-accent: #8B5A73;
-    --app-accent-strong: #5D3A4D;
-    --app-accent-soft: #F5ECF0;
-    color-scheme: light;
-  }
-
-  :root[data-theme-palette="mint"] {
-    --app-bg: #F5F7F6;
-    --app-text: #1F2924;
-    --app-muted: #52635B;
-    --app-muted-low: #8E9E96;
-    --app-surface: #ffffff;
-    --app-surface-subtle: #EBF0ED;
-    --app-border: #DCE4DF;
-    --app-border-subtle: #E7EEEA;
-    --app-accent: #5E8271;
-    --app-accent-strong: #456354;
-    --app-accent-soft: #EFF5F2;
-    color-scheme: light;
-  }
-
-  :root[data-theme-palette="sky"] {
-    --app-bg: #F4F6F8;
-    --app-text: #1E272E;
-    --app-muted: #505E67;
-    --app-muted-low: #8B99A3;
-    --app-surface: #ffffff;
-    --app-surface-subtle: #EAF0F4;
-    --app-border: #DAE2E8;
-    --app-border-subtle: #E5EDF3;
-    --app-accent: #4E6E82;
-    --app-accent-strong: #3A5465;
-    --app-accent-soft: #EFF4F8;
-    color-scheme: light;
-  }
-
   :root[data-theme="dark"],
-  :root[data-theme="dark"][data-theme-palette="coral"] {
-    --app-bg: #171312;
-    --app-text: #F9F6F4;
-    --app-muted: #A39590;
-    --app-muted-low: #685954;
-    --app-surface: #211C1A;
-    --app-surface-subtle: #2C2523;
-    --app-border: #3B322F;
-    --app-border-subtle: #302825;
-    --app-accent: #D87D65;
-    --app-accent-strong: #E89D8A;
-    --app-accent-soft: #3A1D16;
-    color-scheme: dark;
-  }
-
-  :root[data-theme="dark"][data-theme-palette="peach"] {
-    --app-bg: #181311;
-    --app-text: #FFF5EE;
-    --app-muted: #A58A82;
-    --app-muted-low: #6B4A41;
-    --app-surface: #221B18;
-    --app-surface-subtle: #2D2320;
-    --app-border: #3E312C;
-    --app-border-subtle: #332723;
-    --app-accent: #E58869;
-    --app-accent-strong: #F5A890;
-    --app-accent-soft: #3D1F17;
-    color-scheme: dark;
-  }
-
-  :root[data-theme="dark"][data-theme-palette="lilac"] {
-    --app-bg: #151013;
-    --app-text: #F8F5F4;
-    --app-muted: #9C8591;
-    --app-muted-low: #6A525E;
-    --app-surface: #1E171C;
-    --app-surface-subtle: #2A2027;
-    --app-border: #3A2D36;
-    --app-border-subtle: #2E232B;
-    --app-accent: #A6728C;
-    --app-accent-strong: #C19AA8;
-    --app-accent-soft: #381C2C;
-    color-scheme: dark;
-  }
-
-  :root[data-theme="dark"][data-theme-palette="mint"] {
-    --app-bg: #111614;
-    --app-text: #F5F7F6;
-    --app-muted: #8E9E96;
-    --app-muted-low: #52635B;
-    --app-surface: #18201C;
-    --app-surface-subtle: #212B26;
-    --app-border: #2E3B34;
-    --app-border-subtle: #242E29;
-    --app-accent: #709985;
-    --app-accent-strong: #8FB4A2;
-    --app-accent-soft: #1B2A22;
-    color-scheme: dark;
-  }
-
-  :root[data-theme="dark"][data-theme-palette="sky"] {
-    --app-bg: #101417;
-    --app-text: #F4F6F8;
-    --app-muted: #8B99A3;
-    --app-muted-low: #505E67;
-    --app-surface: #171E22;
-    --app-surface-subtle: #20292F;
-    --app-border: #2C3840;
-    --app-border-subtle: #222D33;
-    --app-accent: #62859C;
-    --app-accent-strong: #83A5BC;
-    --app-accent-soft: #1B2730;
+  :root[data-theme="dark"][data-theme-palette="saffron"] {
+    --app-bg: #111822;
+    --app-surface: #182230;
+    --app-surface-subtle: #212E40;
+    --app-input-bg: #141D29;
+    --app-text: #FFF9E8;
+    --app-muted: #D0C4A8;
+    --app-muted-low: #ADA082;
+    --app-border: #2E3F54;
+    --app-border-subtle: #243244;
+    --app-input-border: #6E8299;
+    --app-accent: #FFB010;
+    --app-accent-hover: #FFC038;
+    --app-on-primary: #2B251A;
+    --app-accent-strong: #FFD166;
+    --app-accent-clay: #F4976C;
+    --app-accent-soft: #2B2618;
+    --app-link: #FFD166;
     color-scheme: dark;
   }
 
@@ -218,13 +117,13 @@
   input:focus-visible,
   select:focus-visible,
   textarea:focus-visible {
-    outline: 2px solid var(--app-accent);
+    outline: 3px solid var(--app-link);
     outline-offset: 2px;
   }
 
   ::selection {
     background: var(--app-accent);
-    color: var(--app-bg);
+    color: var(--app-on-primary);
   }
 }
 
@@ -354,21 +253,25 @@
 
 .app-primary {
   background: var(--app-accent);
-  color: #ffffff;
+  color: var(--app-on-primary);
+}
+
+.app-primary:hover {
+  background: var(--app-accent-hover);
 }
 
 [data-theme="dark"] .app-primary {
-  color: #ffffff;
+  color: var(--app-on-primary);
 }
 
 .app-primary-soft {
   background: var(--app-accent-soft);
-  border-color: color-mix(in srgb, var(--app-accent) 30%, transparent);
+  border-color: var(--app-border);
   color: var(--app-accent-strong);
 }
 
 .app-nav-item-active {
-  color: var(--app-accent);
+  color: var(--app-accent-strong);
 }
 
 .pt-safe {

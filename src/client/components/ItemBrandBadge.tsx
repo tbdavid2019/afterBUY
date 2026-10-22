@@ -236,7 +236,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   // H. 衛生紙 / 紙巾 / 垃圾袋
   if (lowerName.includes('衛生紙') || lowerName.includes('紙巾') || lowerName.includes('垃圾袋')) {
     return (
-      <div className={`relative bg-gradient-to-br from-violet-500 to-purple-600 text-white border border-violet-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
+      <div className={`relative bg-gradient-to-br from-[#17324D] to-[#244B70] text-[#FFF9E8] border border-[#17324D]/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
         <Layers className={`${iconClass} stroke-[2]`} />
       </div>
     );
@@ -263,7 +263,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
   // K. 3C / 家電 / 原廠保固
   if (category === 'electronics' || category === 'appliances' || lowerName.includes('保固')) {
     return (
-      <div className={`relative bg-gradient-to-br from-indigo-500 to-blue-700 text-white border border-indigo-400/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
+      <div className={`relative bg-gradient-to-br from-[#A9471D] to-[#7C3213] text-[#FFF9E8] border border-[#A9471D]/30 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
         <Laptop className={`${iconClass} stroke-[2]`} />
       </div>
     );
@@ -271,7 +271,7 @@ export const ItemBrandBadge: React.FC<ItemBrandBadgeProps> = ({
 
   // L. Default fallback with vibrant theme accent
   return (
-    <div className={`relative bg-gradient-to-br from-[var(--app-accent)] to-[var(--app-accent-strong)] text-white border border-white/20 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
+    <div className={`relative bg-[#FFB010] text-[#2B251A] border border-[#2B251A]/20 shadow-xs flex items-center justify-center shrink-0 ${sizeClasses} ${className}`}>
       <Package className={`${iconClass} stroke-[2]`} />
     </div>
   );

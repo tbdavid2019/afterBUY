@@ -21,7 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <nav aria-label="主要導覽" className="fixed bottom-0 left-0 right-0 z-40 px-3 pb-safe pointer-events-none mb-1 sm:mb-3">
-      <div className="max-w-lg mx-auto pointer-events-auto backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/90 dark:border-slate-800/90 shadow-[0_10px_35px_rgb(0,0,0,0.1)] dark:shadow-[0_10px_35px_rgb(0,0,0,0.4)] rounded-2xl flex items-center justify-around min-h-[4.25rem] px-3 py-1.5">
+      <div className="max-w-lg mx-auto pointer-events-auto bg-[#17324D] dark:bg-[#17324D] border border-[#DDC58B] dark:border-[#2E3F54] shadow-[0_8px_24px_rgba(23,50,77,0.28)] rounded-2xl flex items-center justify-around min-h-[4.25rem] p-1.5 gap-1">
         {/* 1. Dashboard Tab */}
         <button
           onClick={() => onSelectTab('dashboard')}
@@ -29,14 +29,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-current={currentTab === 'dashboard' ? 'page' : undefined}
           className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-12 max-w-[6.2rem] rounded-xl py-1 transition-all tactile-press ${
             currentTab === 'dashboard'
-              ? 'app-nav-item-active font-bold text-[var(--app-accent-strong)] dark:text-white'
-              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-semibold'
+              ? 'bg-[#FFB010] text-[#2B251A] font-extrabold shadow-xs'
+              : 'text-[#FFF9E8] hover:bg-white/10 font-semibold'
           }`}
         >
           <div className="relative">
             <Layers className="w-5 h-5 sm:w-5.5 sm:h-5.5 mb-1" />
             {overdueCount > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold text-xs leading-none shadow-sm tabular-nums">
+              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-[#A9471D] text-[#FFF9E8] ring-2 ring-[#17324D] rounded-full flex items-center justify-center font-bold text-xs leading-none shadow-sm tabular-nums">
                 {overdueCount > 9 ? '9+' : overdueCount}
               </span>
             )}
@@ -51,8 +51,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-current={currentTab === 'timeline' ? 'page' : undefined}
           className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-12 max-w-[6.2rem] rounded-xl py-1 transition-all tactile-press ${
             currentTab === 'timeline'
-              ? 'app-nav-item-active font-bold text-[var(--app-accent-strong)] dark:text-white'
-              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-semibold'
+              ? 'bg-[#FFB010] text-[#2B251A] font-extrabold shadow-xs'
+              : 'text-[#FFF9E8] hover:bg-white/10 font-semibold'
           }`}
         >
           <CalendarDays className="w-5 h-5 sm:w-5.5 sm:h-5.5 mb-1" />
@@ -66,14 +66,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-current={currentTab === 'shopping' ? 'page' : undefined}
           className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-12 max-w-[6.2rem] rounded-xl py-1 transition-all tactile-press ${
             currentTab === 'shopping'
-              ? 'app-nav-item-active font-bold text-[var(--app-accent-strong)] dark:text-white'
-              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-semibold'
+              ? 'bg-[#FFB010] text-[#2B251A] font-extrabold shadow-xs'
+              : 'text-[#FFF9E8] hover:bg-white/10 font-semibold'
           }`}
         >
           <div className="relative">
             <ShoppingBag className="w-5 h-5 sm:w-5.5 sm:h-5.5 mb-1" />
             {restockCount > 0 && (
-              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-amber-500 text-amber-950 rounded-full flex items-center justify-center font-bold text-xs leading-none shadow-sm tabular-nums">
+              <span className="absolute -top-1.5 -right-2.5 min-w-5 h-5 px-1 bg-[#FFB010] text-[#2B251A] ring-2 ring-[#17324D] rounded-full flex items-center justify-center font-bold text-xs leading-none shadow-sm tabular-nums">
                 {restockCount > 9 ? '9+' : restockCount}
               </span>
             )}
@@ -88,8 +88,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           aria-current={currentTab === 'settings' ? 'page' : undefined}
           className={`app-nav-item relative flex flex-col items-center justify-center flex-1 min-h-12 max-w-[6.2rem] rounded-xl py-1 transition-all tactile-press ${
             currentTab === 'settings'
-              ? 'app-nav-item-active font-bold text-[var(--app-accent-strong)] dark:text-white'
-              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 font-semibold'
+              ? 'bg-[#FFB010] text-[#2B251A] font-extrabold shadow-xs'
+              : 'text-[#FFF9E8] hover:bg-white/10 font-semibold'
           }`}
         >
           <Settings2 className="w-5 h-5 sm:w-5.5 sm:h-5.5 mb-1" />

@@ -9,14 +9,14 @@ export interface CategoryMeta {
 }
 
 export const CATEGORIES: Record<ItemCategory, CategoryMeta> = {
-  bathroom: { id: 'bathroom', label: '衛浴洗沐', iconName: 'Bath', color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100/90 border-slate-200 dark:bg-slate-800 dark:border-slate-700' },
-  kitchen: { id: 'kitchen', label: '廚房飲食', iconName: 'Utensils', color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100/90 border-slate-200 dark:bg-slate-800 dark:border-slate-700' },
-  skincare: { id: 'skincare', label: '美妝保養', iconName: 'Sparkles', color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100/90 border-slate-200 dark:bg-slate-800 dark:border-slate-700' },
-  medicine: { id: 'medicine', label: '保健醫療', iconName: 'Pill', color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100/90 border-slate-200 dark:bg-slate-800 dark:border-slate-700' },
-  appliances: { id: 'appliances', label: '家電家居', iconName: 'Tv', color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100/90 border-slate-200 dark:bg-slate-800 dark:border-slate-700' },
-  electronics: { id: 'electronics', label: '3C 數位', iconName: 'Laptop', color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100/90 border-slate-200 dark:bg-slate-800 dark:border-slate-700' },
-  clothing: { id: 'clothing', label: '貼身穿戴', iconName: 'Shirt', color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100/90 border-slate-200 dark:bg-slate-800 dark:border-slate-700' },
-  general: { id: 'general', label: '其他生活', iconName: 'Package', color: 'text-slate-700 dark:text-slate-300', bg: 'bg-slate-100/90 border-slate-200 dark:bg-slate-800 dark:border-slate-700' },
+  bathroom: { id: 'bathroom', label: '衛浴洗沐', iconName: 'Bath', color: 'text-[var(--app-text)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
+  kitchen: { id: 'kitchen', label: '廚房飲食', iconName: 'Utensils', color: 'text-[var(--app-text)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
+  skincare: { id: 'skincare', label: '美妝保養', iconName: 'Sparkles', color: 'text-[var(--app-text)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
+  medicine: { id: 'medicine', label: '保健醫療', iconName: 'Pill', color: 'text-[var(--app-text)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
+  appliances: { id: 'appliances', label: '家電家居', iconName: 'Tv', color: 'text-[var(--app-text)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
+  electronics: { id: 'electronics', label: '3C 數位', iconName: 'Laptop', color: 'text-[var(--app-text)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
+  clothing: { id: 'clothing', label: '貼身穿戴', iconName: 'Shirt', color: 'text-[var(--app-text)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
+  general: { id: 'general', label: '其他生活', iconName: 'Package', color: 'text-[var(--app-text)]', bg: 'bg-[var(--app-surface-subtle)] border-[var(--app-border)]' },
 };
 
 export interface ItemPreset {

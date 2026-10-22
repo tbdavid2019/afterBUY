@@ -192,7 +192,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
 
   // Helper for dot color on an event (purchase vs due)
   const getEventDotColor = (ev: TimelineEvent) => {
-    if (ev.type === 'start') return 'bg-indigo-500';
+    if (ev.type === 'start') return 'bg-[#17324D] dark:bg-[#FFD166]';
     return getStatusColor(ev.item);
   };
 
@@ -201,19 +201,19 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
   return (
     <div className="space-y-4 pt-1 pb-36 sm:pb-40">
       {/* 1. Header with Mode Toggle & Month Selector */}
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--app-border)] pb-3">
         {/* Left: View Mode Segmented Switch */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 w-fit">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] w-fit">
           <button
             type="button"
             onClick={() => setViewMode('calendar')}
             className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-bold transition-all tactile-press ${
               viewMode === 'calendar'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold'
+                ? 'bg-[var(--app-surface)] text-[var(--app-text)] shadow-xs'
+                : 'text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold'
             }`}
           >
-            <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--app-accent)]" />
+            <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--app-accent-strong)]" />
             <span>{locale === 'zh-TW' ? '月曆視圖' : 'Calendar'}</span>
           </button>
           <button
@@ -221,11 +221,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
             onClick={() => setViewMode('list')}
             className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-sm sm:text-base font-bold transition-all tactile-press ${
               viewMode === 'list'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 font-semibold'
+                ? 'bg-[var(--app-surface)] text-[var(--app-text)] shadow-xs'
+                : 'text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold'
             }`}
           >
-            <ListIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--app-accent)]" />
+            <ListIcon className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--app-accent-strong)]" />
             <span>{locale === 'zh-TW' ? '時程清單' : 'List'}</span>
           </button>
         </div>
@@ -237,28 +237,28 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
               <button
                 type="button"
                 onClick={handleGoToday}
-                className="px-3 py-1.5 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 tactile-press transition-colors"
+                className="px-3 py-1.5 text-sm font-bold rounded-xl border border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)] text-[var(--app-text)] tactile-press transition-colors"
               >
                 {locale === 'zh-TW' ? '回今天' : 'Today'}
               </button>
             )}
-            <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 shadow-2xs">
+            <div className="flex items-center border border-[var(--app-border)] rounded-xl bg-[var(--app-surface)] shadow-2xs">
               <button
                 type="button"
                 onClick={handlePrevMonth}
                 aria-label={locale === 'zh-TW' ? '上個月' : 'Previous month'}
-                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-l-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 tactile-press transition-colors"
+                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-l-xl text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] tactile-press transition-colors"
               >
                 <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-              <span className="px-3.5 text-sm sm:text-base font-black text-slate-900 dark:text-slate-100 tabular-nums tracking-tight">
+              <span className="px-3.5 text-sm sm:text-base font-black text-[var(--app-text)] tabular-nums tracking-tight">
                 {locale === 'zh-TW' ? `${yearNum} 年 ${monthNum} 月` : `${currentMonth}`}
               </span>
               <button
                 type="button"
                 onClick={handleNextMonth}
                 aria-label={locale === 'zh-TW' ? '下個月' : 'Next month'}
-                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-r-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 tactile-press transition-colors"
+                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-r-xl text-[var(--app-muted)] hover:bg-[var(--app-surface-subtle)] tactile-press transition-colors"
               >
                 <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
@@ -271,52 +271,52 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
       {viewMode === 'calendar' && (
         <div className="space-y-4">
           {/* Monthly Summary Bar, Metrics, Filter Chips & Legend */}
-          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:p-5 shadow-xs space-y-4">
             {/* Top Row: Metrics & Event Filter */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
               {/* Metrics */}
               <div className="flex flex-wrap items-center gap-5 sm:gap-8">
                 {/* Metric 1: Due This Month */}
                 <div>
-                  <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
+                  <span className="text-sm font-semibold text-[var(--app-muted)] block mb-0.5">
                     {locale === 'zh-TW' ? '本月待更換' : 'Due this month'}
                   </span>
-                  <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-slate-100 tabular-nums">
+                  <span className="text-2xl sm:text-3xl font-black text-[var(--app-text)] tabular-nums">
                     {dueEventsInCurrentMonth.length}{' '}
-                    <span className="text-sm sm:text-base font-bold text-slate-500">{locale === 'zh-TW' ? '件' : 'items'}</span>
+                    <span className="text-sm sm:text-base font-bold text-[var(--app-muted)]">{locale === 'zh-TW' ? '件' : 'items'}</span>
                   </span>
                 </div>
 
                 {/* Metric 2: Purchased / Started This Month */}
-                <div className="border-l border-slate-200 dark:border-slate-800 pl-5 sm:pl-8">
-                  <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
+                <div className="border-l border-[var(--app-border)] pl-5 sm:pl-8">
+                  <span className="text-sm font-semibold text-[var(--app-muted)] block mb-0.5">
                     {locale === 'zh-TW' ? '本月購買 / 啟用' : 'Purchased / Started'}
                   </span>
-                  <span className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
+                  <span className="text-2xl sm:text-3xl font-black text-[#17324D] dark:text-[#FFD166] tabular-nums">
                     {startEventsInCurrentMonth.length}{' '}
-                    <span className="text-sm sm:text-base font-bold text-slate-500">{locale === 'zh-TW' ? '件' : 'items'}</span>
+                    <span className="text-sm sm:text-base font-bold text-[var(--app-muted)]">{locale === 'zh-TW' ? '件' : 'items'}</span>
                   </span>
                 </div>
 
                 {/* Metric 3: Cost / Expenditure */}
                 {(currentMonthPurchaseCost > 0 || currentMonthEstimatedDueCost > 0) && (
-                  <div className="border-l border-slate-200 dark:border-slate-800 pl-5 sm:pl-8">
-                    <span className="text-sm font-semibold text-slate-500 dark:text-slate-400 block mb-0.5">
+                  <div className="border-l border-[var(--app-border)] pl-5 sm:pl-8">
+                    <span className="text-sm font-semibold text-[var(--app-muted)] block mb-0.5">
                       {locale === 'zh-TW' ? '本月支出 / 預估' : 'Monthly cost'}
                     </span>
                     <div className="flex items-baseline gap-2.5">
                       {currentMonthPurchaseCost > 0 && (
-                        <span className="text-lg sm:text-2xl font-black text-indigo-600 dark:text-indigo-400 tabular-nums">
-                          <span className="text-xs font-bold text-slate-400 mr-1">{locale === 'zh-TW' ? '已購' : 'Bought'}</span>
+                        <span className="text-lg sm:text-2xl font-black text-[#17324D] dark:text-[#FFD166] tabular-nums">
+                          <span className="text-xs font-bold text-[var(--app-muted)] mr-1">{locale === 'zh-TW' ? '已購' : 'Bought'}</span>
                           NT$ {currentMonthPurchaseCost.toLocaleString()}
                         </span>
                       )}
                       {currentMonthPurchaseCost > 0 && currentMonthEstimatedDueCost > 0 && (
-                        <span className="text-slate-300 dark:text-slate-700 font-bold">·</span>
+                        <span className="text-[var(--app-border)] font-bold">·</span>
                       )}
                       {currentMonthEstimatedDueCost > 0 && (
                         <span className="text-lg sm:text-2xl font-black text-[var(--app-accent-strong)] tabular-nums">
-                          <span className="text-xs font-bold text-slate-400 mr-1">{locale === 'zh-TW' ? '預估' : 'Est.'}</span>
+                          <span className="text-xs font-bold text-[var(--app-muted)] mr-1">{locale === 'zh-TW' ? '預估' : 'Est.'}</span>
                           NT$ {currentMonthEstimatedDueCost.toLocaleString()}
                         </span>
                       )}
@@ -326,14 +326,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
               </div>
 
               {/* Event Filter Chips */}
-              <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 w-fit self-start lg:self-auto">
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] w-fit self-start lg:self-auto">
                 <button
                   type="button"
                   onClick={() => setFilterMode('all')}
                   className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
                     filterMode === 'all'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-[var(--app-surface)] text-[var(--app-text)] shadow-xs'
+                      : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
                   }`}
                 >
                   {locale === 'zh-TW' ? `全部 (${totalEventsInCurrentMonth.length})` : `All (${totalEventsInCurrentMonth.length})`}
@@ -343,8 +343,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                   onClick={() => setFilterMode('due')}
                   className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
                     filterMode === 'due'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-[var(--app-surface)] text-[var(--app-text)] shadow-xs'
+                      : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
                   }`}
                 >
                   🔄 {locale === 'zh-TW' ? `待更換 (${dueEventsInCurrentMonth.length})` : `Due (${dueEventsInCurrentMonth.length})`}
@@ -354,8 +354,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                   onClick={() => setFilterMode('start')}
                   className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
                     filterMode === 'start'
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                      ? 'bg-[var(--app-surface)] text-[var(--app-text)] shadow-xs'
+                      : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
                   }`}
                 >
                   🛍️ {locale === 'zh-TW' ? `購買啟用 (${startEventsInCurrentMonth.length})` : `Purchased (${startEventsInCurrentMonth.length})`}
@@ -364,9 +364,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
             </div>
 
             {/* Status Indicator Legend */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800/80 pt-3">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm font-semibold text-[var(--app-muted)] border-t border-[var(--app-border)] pt-3">
               <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900/60" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#17324D] dark:bg-[#FFD166] ring-2 ring-[#17324D]/20 dark:ring-[#FFD166]/30" />
                 {locale === 'zh-TW' ? '購買 / 啟用' : 'Purchased / Started'}
               </span>
               <span className="flex items-center gap-1.5">
@@ -389,7 +389,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
           </div>
 
           {/* Calendar Month Matrix Container */}
-          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-2.5 sm:p-5 shadow-xs">
+          <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-2.5 sm:p-5 shadow-xs">
             {/* Weekday Row */}
             <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
               {weekdays.map((day, idx) => {
@@ -399,8 +399,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                     key={day}
                     className={`py-1.5 text-center text-xs sm:text-sm font-bold rounded-xl transition-colors ${
                       isTodayDOW
-                        ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-xs font-black'
-                        : 'bg-slate-100/70 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-semibold'
+                        ? 'bg-[#17324D] text-[#FFF9E8] dark:bg-[#FFB010] dark:text-[#2B251A] shadow-xs font-black'
+                        : 'bg-[var(--app-surface-subtle)] text-[var(--app-muted)] font-semibold'
                     }`}
                   >
                     {day}
@@ -413,7 +413,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
             <div className="grid grid-cols-7 gap-1 sm:gap-2.5">
               {/* Empty leading offset days */}
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square min-h-[58px] sm:min-h-[74px] rounded-2xl opacity-20 bg-slate-100 dark:bg-[#18181B]" />
+                <div key={`empty-${i}`} className="aspect-square min-h-[58px] sm:min-h-[74px] rounded-2xl opacity-30 bg-[var(--app-surface-subtle)]/50" />
               ))}
 
               {/* Days of the month */}
@@ -441,12 +441,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                     onClick={() => setSelectedDate(dayDateStr)}
                     className={`relative aspect-square min-h-[58px] sm:min-h-[74px] rounded-2xl p-1 sm:p-1.5 flex flex-col justify-between items-center transition-all tactile-press ${
                       isSelected
-                        ? 'ring-2 ring-[var(--app-accent)] bg-white dark:bg-[#25252A] shadow-md z-10 scale-[1.03]'
+                        ? 'ring-2 ring-[var(--app-accent)] bg-[var(--app-surface)] shadow-md z-10 scale-[1.03]'
                         : isToday
                           ? 'border-2 border-[var(--app-accent)] bg-[var(--app-accent-soft)]/40 dark:bg-[var(--app-accent-strong)]/20 shadow-xs'
                           : hasEvents
-                            ? 'bg-slate-100/90 dark:bg-[#1E1E22] hover:bg-slate-200/90 dark:hover:bg-[#28282D] border border-slate-200/80 dark:border-white/5 shadow-2xs'
-                            : 'bg-slate-50/80 dark:bg-[#161619] hover:bg-slate-100 dark:hover:bg-[#202024] border border-slate-100 dark:border-white/5'
+                            ? 'bg-[var(--app-surface-subtle)]/90 hover:bg-[var(--app-surface-subtle)] border border-[var(--app-border)] shadow-2xs'
+                            : 'bg-[var(--app-surface)] hover:bg-[var(--app-surface-subtle)]/60 border border-[var(--app-border)]/50'
                     }`}
                   >
                     {/* Top / Center: Product Icon with Event Dot & Multi-item Badge */}
@@ -463,11 +463,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           />
                           {/* Dot: Floating on top-right of the circular badge */}
                           <span
-                            className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-white dark:ring-[#1E1E22] ${getEventDotColor(primaryEvent)} shadow-xs z-10`}
+                            className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full ring-2 ring-[var(--app-surface)] ${getEventDotColor(primaryEvent)} shadow-xs z-10`}
                           />
                           {/* Multi-Item Pill: e.g. +2 */}
                           {dayEvents.length > 1 && (
-                            <span className="absolute -bottom-1 -right-1 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm tabular-nums leading-none ring-1.5 ring-white dark:ring-[#1E1E22] z-10">
+                            <span className="absolute -bottom-1 -right-1 text-[10px] sm:text-xs font-black px-1.5 py-0.5 rounded-full bg-[#17324D] text-[#FFF9E8] dark:bg-[#FFB010] dark:text-[#2B251A] shadow-sm tabular-nums leading-none ring-1.5 ring-[var(--app-surface)] z-10">
                               +{dayEvents.length - 1}
                             </span>
                           )}
@@ -480,12 +480,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                       <span
                         className={`text-xs sm:text-sm font-black tabular-nums transition-colors ${
                           isSelected
-                            ? 'text-[var(--app-accent-strong)] dark:text-white font-black'
+                            ? 'text-[var(--app-accent-strong)] dark:text-[#FFD166] font-black'
                             : isToday
-                              ? 'text-[var(--app-accent)] font-black'
+                              ? 'text-[var(--app-accent-strong)] font-black'
                               : hasEvents
-                                ? 'text-slate-800 dark:text-slate-200'
-                                : 'text-slate-400 dark:text-slate-500 font-medium'
+                                ? 'text-[var(--app-text)] font-bold'
+                                : 'text-[var(--app-muted)] font-medium'
                         }`}
                       >
                         {day}
@@ -498,11 +498,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
           </div>
 
           {/* 3. Selected Day Detailed Inspector */}
-          <section className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+          <section className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-[var(--app-border)] pb-3">
               <div className="flex items-center gap-2.5">
-                <Clock className="w-5 h-5 text-[var(--app-accent)]" />
-                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 tabular-nums">
+                <Clock className="w-5 h-5 text-[var(--app-accent-strong)]" />
+                <h3 className="text-base sm:text-lg font-black text-[var(--app-text)] tabular-nums">
                   {selectedDate}{' '}
                   {selectedDate === todayStr && (
                     <span className="ml-2 px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-bold bg-[var(--app-accent-soft)] text-[var(--app-accent-strong)]">
@@ -511,15 +511,15 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                   )}
                 </h3>
               </div>
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-400 tabular-nums">
+              <span className="text-sm font-bold text-[var(--app-muted)] tabular-nums">
                 {selectedDayEvents.length}{' '}
                 {locale === 'zh-TW' ? '項記錄' : 'items'}
               </span>
             </div>
 
             {selectedDayEvents.length === 0 ? (
-              <div className="py-8 text-center text-slate-500 dark:text-slate-400 text-sm sm:text-base">
-                <Sparkles className="w-7 h-7 mx-auto mb-2 text-slate-400 dark:text-slate-500" />
+              <div className="py-8 text-center text-[var(--app-muted)] text-sm sm:text-base">
+                <Sparkles className="w-7 h-7 mx-auto mb-2 text-[var(--app-muted-low)]" />
                 <p className="font-medium">
                   {locale === 'zh-TW' ? '本日生活安好，沒有需更換的排程耗材或購買記錄。' : 'No items scheduled or purchased on this day.'}
                 </p>
@@ -535,7 +535,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                     return (
                       <div
                         key={ev.id}
-                        className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-indigo-200/80 dark:border-indigo-900/40 bg-indigo-50/30 dark:bg-indigo-950/20 hover:bg-indigo-50/60 dark:hover:bg-indigo-950/40 transition-colors"
+                        className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-[#17324D]/20 dark:border-[#FFD166]/20 bg-[#17324D]/5 dark:bg-[#FFD166]/10 hover:bg-[#17324D]/10 dark:hover:bg-[#FFD166]/15 transition-colors"
                       >
                         <div className="flex items-center gap-3.5 min-w-0 flex-1">
                           <ItemBrandBadge
@@ -548,22 +548,22 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           />
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <h4 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h4>
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 shrink-0">
+                              <h4 className="text-base sm:text-[17px] font-bold text-[var(--app-text)] truncate">{item.name}</h4>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-bold bg-[#17324D]/10 text-[#17324D] border-[#17324D]/25 dark:bg-[#FFD166]/15 dark:text-[#FFD166] dark:border-[#FFD166]/30 shrink-0">
                                 <ShoppingBag className="w-3 h-3" />
                                 {item.isStored
-                                  ? (locale === 'zh-TW' ? '備品購入' : 'Stored')
-                                  : (locale === 'zh-TW' ? '購買啟用' : 'Purchased')}
+                                   ? (locale === 'zh-TW' ? '備品購入' : 'Stored')
+                                   : (locale === 'zh-TW' ? '購買啟用' : 'Purchased')}
                               </span>
                             </div>
-                            <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-[var(--app-muted)]">
                               <span className="font-semibold">{categoryMeta.label}</span>
                               <span>·</span>
-                              <span>備品 <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">{item.backupStock}</span></span>
+                              <span>備品 <span className="font-bold tabular-nums text-[var(--app-text)]">{item.backupStock}</span></span>
                               {item.price != null && item.price > 0 && (
                                 <>
                                   <span>·</span>
-                                  <span className="font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                  <span className="font-bold text-[#17324D] dark:text-[#FFD166] tabular-nums">
                                     NT$ {item.price.toLocaleString()}
                                   </span>
                                 </>
@@ -592,7 +592,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           <button
                             type="button"
                             onClick={() => onEdit(item)}
-                            className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 tactile-press"
+                            className="px-3.5 py-2 rounded-xl border border-[var(--app-border)] text-sm font-bold text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] tactile-press"
                           >
                             <Edit2 className="w-4 h-4 inline mr-1" />
                             {locale === 'zh-TW' ? '編輯' : 'Edit'}
@@ -615,7 +615,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                   return (
                     <div
                       key={ev.id}
-                      className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors"
+                      className="flex items-center justify-between gap-3 p-3.5 sm:p-4 rounded-xl border border-[var(--app-border)] bg-[var(--app-surface-subtle)]/60 hover:bg-[var(--app-surface-subtle)] transition-colors"
                     >
                       <div className="flex items-center gap-3.5 min-w-0 flex-1">
                         <ItemBrandBadge
@@ -628,20 +628,20 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                         />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <h4 className="text-base sm:text-[17px] font-bold text-slate-900 dark:text-slate-100 truncate">{item.name}</h4>
+                            <h4 className="text-base sm:text-[17px] font-bold text-[var(--app-text)] truncate">{item.name}</h4>
                             <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-bold border ${statusInfo.badge} shrink-0`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot || 'bg-current'}`} />
                               {statusInfo.text}
                             </span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-slate-500 dark:text-slate-400">
+                          <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-[var(--app-muted)]">
                             <span className="font-semibold">{categoryMeta.label}</span>
                             <span>·</span>
-                            <span>備品 <span className="font-bold tabular-nums text-slate-800 dark:text-slate-200">{item.backupStock}</span></span>
+                            <span>備品 <span className="font-bold tabular-nums text-[var(--app-text)]">{item.backupStock}</span></span>
                             {item.price != null && item.price > 0 && (
                               <>
                                 <span>·</span>
-                                <span className="font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                                <span className="font-bold text-[var(--app-muted)] tabular-nums">
                                   預估 NT$ {item.price.toLocaleString()}
                                 </span>
                               </>
@@ -655,7 +655,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           <button
                             type="button"
                             onClick={() => onEdit(item)}
-                            className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 tactile-press"
+                            className="px-3.5 py-2 rounded-xl border border-[var(--app-border)] text-sm font-bold text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] tactile-press"
                           >
                             <Edit2 className="w-4 h-4 inline mr-1" />
                             {locale === 'zh-TW' ? '編輯' : 'Edit'}
@@ -684,14 +684,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
       {viewMode === 'list' && (
         <div className="space-y-4">
           {/* List View Filter Chips */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 w-fit">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-[var(--app-surface-subtle)] border border-[var(--app-border)] w-fit">
             <button
               type="button"
               onClick={() => setFilterMode('all')}
               className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
                 filterMode === 'all'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[var(--app-surface)] text-[var(--app-text)] shadow-xs'
+                  : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
               }`}
             >
               {locale === 'zh-TW' ? `全部 (${allEvents.length})` : `All (${allEvents.length})`}
@@ -701,8 +701,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
               onClick={() => setFilterMode('due')}
               className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
                 filterMode === 'due'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[var(--app-surface)] text-[var(--app-text)] shadow-xs'
+                  : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
               }`}
             >
               🔄 {locale === 'zh-TW' ? `待更換 (${allEvents.filter((e) => e.type === 'due').length})` : `Due (${allEvents.filter((e) => e.type === 'due').length})`}
@@ -712,8 +712,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
               onClick={() => setFilterMode('start')}
               className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all tactile-press ${
                 filterMode === 'start'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                  ? 'bg-[var(--app-surface)] text-[var(--app-text)] shadow-xs'
+                  : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
               }`}
             >
               🛍️ {locale === 'zh-TW' ? `購買啟用 (${allEvents.filter((e) => e.type === 'start').length})` : `Purchased (${allEvents.filter((e) => e.type === 'start').length})`}
@@ -721,17 +721,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
           </div>
 
           {filteredEvents.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-xs">
+            <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-8 text-center shadow-xs">
               <CalendarIcon className="mx-auto mb-2 h-8 w-8 text-[var(--app-accent-strong)]" />
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+              <h3 className="text-base sm:text-lg font-bold text-[var(--app-text)]">
                 {locale === 'zh-TW' ? '目前沒有符合條件的項目' : 'No items match current filter'}
               </h3>
-              <p className="text-sm text-slate-500 mx-auto mt-1 max-w-xs font-medium">
+              <p className="text-sm text-[var(--app-muted)] mx-auto mt-1 max-w-xs font-medium">
                 {locale === 'zh-TW' ? '您可以切換上方篩選條件，或在物品庫中新增耗材。' : 'Try switching filter options or track new items.'}
               </p>
             </div>
           ) : (
-            <div className="relative space-y-3.5 pl-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-slate-200 dark:before:bg-slate-800">
+            <div className="relative space-y-3.5 pl-6 before:absolute before:bottom-2 before:left-2.5 before:top-2 before:w-px before:bg-[var(--app-border)]">
               {filteredEvents.map((ev) => {
                 const item = ev.item;
                 const isStart = ev.type === 'start';
@@ -740,8 +740,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                 if (isStart) {
                   return (
                     <article key={ev.id} className="relative">
-                      <div className="absolute -left-6 top-4 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-900 bg-indigo-500" />
-                      <div className="rounded-2xl border border-indigo-200/80 dark:border-indigo-900/40 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex items-center justify-between gap-3">
+                      <div className="absolute -left-6 top-4 h-3.5 w-3.5 rounded-full border-2 border-[var(--app-surface)] bg-[#17324D] dark:bg-[#FFD166]" />
+                      <div className="rounded-2xl border border-[#17324D]/20 dark:border-[#FFD166]/20 bg-[var(--app-surface)] p-4 sm:p-5 shadow-xs flex items-center justify-between gap-3">
                         <div className="flex items-start gap-3 min-w-0 flex-1">
                           <ItemBrandBadge
                             name={item.name}
@@ -752,28 +752,28 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                             shape="circle"
                           />
                           <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left tactile-press">
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-                              <span className="flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--app-muted)]">
+                              <span className="flex items-center gap-1 font-bold text-[#17324D] dark:text-[#FFD166] tabular-nums">
                                 <ShoppingBag className="h-4 w-4" />
                                 {item.isStored ? (locale === 'zh-TW' ? '備品購入' : 'Stored') : (locale === 'zh-TW' ? '購買啟用' : 'Purchased')} · {ev.date}
                               </span>
-                              <span className="inline-flex items-center gap-1 rounded-md border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                              <span className="inline-flex items-center gap-1 rounded-md border border-[#17324D]/25 dark:border-[#FFD166]/30 bg-[#17324D]/10 text-[#17324D] dark:bg-[#FFD166]/15 dark:text-[#FFD166] px-2 py-0.5 text-xs font-bold">
                                 {item.isStored ? (locale === 'zh-TW' ? '庫存中' : 'In stock') : (locale === 'zh-TW' ? '啟用中' : 'Active')}
                               </span>
                             </div>
-                            <h3 className="mt-1.5 text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 truncate">
+                            <h3 className="mt-1.5 text-base sm:text-lg font-bold text-[var(--app-text)] truncate">
                               {item.name}
                             </h3>
-                            <p className="mt-1 text-sm text-slate-500 flex flex-wrap items-center gap-2 font-medium">
+                            <p className="mt-1 text-sm text-[var(--app-muted)] flex flex-wrap items-center gap-2 font-medium">
                               <span>{category.label}</span>
                               <span>·</span>
                               <span>
-                                備品 <span className="tabular-nums font-bold text-slate-800 dark:text-slate-200">{item.backupStock}</span>
+                                備品 <span className="tabular-nums font-bold text-[var(--app-text)]">{item.backupStock}</span>
                               </span>
                               {item.price != null && item.price > 0 && (
                                 <>
                                   <span>·</span>
-                                  <span className="font-bold text-indigo-600 dark:text-indigo-400 tabular-nums">
+                                  <span className="font-bold text-[#17324D] dark:text-[#FFD166] tabular-nums">
                                     NT$ {item.price.toLocaleString()}
                                   </span>
                                 </>
@@ -791,7 +791,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                         <button
                           type="button"
                           onClick={() => onEdit(item)}
-                          className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 tactile-press shrink-0"
+                          className="px-3.5 py-2 rounded-xl border border-[var(--app-border)] text-sm font-bold text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] tactile-press shrink-0"
                         >
                           <Edit2 className="h-4 w-4 inline mr-1 text-[var(--app-accent-strong)]" />
                           {locale === 'zh-TW' ? '編輯' : 'Edit'}
@@ -824,9 +824,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                 return (
                   <article key={ev.id} className="relative">
                     <div
-                      className={`absolute -left-6 top-4 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-900 ${getStatusColor(item)}`}
+                      className={`absolute -left-6 top-4 h-3.5 w-3.5 rounded-full border-2 border-[var(--app-surface)] ${getStatusColor(item)}`}
                     />
-                    <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex items-center justify-between gap-3">
+                    <div className="rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-4 sm:p-5 shadow-xs flex items-center justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0 flex-1">
                         <ItemBrandBadge
                           name={item.name}
@@ -837,7 +837,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                           shape="circle"
                         />
                         <button type="button" onClick={() => onEdit(item)} className="min-w-0 flex-1 text-left tactile-press">
-                          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                          <div className="flex flex-wrap items-center gap-2 text-sm text-[var(--app-muted)]">
                             <span className="flex items-center gap-1 font-bold text-[var(--app-accent-strong)] tabular-nums">
                               <Clock className="h-4 w-4" />
                               {dateLabel} · {ev.date}
@@ -847,14 +847,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                               {statusInfo.text}
                             </span>
                           </div>
-                          <h3 className="mt-1.5 text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 truncate">
+                          <h3 className="mt-1.5 text-base sm:text-lg font-bold text-[var(--app-text)] truncate">
                             {item.name}
                           </h3>
-                          <p className="mt-1 text-sm text-slate-500 flex items-center gap-2 font-medium">
+                          <p className="mt-1 text-sm text-[var(--app-muted)] flex items-center gap-2 font-medium">
                             <span>{category.label}</span>
                             <span>·</span>
                             <span>
-                              備品 <span className="tabular-nums font-bold text-slate-800 dark:text-slate-200">{item.backupStock}</span>
+                              備品 <span className="tabular-nums font-bold text-[var(--app-text)]">{item.backupStock}</span>
                             </span>
                             {item.healthStatus === 'snoozed' && (
                               <span className="inline-flex items-center gap-1 text-sky-500 font-bold">
@@ -870,7 +870,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ items, onReplace, on
                         <button
                           type="button"
                           onClick={() => onEdit(item)}
-                          className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 tactile-press shrink-0"
+                          className="px-3.5 py-2 rounded-xl border border-[var(--app-border)] text-sm font-bold text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] tactile-press shrink-0"
                         >
                           <Edit2 className="h-4 w-4 inline mr-1 text-[var(--app-accent-strong)]" />
                           {locale === 'zh-TW' ? '編輯' : 'Edit'}

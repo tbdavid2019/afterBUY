@@ -459,15 +459,15 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
             setIsOpen(true);
           }}
           aria-label={t('switchStock')}
-          className="group inline-flex items-center gap-2 px-2 py-1 -ml-1 rounded-xl text-slate-900 dark:text-slate-100 hover:bg-slate-100/90 dark:hover:bg-slate-800/90 transition-all tactile-press focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-accent)]"
+          className="group inline-flex items-center gap-2 px-2 py-1 -ml-1 rounded-xl text-[#2B251A] dark:text-[#FFF9E8] hover:bg-black/5 dark:hover:bg-white/10 transition-all tactile-press focus:outline-none focus-visible:ring-2 focus-visible:ring-[#17324D] dark:focus-visible:ring-[#FFB010]"
         >
-          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[var(--app-accent-soft)] text-[var(--app-accent-strong)] border border-[var(--app-accent)]/20 shrink-0 shadow-2xs">
+          <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-[#FFF9E8] text-[#17324D] dark:bg-[#182230] dark:text-[#FFD166] border border-[#17324D]/20 dark:border-[#FFD166]/30 shrink-0 shadow-2xs">
             <StockIcon icon={activeStock ? activeStock.icon : 'all'} className="w-4 h-4" />
           </span>
-          <span className="text-base sm:text-lg font-bold tracking-tight max-w-[130px] sm:max-w-[220px] truncate text-slate-900 dark:text-slate-50">
+          <span className="text-base sm:text-lg font-bold tracking-tight max-w-[130px] sm:max-w-[220px] truncate text-[#2B251A] dark:text-[#FFF9E8]">
             {activeStock ? activeStock.name : t('allStocks')}
           </span>
-          <ChevronDown className="w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform duration-200 group-hover:translate-y-0.5 shrink-0" />
+          <ChevronDown className="w-4 h-4 text-[#2B251A]/70 group-hover:text-[#2B251A] dark:text-[#FFF9E8]/70 dark:group-hover:text-[#FFF9E8] transition-transform duration-200 group-hover:translate-y-0.5 shrink-0" />
         </button>
       ) : (
         <button
@@ -477,13 +477,13 @@ export const StockSwitcher: React.FC<StockSwitcherProps> = ({
             setIsOpen(true);
           }}
           aria-label={t('switchStock')}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors active:scale-[0.98]"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-[var(--app-border)] bg-[var(--app-surface-subtle)] text-xs font-medium text-[var(--app-text)] hover:bg-[var(--app-surface)] transition-colors active:scale-[0.98]"
         >
           <StockIcon icon={activeStock ? activeStock.icon : 'all'} className="w-3.5 h-3.5 text-[var(--app-accent-strong)]" />
           <span className="max-w-[110px] sm:max-w-[150px] truncate">
             {activeStock ? activeStock.name : t('allStocks')}
           </span>
-          <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+          <ChevronDown className="w-3 h-3 text-[var(--app-muted)] shrink-0" />
         </button>
       )}
 

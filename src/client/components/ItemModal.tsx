@@ -1490,7 +1490,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                         <button
                           type="button"
                           onClick={() => handleRemoveUnit(idx)}
-                          className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 shrink-0 tactile-press"
+                          className="w-7 h-7 flex items-center justify-center text-[var(--app-muted)] hover:text-rose-700 dark:hover:text-rose-300 rounded-lg hover:bg-rose-100/80 dark:hover:bg-rose-950/40 shrink-0 tactile-press"
                           title="移除此位置"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
