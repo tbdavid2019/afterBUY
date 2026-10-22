@@ -436,19 +436,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         )}
       </section>
 
-      {/* Mobile Floating Action Button (FAB) in Thumb Zone */}
-      {!isSelecting && (
-        <button
-          type="button"
-          onClick={onOpenNewItem}
-          aria-label={t('addItem')}
-          className="sm:hidden fixed bottom-24 right-4 z-30 h-12 px-4 rounded-full app-primary shadow-lg flex items-center gap-2 font-bold text-sm tactile-press transition-all"
-        >
-          <Plus className="w-4 h-4 stroke-[2.5]" />
-          <span>{locale === 'zh-TW' ? '買了新東西' : t('addItem')}</span>
-        </button>
-      )}
-
       {isSelecting && selectedIds.size > 0 && <div className="fixed bottom-24 left-3 right-3 z-40 mx-auto max-w-xl"><div className="app-surface flex items-center justify-between gap-2 rounded-2xl border p-2.5 shadow-xl"><div className="flex min-w-0 items-center gap-2"><span className="ui-button truncate font-bold">{t('selectedItems', { n: selectedIds.size })}</span><button type="button" onClick={selectAll} className="ui-button shrink-0 text-[var(--app-accent-strong)] font-bold">{selectedIds.size === filteredItems.length ? '取消全選' : '全選'}</button></div><div className="flex shrink-0 gap-1"><button type="button" disabled={batchActionLoading} onClick={batchReplace} className="app-primary ui-button min-h-11 rounded-xl px-2.5"><RotateCcw className="inline h-4 w-4" /></button><button type="button" disabled={batchActionLoading} onClick={() => batchStock(1)} className="app-control ui-button min-h-11 rounded-xl border px-2.5 font-bold">+1</button><button type="button" disabled={batchActionLoading} onClick={batchDelete} className="app-control min-h-11 rounded-xl border px-2.5 text-rose-600"><Trash2 className="h-4 w-4" /></button></div></div></div>}
     </div>
   );

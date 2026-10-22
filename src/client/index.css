@@ -72,6 +72,14 @@
     font-family: var(--font-app);
     font-synthesis: weight style;
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+
+  @supports (overflow-x: clip) {
+    html,
+    body {
+      overflow-x: clip;
+    }
   }
 
   body {
@@ -85,6 +93,7 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 
   button,

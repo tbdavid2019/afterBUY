@@ -35,6 +35,16 @@
     - 移除全域硬編碼 `bg-white dark:bg-slate-900`、`text-indigo-*` 與紫藍 AI 漸層反模式，統一使用語意化 Token（`--app-surface`、`--app-surface-subtle`、`--app-border`、`--app-text`）。
     - 修正分類標籤、倒數狀態燈號與時程日曆圖示色調，Impeccable 靜態審查與測試驗證通過率 100%。
 
+### Fixed
+- **修復手機端卡片字體大小混亂與擠壓斷行問題（Strict 3-Tier Typography Scale）**：
+  - 統一 `ItemCard`（雙欄網格與清單模式）為嚴格三階層字級規範：標題 `15–16px`（`font-bold`）、核心狀態與數量 `13–14px`（`font-bold`）、次要輔助與按鈕 `12px`（`text-xs`）。
+  - 移除雙欄窄卡片中過大的 `30px`（`text-3xl`）數字與過小的 `9px` 環狀進度貼紙，避免擠壓相鄰文字導致「`已\n用`」、「`備\n品: 8`」、「`換新最\n急處`」等直向斷字與按鈕溢位。
+  - 縮減網格卡片頂部環狀圖尺寸（`54px` $\rightarrow$ `40px`），確保 `⋮` 更多選單按鈕在手機雙欄（約 140px 內寬）下絕不超出卡片右邊界。
+  - 移除手機端右下角與頂部 Header 重複且遮擋底部卡片的 `+ 買了新東西` 懸浮按鈕（FAB）。
+- **修復手機端滑動時底部導覽列（Bottom Dock）掉出螢幕外的視窗位移問題**：
+  - 將 `.app-shell` 由整頁 `min-h-dvh` 捲動改為固定視窗高度 `h-dvh overflow-hidden flex flex-col`，並由 `<main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain">` 獨立承載垂直捲動，徹底杜絕手機瀏覽器動態網址列伸縮時將 `position: fixed` 底部導覽列推離可視範圍。
+  - 於 `html, body` 加入 `overflow-x: clip` 並於 `Navbar` 啟用 `transform-gpu` 與安全邊界錨定，防止卡片橫向滑動手勢撐寬行動版 Viewport。
+
 ## 2026-10-12
 
 ### Fixed

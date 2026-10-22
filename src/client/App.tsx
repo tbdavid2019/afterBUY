@@ -253,6 +253,7 @@ export const App: React.FC = () => {
   const [guestImportMessage, setGuestImportMessage] = useState<string | null>(null);
   const guestImportLock = useRef(false);
   const importedGuestIds = useRef(new Set<string>());
+  const mainRef = useRef<HTMLElement>(null);
   const pageSwipe = useSwipeGesture({
     disabled: isEditing || isVersionNoticeOpen || importingGuest,
     onSwipe(direction) {
@@ -261,6 +262,7 @@ export const App: React.FC = () => {
       const index = pages.indexOf(currentTab) + (direction === 'left' ? 1 : -1);
       if (index >= 0 && index < pages.length) {
         setCurrentTab(pages[index]);
+        mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
         window.scrollTo({ top: 0, behavior: 'instant' });
       }
     },
@@ -1028,7 +1030,7 @@ export const App: React.FC = () => {
   const restockCount = items.filter((i) => i.needsRestock).length;
 
   return (
-    <div className="app-shell min-h-dvh flex flex-col font-sans">
+    <div className="app-shell h-dvh overflow-hidden flex flex-col font-sans">
       {/* Top Header */}
       <Header
         user={user}
@@ -1051,7 +1053,13 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <main {...pageSwipe.handlers} style={{ touchAction: 'pan-y pinch-zoom' }} className="flex-1 max-w-3xl md:max-w-4xl lg:max-w-5xl w-full mx-auto px-4 sm:px-6 pt-3 md:pt-5 main-content-pb">
+      <main
+        ref={mainRef}
+        {...pageSwipe.handlers}
+        style={{ touchAction: 'pan-y pinch-zoom' }}
+        className="flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain w-full"
+      >
+        <div className="max-w-3xl md:max-w-4xl lg:max-w-5xl w-full mx-auto px-3.5 sm:px-6 pt-3 md:pt-5 main-content-pb">
         <GuestStatusBanner
           signedIn={Boolean(user)}
           localCount={user ? pendingGuestCount : items.filter((item) => !DEMO_ITEM_IDS.has(item.id)).length}
@@ -1133,6 +1141,7 @@ export const App: React.FC = () => {
             onOpenPresetCatalog={handleOpenPresetCatalog}
           />
         )}
+        </div>
       </main>
 
       {/* 5-second Floating Tactile Undo Toast */}
@@ -1190,7 +1199,11 @@ export const App: React.FC = () => {
       {/* Bottom Navigation */}
       <Navbar
         currentTab={currentTab}
-        onSelectTab={(tab) => setCurrentTab(tab)}
+        onSelectTab={(tab) => {
+          setCurrentTab(tab);
+          mainRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+          window.scrollTo({ top: 0, behavior: 'instant' });
+        }}
         overdueCount={overdueCount}
         restockCount={restockCount}
       />

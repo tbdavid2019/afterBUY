@@ -170,22 +170,21 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           <CircularProgressRing
             percentage={unit.percentageRemaining ?? 100}
             healthStatus={unit.healthStatus}
-            size={compact ? 30 : 34}
+            size={compact ? 32 : 36}
             strokeWidth={3}
-            showText={true}
-            textClassName="text-[9px]"
+            showText={false}
             ariaLabel={`${unit.label} 剩餘比例`}
           />
           <span className="min-w-0 flex-1">
-            <span className="flex items-start gap-1 text-sm font-bold text-slate-900 dark:text-slate-100">
-              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-500" />
+            <span className="flex items-start gap-1 text-xs sm:text-sm font-bold text-[var(--app-text)]">
+              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--app-muted)]" />
               <span className="min-w-0 break-words">{unit.label}</span>
             </span>
-            <span className="mt-1 block text-xs font-semibold">
+            <span className="mt-0.5 block text-xs font-semibold">
               <span className={statusClass}>{remainingText}</span>
-              <span className="text-slate-600 dark:text-slate-300"> · 已用 {unit.elapsedDays ?? 0} 天</span>
+              <span className="text-[var(--app-muted)]"> · 已用 {unit.elapsedDays ?? 0} 天</span>
             </span>
-            <span className="mt-0.5 block text-[11px] text-slate-500 dark:text-slate-400">{unit.startDate} 啟用</span>
+            <span className="mt-0.5 block text-xs text-[var(--app-muted)] tabular-nums">{unit.startDate} 啟用</span>
           </span>
         </button>
         {isOpen && (
@@ -227,14 +226,14 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       >
         {swipeHint}
         {/* Top: Thumbnail + Tag + More Menu */}
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center justify-between gap-1.5 min-w-0">
           {!dateOnly && !isStored ? (
             <div className="relative inline-flex items-center justify-center shrink-0">
               <CircularProgressRing
                 percentage={item.percentageRemaining ?? 100}
                 healthStatus={item.healthStatus}
-                size={54}
-                strokeWidth={3}
+                size={40}
+                strokeWidth={2.75}
                 ariaLabel={`${item.name} 剩餘比例`}
               >
                 <ItemBrandBadge
@@ -242,13 +241,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   category={item.category}
                   imageUrl={item.imageUrl}
                   specModel={item.specModel}
-                  size="md"
+                  size="sm"
                   shape="circle"
                 />
               </CircularProgressRing>
-              <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-md text-[9px] font-black bg-[var(--app-surface)] shadow-xs border border-[var(--app-border)] tabular-nums text-[var(--app-text)]">
-                {item.percentageRemaining ?? 100}%
-              </span>
             </div>
           ) : (
             <ItemBrandBadge
@@ -256,27 +252,27 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               category={item.category}
               imageUrl={item.imageUrl}
               specModel={item.specModel}
-              size="lg"
+              size="sm"
             />
           )}
 
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold text-[var(--app-text)] bg-[var(--app-surface-subtle)] px-2.5 py-1 rounded-lg border border-[var(--app-border)] truncate max-w-[90px]">
+          <div className="flex items-center gap-1 min-w-0 shrink-0">
+            <span className="text-xs font-semibold text-[var(--app-muted)] bg-[var(--app-surface-subtle)] px-2 py-0.5 rounded-md border border-[var(--app-border)] truncate max-w-[78px] sm:max-w-[110px]">
               {frequencyTag}
             </span>
-            <div className="relative">
+            <div className="relative shrink-0">
               <button
                 type="button"
                 aria-label={`更多操作`}
                 onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]"
+                className="w-7 h-7 -mr-1 flex items-center justify-center rounded-lg text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]"
               >
                 <MoreVertical className="w-4 h-4" />
               </button>
               {showMenu && (
                 <>
                   <button aria-label="關閉" className="fixed inset-0 z-20 cursor-default" onClick={() => setShowMenu(false)} />
-                  <div className="absolute right-0 top-9 z-30 w-40 overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] py-1.5 shadow-lg popover-animate text-sm font-medium">
+                  <div className="absolute right-0 top-8 z-30 w-40 overflow-hidden rounded-xl border border-[var(--app-border)] bg-[var(--app-surface)] py-1.5 shadow-lg popover-animate text-sm font-medium">
                     <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); onEdit(item); }} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]"><Edit2 className="w-4 h-4" />編輯內容</button>
                     <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); onViewHistory(item); }} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)]"><History className="w-4 h-4 text-blue-500" />更換記錄</button>
                     <button type="button" onClick={(e) => { e.stopPropagation(); setShowMenu(false); void runAction(() => onDelete(item.id)); }} className="flex w-full items-center gap-2.5 px-3.5 py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"><Trash2 className="w-4 h-4" />刪除物品</button>
@@ -288,106 +284,85 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         </div>
 
         {/* Item Title */}
-        <div className="mt-3">
-          <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight line-clamp-1" title={item.name}>
+        <div className="mt-2.5 min-w-0">
+          <h3 className="text-[15px] sm:text-base font-bold text-[var(--app-text)] leading-snug tracking-tight truncate" title={item.name}>
             {item.name}
           </h3>
-          {DEMO_ITEM_IDS.has(item.id) && <span className="ui-meta text-[var(--app-muted)]">示範</span>}
+          {DEMO_ITEM_IDS.has(item.id) && <span className="text-xs text-[var(--app-muted)]">示範</span>}
           {item.location && (
-            <p className="flex items-start gap-1 text-xs text-slate-500 dark:text-slate-400 mt-1">
-              <MapPin className="w-3.5 h-3.5 shrink-0" />
-              <span className="break-words">備品存放：{item.location}</span>
+            <p className="flex items-center gap-1 text-xs text-[var(--app-muted)] mt-0.5 truncate">
+              <MapPin className="w-3 h-3 shrink-0" />
+              <span className="truncate">{item.location}</span>
             </p>
           )}
         </div>
 
-        {/* HERO METRIC DISPLAY (Bold, readable Chinese metrics) */}
-        <div className="mt-3.5 my-auto">
+        {/* Unified Compact Metric Display (Strict 3-Tier Typography: 15px Title / 13-14px Status / 12px Meta) */}
+        <div className="mt-2.5 my-auto">
           {isStored ? (
-            <div className="py-1">
-              <span className="text-lg sm:text-xl font-black text-[var(--app-text)]">
-                未拆封
-              </span>
-              <p className="text-xs text-[var(--app-muted)] mt-0.5 font-medium">拆封後開始計算</p>
+            <div className="flex items-center justify-between gap-1 text-xs">
+              <span className="text-[13px] sm:text-sm font-bold text-[var(--app-text)] whitespace-nowrap">未拆封</span>
+              <span className="text-xs font-medium text-[var(--app-muted)] truncate">拆封後起算</span>
             </div>
           ) : isQuantityMode ? (
-            <div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-sm text-[var(--app-muted)] font-semibold">現存</span>
-                <span className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-[var(--app-text)]">
-                  {item.remainingQuantity ?? 0}
+            <div className="space-y-1">
+              <div className="flex items-baseline justify-between gap-1">
+                <span className="text-[13px] sm:text-sm font-bold text-[var(--app-text)] whitespace-nowrap tabular-nums">
+                  現存 {item.remainingQuantity ?? 0} {item.quantityUnit || '顆'}
                 </span>
-                <span className="text-sm text-[var(--app-muted)] font-semibold">{item.quantityUnit || '顆'}</span>
+                <span className="text-xs font-semibold text-[var(--app-muted)] whitespace-nowrap tabular-nums">
+                  約剩 {item.remainingDays} 天
+                </span>
               </div>
-              <p className="text-xs sm:text-sm text-[var(--app-muted)] mt-1 font-medium">
-                約剩 <span className="font-bold tabular-nums text-[var(--app-text)]">{item.remainingDays}</span> 天
-              </p>
             </div>
           ) : dateOnly ? (
-            <div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-sm text-[var(--app-muted)] font-semibold">{item.trackingMode === 'warranty' ? '保固' : '到期'}</span>
-                <span className="text-xl sm:text-2xl font-black tabular-nums tracking-tight text-[var(--app-text)]">
+            <div className="space-y-1">
+              <div className="flex items-baseline justify-between gap-1">
+                <span className={`text-[13px] sm:text-sm font-bold whitespace-nowrap tabular-nums ${item.remainingDays < 0 ? 'text-rose-600' : item.remainingDays <= 30 ? 'text-[#A9471D] dark:text-amber-300' : 'text-[var(--app-text)]'}`}>
+                  {item.remainingDays < 0 ? `逾期 ${Math.abs(item.remainingDays)} 天` : `剩餘 ${item.remainingDays} 天`}
+                </span>
+                <span className="text-xs font-semibold text-[var(--app-muted)] whitespace-nowrap tabular-nums">
                   {item.nextDueDate.slice(5)}
                 </span>
               </div>
-              <p className={`text-xs sm:text-sm font-bold mt-1 ${item.remainingDays < 0 ? 'text-rose-600' : item.remainingDays <= 30 ? 'text-[#A9471D] dark:text-amber-300' : 'text-[var(--app-muted)]'}`}>
-                {item.remainingDays < 0 ? `已逾期 ${Math.abs(item.remainingDays)} 天` : `剩餘 ${item.remainingDays} 天`}
-              </p>
             </div>
           ) : item.daysUntilStart && item.daysUntilStart > 0 ? (
-            <div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-sm text-[#17324D] dark:text-[#FFD166] font-semibold">距啟用</span>
-                <span className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-[#17324D] dark:text-[#FFD166]">
-                  {item.daysUntilStart}
+            <div className="space-y-1">
+              <div className="flex items-baseline justify-between gap-1">
+                <span className="text-[13px] sm:text-sm font-bold text-[#17324D] dark:text-[#FFD166] whitespace-nowrap tabular-nums">
+                  距啟用 {item.daysUntilStart} 天
                 </span>
-                <span className="text-sm text-[#17324D] dark:text-[#FFD166] font-semibold">天</span>
+                <span className="text-xs font-semibold text-[var(--app-muted)] whitespace-nowrap tabular-nums">
+                  {item.startDate.slice(5)} 起
+                </span>
               </div>
-              <p className="text-xs sm:text-sm font-semibold mt-1 text-[var(--app-muted)] truncate">
-                預計 {item.startDate.slice(5)} 開始啟用
-              </p>
             </div>
           ) : (
-            <div>
-              <div className="flex items-baseline justify-between gap-1.5">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-sm text-[var(--app-muted)] font-semibold">已用</span>
-                  <span className="text-3xl sm:text-4xl font-black tabular-nums tracking-tight text-[var(--app-text)]">
-                    {item.elapsedDays ?? 0}
-                  </span>
-                  <span className="text-sm text-[var(--app-muted)] font-semibold">天</span>
-                </div>
-                {!dateOnly && !isStored && (
-                  <span className="text-xs font-bold text-[var(--app-muted)] tabular-nums">
-                    {item.startDate.slice(5)} 啟用
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center justify-between gap-1 mt-1">
-                <p className={`text-xs sm:text-sm font-bold ${
+            <div className="space-y-1">
+              <div className="flex items-baseline justify-between gap-1">
+                <span className={`text-[13px] sm:text-sm font-bold whitespace-nowrap tabular-nums ${
                   item.healthStatus === 'overdue'
                     ? 'text-rose-600 dark:text-rose-400'
                     : item.healthStatus === 'due_soon'
                       ? 'text-[#A9471D] dark:text-amber-300'
-                      : 'text-[var(--app-muted)]'
+                      : 'text-[var(--app-text)]'
                 }`}>
                   {item.healthStatus === 'overdue'
-                    ? `已逾期 ${Math.abs(item.remainingDays)} 天`
-                    : `剩餘 ${item.remainingDays} 天`}
-                </p>
-                {!dateOnly && !isStored && (
-                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                    剩 {item.percentageRemaining ?? 100}%
-                  </span>
-                )}
+                    ? `逾期 ${Math.abs(item.remainingDays)} 天`
+                    : item.remainingDays === 0
+                      ? '今天該換'
+                      : `剩餘 ${item.remainingDays} 天`}
+                </span>
+                <span className="text-xs font-semibold text-[var(--app-muted)] whitespace-nowrap tabular-nums">
+                  已用 {item.elapsedDays ?? 0} 天
+                </span>
               </div>
             </div>
           )}
 
           {/* Slim Progress Bar */}
           {!dateOnly && !isStored && (
-            <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-[var(--app-surface-subtle)] ring-1 ring-inset ring-[var(--app-border)]">
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--app-surface-subtle)] ring-1 ring-inset ring-[var(--app-border)]">
               <div className={`h-full rounded-full transition-[width] duration-300 ${progressColor}`} style={{ width: `${Math.max(0, Math.min(100, item.percentageRemaining ?? 100))}%` }} />
             </div>
           )}
@@ -395,7 +370,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
         {/* Multi-Unit List in Grid View */}
         {hasMultiUnits && !isStored && !dateOnly && (
-          <div className="mt-3 pt-2.5 border-t border-[var(--app-border)] space-y-1.5">
+          <div className="mt-2.5 pt-2 border-t border-[var(--app-border)] space-y-1.5">
             {isCompact && !expandedDetails ? (
               <button
                 type="button"
@@ -403,20 +378,19 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   e.stopPropagation();
                   setExpandedDetails(true);
                 }}
-                className="w-full flex items-center justify-between text-[11px] py-1 px-1.5 rounded-lg bg-[var(--app-surface-subtle)] text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold transition-colors"
+                className="w-full flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-[var(--app-surface-subtle)] text-[var(--app-muted)] hover:text-[var(--app-text)] font-semibold transition-colors min-w-0"
               >
                 <span className="truncate">
                   <strong className="text-[var(--app-accent-strong)]">{activeUnitsList.length} 處：</strong>
                   {activeUnitsList.map((u) => u.label).join('、')}
                 </span>
-                <span className="text-[10px] text-[var(--app-accent-strong)] shrink-0 ml-1">▼</span>
+                <span className="text-xs text-[var(--app-accent-strong)] shrink-0 ml-1">▼</span>
               </button>
             ) : (
               <>
-                <div className="text-[11px] font-bold text-[var(--app-muted)] flex items-center justify-between">
+                <div className="text-xs font-bold text-[var(--app-muted)] flex items-center justify-between">
                   <span>使用處 ({activeUnitsList.length})</span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[var(--app-muted)]">點選操作</span>
+                  <div className="flex items-center gap-1">
                     {isCompact && (
                       <button
                         type="button"
@@ -425,7 +399,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                           e.stopPropagation();
                           setExpandedDetails(false);
                         }}
-                        className="text-[10px] font-bold text-[var(--app-accent-strong)] px-1.5 py-0.5 rounded hover:underline"
+                        className="text-xs font-bold text-[var(--app-accent-strong)] px-1.5 py-0.5 rounded hover:underline"
                       >
                         收合 ▲
                       </button>
@@ -439,14 +413,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
         )}
 
         {/* Bottom: Stock Count & Quick Action */}
-        <div className="mt-3.5 pt-3 border-t border-[var(--app-border)] flex items-center justify-between gap-2">
-          <div className="flex flex-col text-xs text-[var(--app-muted)] font-medium min-w-0">
-            <div className="flex items-center text-sm">
-              <span>備品:</span>
-              <span className={`ml-1 text-base font-black tabular-nums ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--app-text)]'}`}>
-                {item.backupStock}
-              </span>
-            </div>
+        <div className="mt-3 pt-2.5 border-t border-[var(--app-border)] flex items-center justify-between gap-1.5">
+          <div className="flex items-center text-xs text-[var(--app-muted)] font-semibold whitespace-nowrap shrink-0">
+            <span>備品</span>
+            <span className={`ml-1 text-sm font-extrabold tabular-nums ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--app-text)]'}`}>
+              {item.backupStock}
+            </span>
           </div>
 
           {/* Action CTA */}
@@ -455,16 +427,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               type="button"
               disabled={busy}
               onClick={(e) => { e.stopPropagation(); if (onStartUsing) void runAction(() => onStartUsing(item.id), '已開始使用'); }}
-              className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1.5"
+              className="app-primary px-2.5 py-1.5 text-xs font-bold rounded-lg shadow-2xs tactile-press flex items-center gap-1 whitespace-nowrap shrink-0"
             >
-              <Play className="w-3.5 h-3.5 fill-current" />
+              <Play className="w-3.5 h-3.5 fill-current shrink-0" />
               <span>啟用</span>
             </button>
           ) : dateOnly ? (
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); onEdit(item); }}
-              className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl border border-[var(--app-border)] text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] tactile-press"
+              className="px-2.5 py-1.5 text-xs font-bold rounded-lg border border-[var(--app-border)] text-[var(--app-text)] hover:bg-[var(--app-surface-subtle)] tactile-press whitespace-nowrap shrink-0"
             >
               編輯
             </button>
@@ -476,22 +448,22 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 e.stopPropagation();
                 void runAction(() => onReplace(item.id), '已開啟新備品');
               }}
-              className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1"
+              className="app-primary px-2.5 py-1.5 text-xs font-bold rounded-lg shadow-2xs tactile-press flex items-center gap-1 whitespace-nowrap shrink-0"
               title={hasMultiUnits ? `目前 ${item.activeUnits} 處在用。可針對上方各處個別換新，或在此換新最急處` : '開新瓶：已用完，重設滿容量並扣減備品庫存'}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>{hasMultiUnits ? '開新備品' : '開新瓶'}</span>
+              <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+              <span>開新</span>
             </button>
           ) : (
             <button
               type="button"
               disabled={busy}
               onClick={(e) => { e.stopPropagation(); void runAction(() => onReplace(item.id), '已更新更換！'); }}
-              className="app-primary px-3 py-1.5 text-xs sm:text-sm font-bold rounded-xl shadow-2xs tactile-press flex items-center gap-1"
+              className="app-primary px-2.5 py-1.5 text-xs font-bold rounded-lg shadow-2xs tactile-press flex items-center gap-1 whitespace-nowrap shrink-0"
               title={hasMultiUnits ? `目前 ${item.activeUnits} 處在用。可針對上方各處個別換新，或在此換新最急處` : '記錄更換'}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>{hasMultiUnits ? '換新最急處' : '已換'}</span>
+              <RotateCcw className="w-3.5 h-3.5 shrink-0" />
+              <span>換新</span>
             </button>
           )}
         </div>
@@ -573,13 +545,13 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       </div>
 
       {/* Middle Row: Avatar & Title & Hero Metrics */}
-      <div className="mt-3.5 flex items-start gap-3.5">
+      <div className="mt-3.5 flex items-start gap-3">
         {!dateOnly && !isStored ? (
           <div className="relative inline-flex items-center justify-center shrink-0">
             <CircularProgressRing
               percentage={item.percentageRemaining ?? 100}
               healthStatus={item.healthStatus}
-              size={54}
+              size={48}
               strokeWidth={3}
               ariaLabel={`${item.name} 剩餘比例`}
             >
@@ -592,9 +564,6 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 shape="circle"
               />
             </CircularProgressRing>
-            <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-md text-[9px] font-black bg-[var(--app-surface)] shadow-xs border border-[var(--app-border)] tabular-nums text-[var(--app-text)]">
-              {item.percentageRemaining ?? 100}%
-            </span>
           </div>
         ) : (
           <ItemBrandBadge
@@ -602,28 +571,28 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             category={item.category}
             imageUrl={item.imageUrl}
             specModel={item.specModel}
-            size="lg"
+            size="md"
           />
         )}
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
-            <h3 className="text-base sm:text-lg font-bold text-[var(--app-text)] leading-snug tracking-tight truncate">{item.name}</h3>
+            <h3 className="text-base font-bold text-[var(--app-text)] leading-snug tracking-tight truncate">{item.name}</h3>
             {!isStored && !dateOnly && (
               item.daysUntilStart && item.daysUntilStart > 0 ? (
-                <div className="text-right shrink-0">
+                <div className="text-right shrink-0 whitespace-nowrap">
                   <span className="text-sm font-bold text-[#17324D] dark:text-[#FFD166]">
                     距啟用 <span className="font-black tabular-nums">{item.daysUntilStart}</span> 天
                   </span>
-                  <div className="text-[11px] text-[var(--app-muted)] font-medium tabular-nums">
+                  <div className="text-xs text-[var(--app-muted)] font-medium tabular-nums">
                     {item.startDate} 啟用
                   </div>
                 </div>
               ) : (
-                <div className="text-right shrink-0">
+                <div className="text-right shrink-0 whitespace-nowrap">
                   <span className="text-sm font-bold text-[var(--app-muted)]">
                     已用 <span className="font-black tabular-nums text-[var(--app-text)]">{item.elapsedDays}</span> 天
                   </span>
-                  <div className="text-[11px] text-[var(--app-muted)] font-medium tabular-nums">
+                  <div className="text-xs text-[var(--app-muted)] font-medium tabular-nums">
                     {item.startDate} 啟用
                   </div>
                 </div>
@@ -631,12 +600,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             )}
           </div>
           {DEMO_ITEM_IDS.has(item.id) && <span className="ui-meta text-[var(--app-muted)]">示範</span>}
-          <div className="text-sm text-[var(--app-muted)] mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 font-medium">
+          <div className="text-xs text-[var(--app-muted)] mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 font-medium">
             {item.stockName && <span className="truncate">{item.stockName}</span>}
             {item.specModel && <span className="truncate">型號: {item.specModel}</span>}
             {isQuantityMode && (
-              <span className="tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
-                每日 {item.dailyUsage || 1} {item.quantityUnit || '顆'} · 每日自動倒數 · 單瓶 {item.initialQuantity || 60}
+              <span className="tabular-nums font-semibold text-emerald-700 dark:text-emerald-300">
+                每日 {item.dailyUsage || 1} {item.quantityUnit || '顆'} · 單瓶 {item.initialQuantity || 60}
               </span>
             )}
             {item.price !== null && item.price !== undefined && <span className="tabular-nums font-semibold">NT$ {item.price.toLocaleString()}</span>}
@@ -646,12 +615,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
 
       {/* Lifecycle Status: Clean Inline Row */}
       {isStored ? (
-        <div className="mt-3 flex items-center gap-2 text-sm text-[var(--app-muted)] font-medium">
-          <Package className="h-4.5 w-4.5 shrink-0 text-[var(--app-muted-low)]" />
+        <div className="mt-3 flex items-center gap-2 text-xs text-[var(--app-muted)] font-medium">
+          <Package className="h-4 w-4 shrink-0 text-[var(--app-muted-low)]" />
           <span>未拆封備品 · 開始使用後才會計算更換週期</span>
         </div>
       ) : isCompact && !expandedDetails ? (
-        <div className="mt-2 flex items-center justify-between gap-2 text-xs text-[var(--app-muted)]">
+        <div className="mt-2.5 flex items-center justify-between gap-2 text-xs text-[var(--app-muted)]">
           <span className="flex items-center gap-1.5 font-semibold truncate min-w-0">
             <Clock className="h-3.5 w-3.5 shrink-0 text-[var(--app-muted)]" />
             <span className="truncate">{dateOnly ? (item.trackingMode === 'warranty' ? '保固至' : '有效期限') : isQuantityMode ? '預計用盡日' : '下次更換'} · <strong className="text-[var(--app-text)] tabular-nums">{item.nextDueDate}</strong></span>
@@ -666,7 +635,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 e.stopPropagation();
                 setExpandedDetails(true);
               }}
-              className="text-[11px] text-[var(--app-accent-strong)] font-bold shrink-0 hover:underline"
+              className="text-xs text-[var(--app-accent-strong)] font-bold shrink-0 hover:underline whitespace-nowrap"
             >
               詳細 ▼
             </button>
@@ -687,7 +656,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     e.stopPropagation();
                     setExpandedDetails(false);
                   }}
-                  className="text-[11px] text-[var(--app-accent-strong)] font-bold shrink-0 hover:underline"
+                  className="text-xs text-[var(--app-accent-strong)] font-bold shrink-0 hover:underline whitespace-nowrap"
                 >
                   收合 ▲
                 </button>
@@ -698,16 +667,16 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 <span>
                   已耗用 <strong className="text-[var(--app-text)]">{100 - (item.percentageRemaining ?? 100)}%</strong>
                   {isQuantityMode && item.initialQuantity && (
-                    <span className="text-[11px] text-[var(--app-muted)] ml-0.5">
+                    <span className="text-xs text-[var(--app-muted)] ml-0.5">
                       (約 {Math.max(0, Math.round((Number(item.initialQuantity) - Number(item.remainingQuantity ?? item.initialQuantity)) * 10) / 10)} {item.quantityUnit || '顆'})
                     </span>
                   )}
                 </span>
                 <span>·</span>
                 <span>
-                  剩餘 <strong className="text-emerald-600 dark:text-emerald-400">{item.percentageRemaining ?? 100}%</strong>
+                  剩餘 <strong className="text-emerald-700 dark:text-emerald-300">{item.percentageRemaining ?? 100}%</strong>
                   {isQuantityMode && item.remainingQuantity !== undefined && item.remainingQuantity !== null && (
-                    <span className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 ml-0.5">
+                    <span className="text-xs text-emerald-700/80 dark:text-emerald-300/80 ml-0.5">
                       ({item.remainingQuantity} {item.quantityUnit || '顆'})
                     </span>
                   )}
@@ -728,7 +697,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               size={44}
               strokeWidth={3.8}
               showText={true}
-              textClassName="text-[11px]"
+              textClassName="text-xs font-bold"
               ariaLabel={`${item.name} 剩餘比例`}
             />
           )}
@@ -751,8 +720,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                 <strong className="text-[var(--app-accent-strong)]">{activeUnitsList.length} 處在用：</strong>
                 {activeUnitsList.map((u) => u.label).join('、')}
               </span>
-              <span className="text-[11px] text-[var(--app-accent-strong)] shrink-0 ml-1.5 flex items-center gap-0.5 font-bold">
-                展開明細 ▼
+              <span className="text-xs text-[var(--app-accent-strong)] shrink-0 ml-1.5 flex items-center gap-0.5 font-bold whitespace-nowrap">
+                展開 ▼
               </span>
             </button>
           ) : (
@@ -760,12 +729,12 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-1">
                 <span className="text-xs font-bold text-[var(--app-text)] flex items-center gap-1.5">
                   <span>現役多處耗用明細</span>
-                  <span className="px-1.5 py-0.5 rounded-md bg-[var(--app-surface-subtle)] text-[var(--app-accent-strong)] text-[11px] font-extrabold">
+                  <span className="px-1.5 py-0.5 rounded-md bg-[var(--app-surface-subtle)] text-[var(--app-accent-strong)] text-xs font-extrabold">
                     {activeUnitsList.length} 處在用
                   </span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-[var(--app-muted)] font-medium">點選使用處查看操作</span>
+                  <span className="text-xs text-[var(--app-muted)] font-medium">點選使用處查看操作</span>
                   {isCompact && (
                     <button
                       type="button"
@@ -773,9 +742,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                         e.stopPropagation();
                         setExpandedDetails(false);
                       }}
-                      className="text-[11px] font-bold text-[var(--app-accent-strong)] hover:underline"
+                      className="text-xs font-bold text-[var(--app-accent-strong)] hover:underline whitespace-nowrap"
                     >
-                      收合明細 ▲
+                      收合 ▲
                     </button>
                   )}
                 </div>
@@ -792,9 +761,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
       {/* Bottom Row: Minimalist Stock Stepper & Primary CTA */}
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--app-border)] pt-3">
         {/* Stock Stepper */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border border-[var(--app-border)] rounded-xl p-1 bg-[var(--app-surface-subtle)]/80">
-            <span className="text-sm text-[var(--app-text)] px-3 font-bold">備品</span>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center border border-[var(--app-border)] rounded-xl p-1 bg-[var(--app-surface-subtle)]/80 whitespace-nowrap">
+            <span className="text-xs sm:text-sm text-[var(--app-text)] px-2.5 font-bold">備品</span>
           <button
             type="button"
             disabled={busy || item.backupStock <= 0}
@@ -804,7 +773,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
           >
             <Minus className="h-4 w-4" />
           </button>
-          <span className={`text-base font-black tabular-nums min-w-8 text-center px-1.5 ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--app-text)]'}`}>
+          <span className={`text-sm sm:text-base font-black tabular-nums min-w-7 text-center px-1 ${item.backupStock === 0 ? 'text-rose-600 dark:text-rose-400' : 'text-[var(--app-text)]'}`}>
             {item.backupStock}
           </span>
           <button
@@ -825,31 +794,31 @@ export const ItemCard: React.FC<ItemCardProps> = ({
             type="button"
             disabled={busy}
             onClick={(event) => { event.stopPropagation(); if (onStartUsing) void runAction(() => onStartUsing(item.id), '已開始使用'); }}
-            className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+            className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press whitespace-nowrap"
           >
-            <Play className="h-4 w-4 fill-current" />
+            <Play className="h-4 w-4 fill-current shrink-0" />
             <span>開始使用</span>
           </button>
         ) : dateOnly ? (
           <button
             type="button"
             onClick={(event) => { event.stopPropagation(); onEdit(item); }}
-            className="app-control ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-semibold rounded-xl border border-[var(--app-border)] hover:border-[var(--app-border)] text-[var(--app-text)] active:scale-[0.98] transition-all tactile-press"
+            className="app-control ui-button min-h-10 flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-[var(--app-border)] hover:border-[var(--app-border)] text-[var(--app-text)] active:scale-[0.98] transition-all tactile-press whitespace-nowrap"
           >
-            <Edit2 className="h-4 w-4 text-[var(--app-muted)]" />
+            <Edit2 className="h-4 w-4 text-[var(--app-muted)] shrink-0" />
             <span>編輯日期</span>
           </button>
         ) : isQuantityMode ? (
-          <div className="relative flex items-center gap-2">
+          <div className="relative flex items-center gap-2 shrink-0">
             {(item.healthStatus === 'overdue' || item.healthStatus === 'due_soon') && onSnooze && (
               <div className="relative">
                 <button
                   type="button"
                   disabled={busy}
                   onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu((open) => !open); }}
-                  className="app-control ui-button min-h-11 flex items-center gap-1 px-3 py-2.5 text-sm font-semibold rounded-xl border border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)] text-[var(--app-text)] tactile-press"
+                  className="app-control ui-button min-h-10 flex items-center gap-1 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)] text-[var(--app-text)] tactile-press whitespace-nowrap"
                 >
-                  <Moon className="h-4 w-4 text-[var(--app-muted)]" />
+                  <Moon className="h-4 w-4 text-[var(--app-muted)] shrink-0" />
                   <span>稍後</span>
                 </button>
                 {showSnoozeMenu && (
@@ -873,9 +842,9 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                     event.stopPropagation();
                     void runAction(() => onReplace(item.id), '已開啟新備品');
                   }}
-                  className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+                  className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press whitespace-nowrap"
                 >
-                  <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
+                  <RotateCcw className={`h-4 w-4 shrink-0 ${busy ? 'animate-spin' : ''}`} />
                   <span>{hasMultiUnits ? '開新備品' : '開新瓶'}</span>
                 </button>
                 {onConsume && (
@@ -886,7 +855,7 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                       event.stopPropagation();
                       void runAction(() => onConsume(item.id, item.dailyUsage || 1), `已手動扣減 ${item.dailyUsage || 1} ${item.quantityUnit || '顆'}`);
                     }}
-                    className="app-control ui-button min-h-11 flex items-center gap-1 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)] text-[var(--app-text)] tactile-press"
+                    className="app-control ui-button min-h-10 flex items-center gap-1 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)] text-[var(--app-text)] tactile-press whitespace-nowrap"
                     title="手動扣減（系統每日會自動隨時間扣減，免天天手動打卡）"
                   >
                     <span>-{item.dailyUsage || 1} {item.quantityUnit || '顆'}</span>
@@ -901,24 +870,24 @@ export const ItemCard: React.FC<ItemCardProps> = ({
                   event.stopPropagation();
                   void runAction(() => onReplace(item.id), '已開啟新備品');
                 }}
-                className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+                className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press whitespace-nowrap"
               >
-                <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
+                <RotateCcw className={`h-4 w-4 shrink-0 ${busy ? 'animate-spin' : ''}`} />
                 <span>開啟新備品</span>
               </button>
             )}
           </div>
         ) : (
-          <div className="relative flex items-center gap-2">
+          <div className="relative flex items-center gap-2 shrink-0">
             {(item.healthStatus === 'overdue' || item.healthStatus === 'due_soon') && onSnooze && (
               <div className="relative">
                 <button
                   type="button"
                   disabled={busy}
                   onClick={(event) => { event.stopPropagation(); setShowSnoozeMenu((open) => !open); }}
-                  className="app-control ui-button min-h-11 flex items-center gap-1 px-3 py-2.5 text-sm font-semibold rounded-xl border border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)] text-[var(--app-text)] tactile-press"
+                  className="app-control ui-button min-h-10 flex items-center gap-1 px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl border border-[var(--app-border)] hover:bg-[var(--app-surface-subtle)] text-[var(--app-text)] tactile-press whitespace-nowrap"
                 >
-                  <Moon className="h-4 w-4 text-[var(--app-muted)]" />
+                  <Moon className="h-4 w-4 text-[var(--app-muted)] shrink-0" />
                   <span>稍後</span>
                 </button>
                 {showSnoozeMenu && (
@@ -936,10 +905,10 @@ export const ItemCard: React.FC<ItemCardProps> = ({
               type="button"
               disabled={busy}
               onClick={(event) => { event.stopPropagation(); void runAction(() => onReplace(item.id), '耗材已完成更換'); }}
-              className="app-primary ui-button min-h-11 flex items-center gap-1.5 px-4 py-2.5 text-sm sm:text-base font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press"
+              className="app-primary ui-button min-h-10 flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl shadow-xs disabled:opacity-60 active:scale-[0.98] transition-all tactile-press whitespace-nowrap"
               title={hasMultiUnits ? `目前 ${item.activeUnits} 處在用。可針對上方各處個別換新，或在此換新最急處` : '耗材已完成更換'}
             >
-              <RotateCcw className={`h-4 w-4 ${busy ? 'animate-spin' : ''}`} />
+              <RotateCcw className={`h-4 w-4 shrink-0 ${busy ? 'animate-spin' : ''}`} />
               <span>{hasMultiUnits ? '換新最急處' : '今天已換'}</span>
             </button>
           </div>
