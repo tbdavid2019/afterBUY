@@ -7,6 +7,7 @@ settings:
 overrides:
   minimatch: 11.0.1
   esbuild: 0.25.0
+  deepmerge: npm:@stackline/deepmerge@1.1.0
 
 importers:
 
@@ -1359,6 +1360,10 @@ packages:
   '@speed-highlight/core@1.2.24':
     resolution: {integrity: sha512-qeW2e1l78afw8VhRPfPQ1Gjj+KU5XFQ/OFV5ti6eTa9bruO7mJyZtA4vw0ofqmA3tKCkROE9xLk3VZoeRc98nw==}
 
+  '@stackline/deepmerge@1.1.0':
+    resolution: {integrity: sha512-bEQ1EpXrlu9PTTgKD9z85MWYGjDMv79fF2qn2LYdmukpuj6onkn5kZlRAu0PaZvUv9ZQerwtDVgIEn2LYtsE7w==}
+    engines: {node: '>=14.17.0'}
+
   '@tailwindcss/node@4.3.4':
     resolution: {integrity: sha512-b7QK/QG04v3j04NbpG82XLCedRyulnkuwUDwRa9oK/ypnJIzMapz2Wg+0TltVczjUzDaJJHIa1+jj9aMUOFMTQ==}
 
@@ -1785,10 +1790,6 @@ packages:
     peerDependenciesMeta:
       supports-color:
         optional: true
-
-  deepmerge@4.3.1:
-    resolution: {integrity: sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==}
-    engines: {node: '>=0.10.0'}
 
   define-data-property@1.1.4:
     resolution: {integrity: sha512-rBMvIzlpA8v6E+SJZoo++HAYqsLrkg7MSfIinMPFhmkorw7X+dOXVJQs+QT69zGkzMyfDnIMN2Wid1+NbL3T+A==}
@@ -4103,7 +4104,7 @@ snapshots:
     dependencies:
       '@rollup/pluginutils': 5.5.1(rollup@4.67.4)
       '@types/resolve': 1.20.2
-      deepmerge: 4.3.1
+      deepmerge: '@stackline/deepmerge@1.1.0'
       is-module: 1.0.0
       resolve: 1.22.13
     optionalDependencies:
@@ -4228,6 +4229,8 @@ snapshots:
   '@sindresorhus/is@7.2.0': {}
 
   '@speed-highlight/core@1.2.24': {}
+
+  '@stackline/deepmerge@1.1.0': {}
 
   '@tailwindcss/node@4.3.4':
     dependencies:
@@ -4585,8 +4588,6 @@ snapshots:
   debug@4.4.3:
     dependencies:
       ms: 2.1.3
-
-  deepmerge@4.3.1: {}
 
   define-data-property@1.1.4:
     dependencies:
