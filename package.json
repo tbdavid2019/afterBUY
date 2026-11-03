@@ -51,5 +51,11 @@
     "vite": "^8.3.5",
     "vite-plugin-pwa": "^2.0.0",
     "wrangler": "^4.156.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch": "11.0.1",
+      "esbuild": "0.25.0"
+    }
   }
 }
